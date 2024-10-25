@@ -17,18 +17,18 @@ onAuthStateChanged(auth, (currentUser) => {
 });
 
 async function signout() {
-  await auth.signOut();
+  await signOut(auth);
   user.value = null;
 }
-
 </script>
 
 <template>
+<!--  <h1>Account</h1>-->
+<!--  <hr>-->
   <v-container>
 <!--Show login form when user is not authenticated-->
     <h2 v-if="!user"> Login</h2>
     <UserLogin v-if="!user"/>
-
 <!--Show account details when user is authenticated and a button to sign out-->
     <div v-else>
       <h2>Account Details</h2>
@@ -41,5 +41,7 @@ async function signout() {
 </template>
 
 <style scoped>
-
+.login-container{
+  display: flex;
+}
 </style>

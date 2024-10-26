@@ -2,7 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 
 import DashboardView from '@/views/DashboardView.vue'
 import AccountView from '@/views/AccountView.vue'
-import SalesView from '@/views/SalesView.vue'
+import SalesView from '@/views/OrdersView.vue'
 import TrackingView from '@/views/TrackingView.vue'
 import SupplierView from '@/views/SupplierView.vue'
 import ReportView from '@/views/ReportView.vue'

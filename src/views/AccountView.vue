@@ -1,47 +1,65 @@
 <script setup lang="ts">
+  import { ref } from 'vue';
+  import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
+  import UserLogin from '@/components/UserLogin.vue';
 
-import UserLogin from '@/components/UserLogin.vue'
-import { ref } from 'vue';
-import { getAuth, onAuthStateChanged } from 'firebase/auth'
-import { signOut } from 'firebase/auth';
+  const user = ref();
+  const auth = getAuth();
+  const loading = ref(true)
 
-
-const user = ref();
-const auth = getAuth();
-const loading = ref(true)
-
-
-onAuthStateChanged(auth, (currentUser) => {
-  user.value = currentUser;
-  loading.value = false;
-});
-
-async function signout() {
-  await signOut(auth);
-  user.value = null;
-}
+  onAuthStateChanged(auth, (currentUser) => {
+    user.value = currentUser;
+    loading.value = false;
+  });
+  async function signout() {
+    await signOut(auth);
+    user.value = null;
+  }
 </script>
 
 <template>
-<!--  <h1>Account</h1>-->
-<!--  <hr>-->
-  <v-container>
-<!--Show login form when user is not authenticated-->
-    <h2 v-if="!user"> Login</h2>
+  <v-container class="container">
+    <!-- Show login form when user is not authenticated -->
     <UserLogin v-if="!user"/>
-<!--Show account details when user is authenticated and a button to sign out-->
-    <div v-else>
-      <h2>Account Details</h2>
-      <p>Email: {{user?.email}}</p>
-      <v-spacer></v-spacer>
-      <v-btn @click="signout"> Sign Out</v-btn>
-    </div>
 
+    <!-- Show account details when user is authenticated -->
+    <div v-else class="account-container">
+      <h2>Account Details</h2>
+      <p>Email: {{ user?.email }}</p>
+      <v-btn color="error" @click="signout">Sign Out</v-btn>
+    </div>
   </v-container>
 </template>
 
+
 <style scoped>
-.login-container{
-  display: flex;
+@import url("https://fonts.googleapis.com/css?family=Montserrat:400,800");
+
+form {
+  background-color: #ffffff;
+  height: 100%;
+
 }
+
+.container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
+  max-width: 400px;
+  padding: 2rem;
+}
+
+.account-container {
+  width: 100%;
+  text-align: center;
+}
+
 </style>
+
+
+

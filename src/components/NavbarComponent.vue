@@ -20,11 +20,8 @@
         <v-list-item prepend-icon="mdi-view-dashboard" title="Dashboard" :to="{ path: '/DashboardView' }"></v-list-item>
         <v-list-item prepend-icon="mdi-clipboard-list-outline" title="Inventory" :to="{ path: '/InventoryView' }"></v-list-item>
         <v-list-item prepend-icon="mdi-cart" title="Orders" :to="{ path: '/OrdersView' }"></v-list-item>
-<!--        <v-list-item prepend-icon="mdi-account-group" title="Suppliers" :to="{ path: '/SupplierView' }"></v-list-item>-->
-<!--        <v-list-item prepend-icon="mdi-map-marker-path" title="Tracking" :to="{ path: '/TrackingView' }"></v-list-item>-->
         <v-divider></v-divider>
         <v-list-item prepend-icon="mdi-account-badge" title="Account" :to="{ path: '/AccountView' }"></v-list-item>
-<!--        <v-list-item prepend-icon="mdi-chart-line" title="Reports" :to="{ path: '/ReportView' }"></v-list-item>-->
         <v-list-item prepend-icon="mdi-cog" title="Settings" :to="{ path: '/SettingsView' }"></v-list-item>
       </v-list>
     </v-navigation-drawer>

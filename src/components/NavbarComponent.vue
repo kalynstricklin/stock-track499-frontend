@@ -25,15 +25,6 @@
         <v-list-item prepend-icon="mdi-cog" title="Settings" :to="{ path: '/SettingsView' }"></v-list-item>
       </v-list>
     </v-navigation-drawer>
-
-
-    <v-main style="height: 500px">
-      <v-card-text>
-          <!--main content?-->
-      </v-card-text>
-
-    </v-main>
-
   </v-app>
 </template>
 

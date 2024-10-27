@@ -1,39 +1,63 @@
 <script setup lang="ts">
   import { ref } from 'vue';
   import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
-  import UserLogin from '@/components/UserLogin.vue';
+  import UserLogin from '@/components/account/UserLogin.vue';
+  import UserSignup from '@/components/account/UserSignup.vue'
+  import AdminList from '@/components/admin/AdminList.vue'
+  import AccountDetails from '@/components/account/AccountDetails.vue'
 
   const user = ref();
   const auth = getAuth();
   const loading = ref(true)
+  const showSignup = ref(false)
+  const showLogin = ref(true)
+
 
   onAuthStateChanged(auth, (currentUser) => {
     user.value = currentUser;
     loading.value = false;
   });
-  async function signout() {
-    await signOut(auth);
-    user.value = null;
+
+  function toggleSignup(){
+    showSignup.value = true;
+    showLogin.value = false;
   }
+  function toggleSignIn(){
+    showSignup.value = false;
+    showLogin.value = true;
+  }
+
+
 </script>
 
 <template>
-  <v-container class="container">
-    <!-- Show login form when user is not authenticated -->
-    <UserLogin v-if="!user"/>
+  <v-container>
+  <v-container v-if="!user" class="container">
+    <v-btn-toggle>
+      <v-btn @click="toggleSignIn">Login</v-btn>
+      <v-btn @click="toggleSignup">Sign Up</v-btn>
+    </v-btn-toggle>
+    <UserSignup v-if="showSignup"/>
+    <UserLogin v-if="showLogin" />
+  </v-container>
 
-    <!-- Show account details when user is authenticated -->
-    <div v-else class="account-container">
-      <h2>Account Details</h2>
-      <p>Email: {{ user?.email }}</p>
-      <v-btn color="error" @click="signout">Sign Out</v-btn>
-    </div>
+<!--    if user is admin show user list else show account details-->
+<!--    <div v-if="admin">-->
+<!--      <AdminList/>-->
+<!--    </div>-->
+<!--   Show account details when user is authenticated-->
+    <v-container v-else>
+<!--      <AdminList/>-->
+      <AccountDetails/>
+    </v-container>
+
   </v-container>
 </template>
 
 
 <style scoped>
 @import url("https://fonts.googleapis.com/css?family=Montserrat:400,800");
+
 
 form {
   background-color: #ffffff;
@@ -53,12 +77,6 @@ form {
   max-width: 400px;
   padding: 2rem;
 }
-
-.account-container {
-  width: 100%;
-  text-align: center;
-}
-
 </style>
 
 

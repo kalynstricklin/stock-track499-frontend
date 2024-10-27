@@ -1,20 +1,25 @@
 <template>
   <div class="form-container sign-in-container">
     <v-form @submit.prevent="login" class="sign-in-form">
-      <h1 class="title">Sign In</h1>
+
       <v-text-field prepend-inner-icon="mdi-account" v-model="email" :rules="emRules" label="Email" required></v-text-field>
       <v-text-field prepend-inner-icon="mdi-lock" v-model="password" :rules="pwRules" label="Password" type="password" required></v-text-field>
       <v-btn color="primary" block dark class="login-btn" type="submit">Login</v-btn>
-      <v-row class="forgot-password">
+
+<!--      <span>Don't have any account? Signup</span>-->
+      <br>
+
+      <v-row class="forgot-password" @click="sendPWResetEmail">
         <span>Forgot your password?</span>
       </v-row>
+
     </v-form>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { signInWithEmailAndPassword, getAuth } from 'firebase/auth';
+import { signInWithEmailAndPassword, getAuth, sendPasswordResetEmail } from 'firebase/auth'
 
 const email = ref('');
 const password = ref('');
@@ -28,11 +33,20 @@ async function login() {
   loading.value = true;
   try {
     await signInWithEmailAndPassword(auth, email.value, password.value);
-    alert('Login successful!');
   } catch (error) {
     alert(error);
   } finally {
     loading.value = false;
+  }
+}
+
+async function sendPWResetEmail (){
+  try{
+    await sendPasswordResetEmail(auth, email.value);
+    alert('Password reset email sent!')
+  }catch(error){
+    console.log(error)
+    alert("Error sending password reset email.")
   }
 }
 </script>
@@ -52,19 +66,14 @@ async function login() {
   gap: 1rem;
 }
 
-.title {
-  font-weight: bold;
-  text-align: center;
-  margin-bottom: 1rem;
-}
-
 .login-btn {
   margin-top: 1rem;
 }
 
 .forgot-password {
+  justify-content: center;
   text-align: center;
-  color: #007bff;
+  color: #396483;
   cursor: pointer;
   font-size: 0.9rem;
 }

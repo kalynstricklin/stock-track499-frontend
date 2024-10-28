@@ -1,22 +1,17 @@
 <template>
-  <v-app>
-    <v-app-bar color="primary" prominent>
+  <v-toolbar>
+    <v-app-bar color="info" dark short app>
       <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
-
       <v-app-bar-title>StockTrack</v-app-bar-title>
-
       <v-spacer></v-spacer>
-
-      <v-btn icon="mdi-dots-vertical" variant="text"></v-btn>
+      <v-btn icon @click="menuAction">
+        <v-icon>mdi-dots-vertical</v-icon>
+      </v-btn>
     </v-app-bar>
 
+
     <!--nav menu-->
-    <v-navigation-drawer
-      v-model="drawer"
-      :location="$vuetify.display ? 'left' : undefined"
-      temporary
-      app
-    >
+    <v-navigation-drawer v-model="drawer" app>
       <v-list>
         <v-list-item prepend-icon="mdi-view-dashboard" title="Dashboard" :to="{ path: '/dashboard' }"></v-list-item>
         <v-list-item prepend-icon="mdi-clipboard-list-outline" title="Inventory" :to="{ path: '/inventory' }"></v-list-item>
@@ -26,7 +21,8 @@
         <v-list-item prepend-icon="mdi-cog" title="Settings" :to="{ path: '/settings' }"></v-list-item>
       </v-list>
     </v-navigation-drawer>
-  </v-app>
+
+  </v-toolbar>
 </template>
 
 

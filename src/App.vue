@@ -1,8 +1,8 @@
 <template>
-  <v-app>
+  <v-app >
     <NavbarComponent />
 
-    <v-main class="mx-4 mb-4">
+    <v-main class="grey-background">
       <router-view/>
     </v-main>
   </v-app>
@@ -19,3 +19,10 @@ export default {
   }
 }
 </script>
+
+<style>
+.grey-background {
+  background-color: #f3f3f3;
+
+}
+</style>

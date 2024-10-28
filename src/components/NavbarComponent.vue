@@ -1,12 +1,10 @@
 <template>
   <v-toolbar>
-    <v-app-bar color="info" dark short app>
+    <v-app-bar color="info" prominent>
       <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
       <v-app-bar-title>StockTrack</v-app-bar-title>
       <v-spacer></v-spacer>
-      <v-btn icon @click="menuAction">
-        <v-icon>mdi-dots-vertical</v-icon>
-      </v-btn>
+      <v-btn icon="mdi-dots-vertical" variant="text"></v-btn>
     </v-app-bar>
 
 

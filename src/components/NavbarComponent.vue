@@ -13,16 +13,17 @@
     <!--nav menu-->
     <v-navigation-drawer
       v-model="drawer"
-      :location="$vuetify.display.mobile ? 'left' : undefined"
+      :location="$vuetify.display ? 'left' : undefined"
       temporary
+      app
     >
       <v-list>
-        <v-list-item prepend-icon="mdi-view-dashboard" title="Dashboard" :to="{ path: '/DashboardView' }"></v-list-item>
-        <v-list-item prepend-icon="mdi-clipboard-list-outline" title="Inventory" :to="{ path: '/InventoryView' }"></v-list-item>
-        <v-list-item prepend-icon="mdi-cart" title="Orders" :to="{ path: '/OrdersView' }"></v-list-item>
+        <v-list-item prepend-icon="mdi-view-dashboard" title="Dashboard" :to="{ path: '/dashboard' }"></v-list-item>
+        <v-list-item prepend-icon="mdi-clipboard-list-outline" title="Inventory" :to="{ path: '/inventory' }"></v-list-item>
+        <v-list-item prepend-icon="mdi-cart" title="Orders" :to="{ path: '/orders' }"></v-list-item>
         <v-divider></v-divider>
-        <v-list-item prepend-icon="mdi-account-badge" title="Account" :to="{ path: '/AccountView' }"></v-list-item>
-        <v-list-item prepend-icon="mdi-cog" title="Settings" :to="{ path: '/SettingsView' }"></v-list-item>
+        <v-list-item prepend-icon="mdi-account-badge" title="Account" :to="{ path: '/auth/account' }"></v-list-item>
+        <v-list-item prepend-icon="mdi-cog" title="Settings" :to="{ path: '/settings' }"></v-list-item>
       </v-list>
     </v-navigation-drawer>
   </v-app>

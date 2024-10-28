@@ -32,10 +32,12 @@
 
 <template>
   <v-container>
+
   <v-container v-if="!user" class="container">
-    <v-btn-toggle>
-      <v-btn @click="toggleSignIn">Login</v-btn>
-      <v-btn @click="toggleSignup">Sign Up</v-btn>
+<!--    <h2>StockTrack</h2>-->
+    <v-btn-toggle class="toggle-buttons">
+      <v-btn @click="toggleSignIn" >Login</v-btn>
+      <v-btn @click="toggleSignup"  >Sign Up</v-btn>
     </v-btn-toggle>
     <UserSignup v-if="showSignup"/>
     <UserLogin v-if="showLogin" />
@@ -63,6 +65,10 @@ form {
   background-color: #ffffff;
   height: 100%;
 
+}
+
+.toggle-buttons{
+  margin-bottom: 15px;
 }
 
 .container {

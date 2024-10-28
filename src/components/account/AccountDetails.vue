@@ -21,7 +21,7 @@ async function signout() {
     <h2 class="title font-weight-bold">Account Details</h2>
 
     <br>
-    <p> Name: {{user?.displayName}}</p>
+    <p>{{user?.displayName}}</p>
     <br>
     <p>Email: {{user?.email}}</p>
     <br>

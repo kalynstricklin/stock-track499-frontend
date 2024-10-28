@@ -1,12 +1,14 @@
 <!--i dont think i want a sign up just a login page.-->
 <template>
   <div class="form-container sign-up-container">
+    <h1>Create an account</h1>
+    <br>
     <v-form @submit.prevent="register" class="sign-in-form">
       <v-text-field v-model="firstName" label="First Name" required></v-text-field>
       <v-text-field v-model="lastName" label="Last Name" required></v-text-field>
       <v-text-field v-model="email" label="Email" required></v-text-field>
       <v-text-field v-model="password" label="Password" type="password" required></v-text-field>
-      <v-btn color="primary" block dark class="login-btn" type="submit">Register</v-btn>
+      <v-btn color="primary" block dark class="login-btn" type="submit">Sign Up</v-btn>
     </v-form>
   </div>
 </template>
@@ -39,6 +41,20 @@ async function register() {
 </script>
 
 <style scoped>
+@import url('https://fonts.googleapis.com/css?family=Poppins:400,500,600,700&display=swap');
+*{
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Poppins', sans-serif;
+}
+html,body{
+  display: grid;
+  height: 100%;
+  width: 100%;
+  place-items: center;
+
+}
 .form-container {
   width: 100%;
   display: flex;
@@ -50,7 +66,7 @@ async function register() {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.5rem;
 }
 
 .title {

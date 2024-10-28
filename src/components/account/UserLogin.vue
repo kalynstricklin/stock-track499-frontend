@@ -1,18 +1,17 @@
 <template>
+
   <div class="form-container sign-in-container">
+    <h1>Welcome back!</h1>
+    <br>
     <v-form @submit.prevent="login" class="sign-in-form">
 
       <v-text-field prepend-inner-icon="mdi-account" v-model="email" :rules="emRules" label="Email" required></v-text-field>
       <v-text-field prepend-inner-icon="mdi-lock" v-model="password" :rules="pwRules" label="Password" type="password" required></v-text-field>
-      <v-btn color="primary" block dark class="login-btn" type="submit">Login</v-btn>
-
-<!--      <span>Don't have any account? Signup</span>-->
-      <br>
-
       <v-row class="forgot-password" @click="sendPWResetEmail">
         <span>Forgot your password?</span>
       </v-row>
-
+      <br>
+      <v-btn color="primary" block dark class="login-btn" type="submit">Login</v-btn>
     </v-form>
   </div>
 </template>
@@ -63,7 +62,7 @@ async function sendPWResetEmail (){
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.5rem;
 }
 
 .login-btn {
@@ -71,10 +70,13 @@ async function sendPWResetEmail (){
 }
 
 .forgot-password {
-  justify-content: center;
+  margin-top: -20px;
+  padding-right: 12px;
+  justify-content: end;
   text-align: center;
   color: #396483;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
+
 }
 </style>

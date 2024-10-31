@@ -1,9 +1,10 @@
 <script setup lang="ts">
 
+import AlertCards from '@/components/dashboard/AlertCards.vue'
 </script>
 
 <template>
-  <main></main>
+  <AlertCards/>
 </template>
 
 <style scoped>

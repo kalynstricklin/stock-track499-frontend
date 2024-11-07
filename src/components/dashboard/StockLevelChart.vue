@@ -29,6 +29,38 @@ onMounted(() => {
             borderWidth: 1,
           }
         ]
+      },
+      options: {
+        plugins: {
+          title: {
+            display: true,
+            text: 'Warehouse Stock Levels',
+            font: {
+              size: 18,
+              weight: 'bold'
+            },
+          },
+          legend: {
+            position: 'bottom',
+          }
+        },
+        scales: {
+          x:{
+            title: {
+              display: true,
+              text: 'Items'
+            },
+            beginAtZero: true
+
+          },
+          y: {
+            title: {
+              display: true,
+              text: 'Count',
+            },
+            beginAtZero: true
+          }
+        }
       }
     });
   }
@@ -40,9 +72,6 @@ onMounted(() => {
 
 <template>
   <v-container id="stockLevelChart" fluid tag="section">
-    <h1>
-        Current Stock Levels
-    </h1>
     <div style="width: 800px;">
       <canvas id="stockLevels"></canvas>
     </div>

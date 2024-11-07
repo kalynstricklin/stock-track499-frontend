@@ -1,12 +1,32 @@
 <script setup lang="ts">
 
 import AlertCards from '@/components/dashboard/AlertCards.vue'
+import StockLevelChart from '@/components/dashboard/StockLevelChart.vue'
+import BarChart from '@/components/dashboard/BarChart.vue'
 </script>
 
 <template>
   <AlertCards/>
+
+  <v-container>
+    <v-row no-gutters>
+      <div style="width: 800px; padding:20px">
+        <BarChart />
+      </div>
+      <v-spacer></v-spacer>
+      <div style="width: 800px; padding:20px">
+        <StockLevelChart />
+      </div>
+    </v-row>
+  </v-container>
+
+
 </template>
 
 <style scoped>
+.v-container {
+  padding: 20px;
+}
+
 
 </style>

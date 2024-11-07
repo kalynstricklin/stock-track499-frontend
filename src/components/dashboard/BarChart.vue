@@ -29,6 +29,38 @@ onMounted(() => {
             borderWidth: 1,
           }
         ]
+      },
+      options: {
+        plugins: {
+          title: {
+            display: true,
+            text: 'Warehouse Sales',
+            font: {
+              size: 18,
+              weight: 'bold'
+            },
+          },
+          legend: {
+            position: 'bottom',
+          }
+        },
+        scales: {
+          x:{
+            title: {
+              display: true,
+              text: 'Items'
+            },
+            beginAtZero: true
+
+          },
+          y: {
+            title: {
+              display: true,
+              text: 'Sales per thousand $',
+            },
+            beginAtZero: true
+          }
+        }
       }
     });
   }
@@ -38,9 +70,6 @@ onMounted(() => {
 
 <template>
   <v-container id="salesTrendsChart" fluid tag="section">
-    <h1>
-        Sales Trends
-    </h1>
     <div style="width: 800px;">
       <canvas id="salesTrends"></canvas>
     </div>

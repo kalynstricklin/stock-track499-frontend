@@ -37,7 +37,7 @@
       return {
         page: 1,
         itemsPerPage: 1, // one item per page for now
-          inv: [
+          ord: [ 
             {
               id: '000',
               date: '01-01-2024',
@@ -61,11 +61,11 @@
     paginatedItems() {
       const start = (this.page - 1) * this.itemsPerPage
       const end = start + this.itemsPerPage
-      return this.inv.slice(start, end)
+      return this.ord.slice(start, end)
     },
     // total num of pages
     totalPages() {
-      return Math.ceil(this.inv.length / this.itemsPerPage)
+      return Math.ceil(this.ord.length / this.itemsPerPage)
     }
   }
   }

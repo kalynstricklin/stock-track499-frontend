@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@jamescoyle/vue-icon": "^0.1.2",
+    "@mdi/font": "^7.4.47",
     "@mdi/js": "^7.4.47",
     "firebase": "^10.14.0",
     "pinia": "^2.1.7",
@@ -46,6 +47,6 @@
     "vite-plugin-vue-devtools": "^7.3.1",
     "vitest": "^1.6.0",
     "vue-tsc": "^2.0.21",
-    "vuetify": "^3.7.3"
+    "vuetify": "^3.7.4"
   }
 }

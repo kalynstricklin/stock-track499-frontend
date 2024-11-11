@@ -1,0 +1,7 @@
+File /home/ashley/Documents/GitHub/stock-track499-frontend/env.d.ts
+
+
+Warnings :
+1 : the definition is not identified
+
+Your trace has 0 errors and 1 warnings.

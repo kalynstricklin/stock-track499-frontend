@@ -38,7 +38,7 @@
     data() { // fake data for rn
       return {
         page: 1,
-        itemsPerPage: 1, // one item per page for now
+        itemsPerPage: 20, // one item per page for now
           inv: [
             {
               name: 'item 1',

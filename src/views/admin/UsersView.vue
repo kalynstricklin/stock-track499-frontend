@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import Order from '@/components/tables/Order.vue'
+import UsersTables from '@/components/tables/UsersTables.vue'
 </script>
 
 <template>
   <v-container>
-    <Order/>
+    <UsersTables/>
   </v-container>
 
 </template>

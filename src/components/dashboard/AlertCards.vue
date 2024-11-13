@@ -8,43 +8,134 @@ import StockLevelChart from '@/components/dashboard/StockLevelChart.vue'
 <template>
   <v-container id="dashboard" fluid tag="section">
     <v-row>
-      <v-col cols="12" sm="6" lg="3">
-        <v-card class="dashboard-card">
-          <v-card-title>Low Stock Items</v-card-title>
-          <v-card-text class="card-text">
-            <h3 class="display-2 font-weight-light text--primary">8</h3>
-          </v-card-text>
-        </v-card>
-      </v-col>
 
       <v-col cols="12" sm="6" lg="3">
-        <v-card class="dashboard-card">
-          <v-card-title>Total Revenue</v-card-title>
-          <v-card-text class="card-text">
-            <h3 class="display-2 font-weight-light text--primary">$10000</h3>
-          </v-card-text>
-        </v-card>
-      </v-col>
-
-      <v-col cols="12" sm="6" lg="3">
-        <v-card class="dashboard-card">
-          <v-card-title>Pending Orders</v-card-title>
-          <v-card-text class="card-text">
-            <h3 class="display-2 font-weight-light text--primary">250</h3>
-          </v-card-text>
+        <v-card class="dashboard-card" outlined>
+          <v-row align="center" justify="space-between">
+            <v-col class="text-left" cols="4">
+              <v-avatar color="amber-lighten-5" size="65">
+                <v-icon color="yellow-darken-1" size="30">mdi-cart</v-icon>
+              </v-avatar>
+            </v-col>
+            <v-col cols="8">
+              <v-card-title class="text-h4 mb-1">5</v-card-title>
+              <v-card-subtitle>Low Stock Items</v-card-subtitle>
+            </v-col>
+          </v-row>
         </v-card>
       </v-col>
 
 
+
       <v-col cols="12" sm="6" lg="3">
-        <v-card class="dashboard-card">
-          <v-card-title>Returns</v-card-title>
-          <v-card-text class="card-text">
-            <h3 class="display-2 font-weight-light text--primary">4</h3>
-          </v-card-text>
+        <v-card class="dashboard-card" outlined>
+          <v-row align="center" justify="space-between">
+            <v-col class="text-left" cols="4">
+              <v-avatar color="green-lighten-5" size="65">
+                <v-icon color="success" size="35">mdi-cash</v-icon>
+              </v-avatar>
+            </v-col>
+            <v-col cols="8">
+              <v-card-title class="text-h4 mb-1" >$10000</v-card-title>
+              <v-card-subtitle>Total Revenue</v-card-subtitle>
+            </v-col>
+          </v-row>
         </v-card>
       </v-col>
 
+      <v-col cols="12" sm="6" lg="3">
+        <v-card class="dashboard-card" outlined>
+          <v-row align="center" justify="space-between">
+            <v-col class="text-left" cols="4">
+              <v-avatar color="amber-lighten-5" size="65">
+                <v-icon color="yellow-darken-1" size="30">mdi-cart</v-icon>
+              </v-avatar>
+            </v-col>
+            <v-col cols="8">
+              <v-card-title class="text-h4 mb-1">5</v-card-title>
+              <v-card-subtitle>Low Stock Items</v-card-subtitle>
+            </v-col>
+          </v-row>
+        </v-card>
+      </v-col>
+
+
+
+      <v-col cols="12" sm="6" lg="3">
+        <v-card class="dashboard-card" outlined>
+          <v-row align="center" justify="space-between">
+            <v-col class="text-left" cols="4">
+              <v-avatar color="green-lighten-5" size="65">
+                <v-icon color="success" size="35">mdi-cash</v-icon>
+              </v-avatar>
+            </v-col>
+            <v-col cols="8">
+              <v-card-title class="text-h4 mb-1" >$10000</v-card-title>
+              <v-card-subtitle>Total Revenue</v-card-subtitle>
+            </v-col>
+          </v-row>
+        </v-card>
+      </v-col>
+
+
+
+      <v-col cols="12" sm="6" lg="3">
+        <v-card class="dashboard-card" outlined color="teal-darken-1">
+          <v-row align="center" justify="space-between">
+            <v-col class="text-left" cols="8">
+              <v-card-title class="text-h4 mb-1" >172</v-card-title>
+              <v-card-subtitle>Orders</v-card-subtitle>
+            </v-col>
+            <v-col class="text-right" cols="4">
+              <v-icon size="80">mdi-file-account</v-icon>
+            </v-col>
+
+          </v-row>
+        </v-card>
+      </v-col>
+
+      <v-col cols="12" sm="6" lg="3">
+        <v-card class="dashboard-card" outlined color="deep-purple-darken-1">
+          <v-row align="center" justify="space-between">
+            <v-col class="text-left" cols="8">
+              <v-card-title class="text-h4 mb-1" >172</v-card-title>
+              <v-card-subtitle>Customers</v-card-subtitle>
+            </v-col>
+            <v-col class="text-right" cols="4">
+              <v-icon size="80">mdi-account</v-icon>
+            </v-col>
+
+          </v-row>
+        </v-card>
+      </v-col>
+
+      <v-col cols="12" sm="6" lg="3">
+        <v-card class="dashboard-card" outlined color="green-darken-1">
+          <v-row align="center" justify="space-between">
+            <v-col class="text-left" cols="8">
+              <v-card-title class="text-h4 mb-1">10</v-card-title>
+              <v-card-subtitle>Suppliers</v-card-subtitle>
+            </v-col>
+            <v-col class="text-right" cols="4">
+              <v-icon size="80">mdi-account-multiple-outline</v-icon>
+            </v-col>
+          </v-row>
+        </v-card>
+      </v-col>
+
+      <v-col cols="12" sm="6" lg="3">
+        <v-card class="dashboard-card" outlined color="light-blue-darken-1">
+          <v-row align="center" justify="space-between">
+            <v-col class="text-left" cols="8">
+              <v-card-title class="text-h4 mb-1">10</v-card-title>
+              <v-card-subtitle>Suppliers</v-card-subtitle>
+            </v-col>
+            <v-col class="text-right" cols="4">
+              <v-icon size="80">mdi-account-multiple-outline</v-icon>
+            </v-col>
+          </v-row>
+        </v-card>
+      </v-col>
 
     </v-row>
 
@@ -62,15 +153,8 @@ import StockLevelChart from '@/components/dashboard/StockLevelChart.vue'
   background-color: #ffffff;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  padding: 15px;
+  padding: 10px;
   text-align: center;
-}
-
-.card-title {
-  font-weight: bold;
-  color: #333333;
-  margin-bottom: 10px;
-  font-size: 1.2rem;
 }
 
 .card-text {

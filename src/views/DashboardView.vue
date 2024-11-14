@@ -2,7 +2,7 @@
 
 import AlertCards from '@/components/dashboard/AlertCards.vue'
 import StockLevelChart from '@/components/dashboard/StockLevelChart.vue'
-import BarChart from '@/components/dashboard/BarChart.vue'
+import BarChart from '@/components/dashboard/SalesChart.vue'
 </script>
 
 <template>

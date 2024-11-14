@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import BarChart from '@/components/dashboard/BarChart.vue'
+import BarChart from '@/components/dashboard/SalesChart.vue'
 import StockLevelChart from '@/components/dashboard/StockLevelChart.vue'
 
 </script>
@@ -62,7 +62,7 @@ import StockLevelChart from '@/components/dashboard/StockLevelChart.vue'
 
 
       <v-col cols="12" sm="6" lg="3">
-        <v-card class="dashboard-card" outlined>
+        <v-card class="dashboard-card" outlined elevation="16">
           <v-row align="center" justify="space-between">
             <v-col class="text-left" cols="4">
               <v-avatar color="green-lighten-5" size="65">
@@ -80,14 +80,16 @@ import StockLevelChart from '@/components/dashboard/StockLevelChart.vue'
 
 
       <v-col cols="12" sm="6" lg="3">
-        <v-card class="dashboard-card" outlined color="teal-darken-1">
+        <v-card class="dashboard-card" outlined color="teal-darken-1" elevation="16">
           <v-row align="center" justify="space-between">
             <v-col class="text-left" cols="8">
-              <v-card-title class="text-h4 mb-1" >172</v-card-title>
-              <v-card-subtitle>Orders</v-card-subtitle>
+              <v-card-item>
+                <v-card-title class="text-h4 mb-1" >172</v-card-title>
+                <v-card-subtitle>Orders</v-card-subtitle>
+              </v-card-item>
             </v-col>
             <v-col class="text-right" cols="4">
-              <v-icon size="80">mdi-file-account</v-icon>
+              <v-icon size="75">mdi-file-account</v-icon>
             </v-col>
 
           </v-row>
@@ -95,14 +97,17 @@ import StockLevelChart from '@/components/dashboard/StockLevelChart.vue'
       </v-col>
 
       <v-col cols="12" sm="6" lg="3">
-        <v-card class="dashboard-card" outlined color="deep-purple-darken-1">
+        <v-card class="dashboard-card" outlined color="deep-purple-darken-1" elevation="16">
           <v-row align="center" justify="space-between">
             <v-col class="text-left" cols="8">
-              <v-card-title class="text-h4 mb-1" >172</v-card-title>
-              <v-card-subtitle>Customers</v-card-subtitle>
+              <v-card-item>
+                <v-card-title class="text-h4 mb-1" >172</v-card-title>
+                <v-card-subtitle>Customers</v-card-subtitle>
+              </v-card-item>
+
             </v-col>
             <v-col class="text-right" cols="4">
-              <v-icon size="80">mdi-account</v-icon>
+              <v-icon size="75">mdi-account</v-icon>
             </v-col>
 
           </v-row>
@@ -110,28 +115,32 @@ import StockLevelChart from '@/components/dashboard/StockLevelChart.vue'
       </v-col>
 
       <v-col cols="12" sm="6" lg="3">
-        <v-card class="dashboard-card" outlined color="green-darken-1">
+        <v-card class="dashboard-card" outlined color="green-darken-1" elevation="16">
           <v-row align="center" justify="space-between">
             <v-col class="text-left" cols="8">
-              <v-card-title class="text-h4 mb-1">10</v-card-title>
-              <v-card-subtitle>Suppliers</v-card-subtitle>
+              <v-card-item>
+                <v-card-title class="text-h4 mb-1" >16</v-card-title>
+                <v-card-subtitle>Suppliers</v-card-subtitle>
+              </v-card-item>
             </v-col>
             <v-col class="text-right" cols="4">
-              <v-icon size="80">mdi-account-multiple-outline</v-icon>
+              <v-icon size="75">mdi-account-multiple-outline</v-icon>
             </v-col>
           </v-row>
         </v-card>
       </v-col>
 
       <v-col cols="12" sm="6" lg="3">
-        <v-card class="dashboard-card" outlined color="light-blue-darken-1">
+        <v-card class="dashboard-card" outlined color="light-blue-darken-1" elevation="16">
           <v-row align="center" justify="space-between">
             <v-col class="text-left" cols="8">
-              <v-card-title class="text-h4 mb-1">10</v-card-title>
-              <v-card-subtitle>Suppliers</v-card-subtitle>
+              <v-card-item>
+                <v-card-title class="text-h4 mb-1" >16</v-card-title>
+                <v-card-subtitle>Suppliers</v-card-subtitle>
+              </v-card-item>
             </v-col>
             <v-col class="text-right" cols="4">
-              <v-icon size="80">mdi-account-multiple-outline</v-icon>
+              <v-icon size="75">mdi-account-multiple-outline</v-icon>
             </v-col>
           </v-row>
         </v-card>

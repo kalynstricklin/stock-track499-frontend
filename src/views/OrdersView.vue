@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Order from '@/components/tables/Order.vue'
+import Order from '@/components/tables/OrderTable.vue'
 </script>
 
 <template>

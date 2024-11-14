@@ -48,7 +48,7 @@ onMounted(() => {
           x:{
             title: {
               display: true,
-              text: 'Items'
+              text: 'Years'
             },
             beginAtZero: true
 

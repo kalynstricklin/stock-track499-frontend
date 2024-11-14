@@ -8,6 +8,7 @@ const editedItem = ref({
   name: '',
   items: []
 });
+const editedIndex = ref(-1);
 const formTitle = ref("New Order");
 
 const headers = [
@@ -59,7 +60,6 @@ const order = ref([
       { productName: 'Pant', productId: 'pn-1236', pick: 1, onHand: 48 },
     ],
   },
-
   {
     orderId: '3',
     customer: 'Josh Z',
@@ -103,23 +103,18 @@ const close = () => {
 };
 
 const save = () => {
-  if (editedItem.value.orderId) {
-
-    const index = order.value.findIndex(o => o.orderId === editedItem.value.orderId);
-    if (index !== -1) {
-      order.value[index] = { ...editedItem.value };
-    }
-  } else {
-
+  if(editedIndex.value === -1){
     const newOrder = {
-      customer: editedItem.value.name,
       orderId: String(order.value.length + 1),
+      customer: editedItem.value.name,
       orderDate: new Date().toLocaleDateString(),
-      itemCount: editedItem.value.items?.length || 0,
       status: 'Pending',
+      itemCount: editedItem.value.items?.length || 0,
       items: getItems(editedItem.value.items)
     };
     order.value.push(newOrder);
+  }else{
+    order.value[editedIndex.value] = { ...editedItem.value };
   }
 
   close();
@@ -160,7 +155,6 @@ const getColor = (status: string) =>{
       :items="order"
       item-value="orderId"
       show-expand
-      :search="search"
       :filter-keys="['customer', 'orderId', 'status', 'orderDate']"
     >
       <template v-slot:item.orderId="{ value }">
@@ -194,12 +188,16 @@ const getColor = (status: string) =>{
           ></v-text-field>
 
 
-          <v-btn color="primary" dark @click="openDialog">
-            New Order
-          </v-btn>
 
           <!-- New Order Popup dialog  -->
           <v-dialog v-model="dialog" max-width="600px">
+            <template v-slot:activator="{ props }">
+              <v-btn color="primary" dark v-bind="props"  @click="openDialog">
+                New Order
+              </v-btn>
+
+            </template>
+
             <v-card>
               <v-card-title>
                 <span>{{ formTitle }}</span>
@@ -272,9 +270,23 @@ const getColor = (status: string) =>{
               :items-value="item.items"
               :items-per-page="-1"
             >
-              <template v-slot:[`item.productDetails`]="{ item }">
-                <v-list-item-title>{{ item.productName }}</v-list-item-title>
-                <v-list-item-subtitle>{{ item.productId }}</v-list-item-subtitle>
+              <template v-slot:item="{ item }">
+                <tr>
+                  <td>
+                    <v-list-item-title> {{ item.productName }}</v-list-item-title>
+                    <v-list-item-subtitle>{{ item.productId }}</v-list-item-subtitle>
+                  </td>
+                  <td>
+                    <v-list-item-subtitle>Pick</v-list-item-subtitle>
+                    <v-list-item-title> {{ item.pick }}</v-list-item-title>
+                  </td>
+
+                  <td>
+                    <v-list-item-subtitle>On Hand</v-list-item-subtitle>
+                    <v-list-item-title> {{ item.onHand }}</v-list-item-title>
+                  </td>
+                </tr>
+
               </template>
             </v-data-table>
           </td>

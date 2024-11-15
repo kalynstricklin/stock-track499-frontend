@@ -4,13 +4,13 @@ import Chart from 'chart.js/auto';
 
 onMounted(() => {
   const data = [
-    { year: 2010, count: 10 },
-    { year: 2011, count: 20 },
-    { year: 2012, count: 15 },
-    { year: 2013, count: 25 },
-    { year: 2014, count: 22 },
-    { year: 2015, count: 30 },
-    { year: 2016, count: 28 },
+    { year: 2010, revenue: 10 },
+    { year: 2011, revenue: 20},
+    { year: 2012, revenue: 15},
+    { year: 2013, revenue: 25 },
+    { year: 2014, revenue: 22 },
+    { year: 2015, revenue: 30 },
+    { year: 2016, revenue: 25 },
   ];
 
   const ctx = document.getElementById('salesTrends') as HTMLCanvasElement;
@@ -22,12 +22,14 @@ onMounted(() => {
         labels: data.map(row => row.year),
         datasets: [
           {
-            label: 'Sales Trends over Time',
-            data: data.map(row => row.count),
-            backgroundColor: 'rgba(75, 192, 192, 0.2)',
-            borderColor: 'rgba(75, 192, 192, 1)',
+            label: 'Sales Revenue',
+            data: data.map(row => row.revenue),
+
+            backgroundColor: 'rgba(2,138,124,0.3)',
+            borderColor: 'rgb(2,138,124)',
             borderWidth: 1,
-          }
+
+          },
         ]
       },
       options: {
@@ -50,7 +52,8 @@ onMounted(() => {
               display: true,
               text: 'Years'
             },
-            beginAtZero: true
+            beginAtZero: true,
+            stacked: true
 
           },
           y: {
@@ -58,7 +61,8 @@ onMounted(() => {
               display: true,
               text: 'Sales per thousand $',
             },
-            beginAtZero: true
+            beginAtZero: true,
+            stacked: true
           }
         }
       }

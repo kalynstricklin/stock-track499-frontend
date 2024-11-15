@@ -10,6 +10,11 @@ const MainRoutes={
       component: () => import('@/views/DashboardView.vue')
     },
     {
+      name: 'Account',
+      path: '/auth/account',
+      component: () => import('@/views/auth/AccountPage.vue')
+    },
+    {
       name: 'Orders',
       path: '/orders',
       component: () => import('@/views/OrdersView.vue')

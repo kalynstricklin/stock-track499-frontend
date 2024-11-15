@@ -42,10 +42,10 @@ const order = ref([
     customer: 'Kalyn S',
     orderDate: '11-25-2023',
     status: 'Fulfilled',
-    itemCount: 2,
+    itemCount: 3,
     items: [
-      { productName: 'Scarf', productId: 'vh-1233', pick: 1, onHand: 33},
-      { productName: 'Hat', productId: 'vh-1234', pick: 2, onHand: 25},
+      { productName: 'Scarf', price: 12, productId: 'vh-1233', pick: 1, onHand: 33},
+      { productName: 'Hat', price: 12, productId: 'vh-1234', pick: 2, onHand: 25},
     ],
   },
   {
@@ -53,11 +53,11 @@ const order = ref([
     customer: 'Ashley P',
     orderDate: '12-12-2023',
     status: 'Unfulfilled',
-    itemCount: 3,
+    itemCount: 5,
     items: [
-      { productName: 'Gloves', productId: 'vh-1235', pick: 3, onHand: 20},
-      { productName: 'Jacket', productId: 'pn-1236', pick: 1, onHand: 48 },
-      { productName: 'Pant', productId: 'pn-1236', pick: 1, onHand: 48 },
+      { productName: 'Gloves', price: 12, productId: 'vh-1235', pick: 3, onHand: 20},
+      { productName: 'Jacket', price: 12, productId: 'pn-1236', pick: 1, onHand: 48 },
+      { productName: 'Pant',price: 12,  productId: 'pn-1236', pick: 1, onHand: 48 },
     ],
   },
   {
@@ -65,11 +65,11 @@ const order = ref([
     customer: 'Josh Z',
     orderDate: '12-12-2023',
     status: 'Pending',
-    itemCount: 3,
+    itemCount: 5,
     items: [
-      { productName: 'Jacket', productId: 'pn-1236', pick: 1, onHand: 48 },
-      { productName: 'Socks', productId: 'vh-1788', pick: 2, onHand: 65 },
-      { productName: 'Shirt', productId: 'vh-1788', pick: 2, onHand: 65 },
+      { productName: 'Jacket', price: 12, productId: 'pn-1236', pick: 1, onHand: 48 },
+      { productName: 'Socks',price: 12,  productId: 'vh-1788', pick: 2, onHand: 65 },
+      { productName: 'Shirt', price: 12, productId: 'vh-1788', pick: 2, onHand: 65 },
     ],
   },
   {
@@ -77,10 +77,10 @@ const order = ref([
     customer: 'Josh Z',
     orderDate: '11-25-2023',
     status: 'Fulfilled',
-    itemCount: 2,
+    itemCount: 4,
     items: [
-      { productName: 'Scarf', productId: 'vh-1233', pick: 1, onHand: 33},
-      { productName: 'Hat', productId: 'vh-1234', pick: 2, onHand: 25},
+      { productName: 'Scarf',price: 12,  productId: 'vh-1233', pick: 2, onHand: 33},
+      { productName: 'Hat',price: 12,  productId: 'vh-1234', pick: 2, onHand: 25},
     ],
   },
   {
@@ -88,10 +88,10 @@ const order = ref([
     customer: 'Alex A',
     orderDate: '11-25-2023',
     status: 'Fulfilled',
-    itemCount: 2,
+    itemCount: 3,
     items: [
-      { productName: 'Socks', productId: 'vh-1788', pick: 1, onHand: 33},
-      { productName: 'Hat', productId: 'vh-1234', pick: 2, onHand: 25},
+      { productName: 'Socks',price: 12,  productId: 'vh-1788', pick: 1, onHand: 33},
+      { productName: 'Hat', price: 12, productId: 'vh-1234', pick: 2, onHand: 25},
     ],
   },
 ]);
@@ -143,11 +143,16 @@ const getColor = (status: string) =>{
   else if(status === 'Fulfilled') return 'green'
 }
 
+
+const calculateTotalPrice = (items: any) => {
+  return items.reduce((total: any, item: any) => total + (item.pick * item.price), 0);
+};
+
+
 </script>
 
 
 <template>
-
     <v-data-table
       v-model:expanded="expanded"
       v-model:search="search"
@@ -166,6 +171,7 @@ const getColor = (status: string) =>{
           {{ value }}
         </v-chip>
       </template>
+
 
       <template v-slot:top>
         <v-toolbar flat>
@@ -186,7 +192,6 @@ const getColor = (status: string) =>{
             hide-details
             single-line
           ></v-text-field>
-
 
 
           <!-- New Order Popup dialog  -->
@@ -280,15 +285,25 @@ const getColor = (status: string) =>{
                     <v-list-item-subtitle>Pick</v-list-item-subtitle>
                     <v-list-item-title> {{ item.pick }}</v-list-item-title>
                   </td>
+                  <td>
+                    <v-list-item-subtitle>Price</v-list-item-subtitle>
+                    <v-list-item-title> $ {{ item.price }}</v-list-item-title>
+                  </td>
 
                   <td>
                     <v-list-item-subtitle>On Hand</v-list-item-subtitle>
-                    <v-list-item-title> {{ item.onHand }}</v-list-item-title>
+                    <v-list-item-title> {{item.onHand}}</v-list-item-title>
                   </td>
                 </tr>
 
               </template>
             </v-data-table>
+          </td>
+        </tr>
+
+        <tr>
+          <td :colspan="columns.length" class="text-right">
+            Total Price: ${{ calculateTotalPrice(item.items) }}
           </td>
         </tr>
       </template>

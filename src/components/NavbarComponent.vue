@@ -22,7 +22,7 @@
 
         <v-list-item prepend-icon="mdi-account-badge" title="Account" :to="{ path: '/auth/account' }"></v-list-item>
         <v-list-item prepend-icon="mdi-folder" title="Reports" :to="{ path: '/report' }"></v-list-item>
-        <v-list-item prepend-icon="mdi-cog" title="Settings" :to="{ path: '/settings' }"></v-list-item>
+<!--        <v-list-item prepend-icon="mdi-cog" title="Settings" :to="{ path: '/settings' }"></v-list-item>-->
 
 
               <!--        only see these as admin?-->

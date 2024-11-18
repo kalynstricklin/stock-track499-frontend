@@ -41,7 +41,9 @@ const headers = [
   { title: 'Reserved', key: 'reserved' },
   { title: 'Lead time', key: 'lead_time' },
   { title: 'Status', key: 'status' },
-  { title: '', key: 'actions', sortable: false },
+  { title: 'Edit', key: 'edit', sortable: false },
+  { title: 'Delete', key: 'delete', sortable: false },
+  { title: 'Reorder', key: 'reorder', sortable: false },
   // { title: '', key: 'reorder', sortable: false },
 ];
 
@@ -388,49 +390,43 @@ initialize();
 
 
 
-    <template v-slot:item.actions="{ item }">
-
-      <v-tooltip text="Edit" location="top">
-        <template v-slot:activator="{ props }">
-          <v-btn
-            v-bind="props"
-            size="small"
-            class="me-2"
-            color="blue"
-            icon="mdi-pencil"
-            @click="editItem(item)"
-          ></v-btn>
-        </template>
-      </v-tooltip>
-
-
-      <v-tooltip text="Delete" location="top">
-        <template v-slot:activator="{ props }">
-          <v-btn
-            v-bind="props"
-            size="small"
-            class="me-2"
-            color="red"
-            icon="mdi-delete"
-            @click="deleteItem(item)"
-          ></v-btn>
-        </template>
-      </v-tooltip>
-
-      <v-tooltip text="Reorder" location="top">
-        <template v-slot:activator="{ props }">
-          <v-btn
-            v-bind="props"
-            size="small"
-            class="me-2"
-            color="green"
-            icon="mdi-plus-thick"
-            @click="reorder(item)"
-          ></v-btn>
-        </template>
-      </v-tooltip>
+    <template v-slot:item.edit="{ item }">
+      <v-icon
+        dark
+        elevation="0"
+        size="small"
+        class="me-2"
+        color="green"
+        icon="mdi-pencil"
+        @click="editItem(item)"
+      ></v-icon>
 
     </template>
+
+    <template v-slot:item.delete="{ item }">
+      <v-icon
+        dark
+        elevation="0"
+        size="small"
+        class="me-2"
+        color="red"
+        icon="mdi-delete"
+        @click="deleteItem(item)"
+      ></v-icon>
+    </template>
+
+    <template v-slot:item.reorder="{ item }">
+      <v-icon
+        dark
+        elevation="0"
+        size="small"
+        class="me-2"
+        color="blue"
+        icon="mdi-plus-thick"
+        @click="reorder(item)"
+      ></v-icon>
+    </template>
+
   </v-data-table>
 
 <!--  Re Order button snackbar-->

@@ -26,7 +26,8 @@ const headers = [
   { title: 'Supplier Name', key: 'supplier_name'},
   { title: 'Supplier ID', key: 'supplier_ID'},
   { title: 'Created On', key: 'createdOn' },
-  { title: '', key: 'actions', sortable: false },
+  { title: 'Edit', key: 'edit', sortable: false },
+  { title: 'Delete', key: 'delete', sortable: false },
 ];
 
 
@@ -208,34 +209,31 @@ initialize();
       </v-toolbar>
     </template>
 
-    <template v-slot:item.actions="{ item }">
-      <v-tooltip text="Edit" location="top">
-        <template v-slot:activator="{ props }">
-          <v-btn
-            v-bind="props"
-            size="small"
-            class="me-2"
-            color="blue"
-            icon="mdi-pencil"
-            @click="editItem(item)"
-          ></v-btn>
-        </template>
-      </v-tooltip>
+    <template v-slot:item.edit="{ item }">
+      <v-icon
+        dark
+        elevation="0"
+        size="small"
+        class="me-2"
+        color="green"
+        icon="mdi-pencil"
+        @click="editItem(item)"
+      ></v-icon>
 
-
-      <v-tooltip text="Delete" location="top">
-        <template v-slot:activator="{ props }">
-          <v-btn
-            v-bind="props"
-            size="small"
-            class="me-2"
-            color="red"
-            icon="mdi-delete"
-            @click="deleteItem(item)"
-          ></v-btn>
-        </template>
-      </v-tooltip>
     </template>
+
+    <template v-slot:item.delete="{ item }">
+        <v-icon
+          dark
+          elevation="0"
+          size="small"
+          class="me-2"
+          color="red"
+          icon="mdi-delete"
+          @click="deleteItem(item)"
+        ></v-icon>
+    </template>
+
 
   </v-data-table>
 </template>

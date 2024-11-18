@@ -22,7 +22,8 @@ const headers = [
   { title: 'Role', key: 'role' },
   { title: 'Created On', key: 'createdOn' },
   { title: 'Status', key: 'status' },
-  { title: '', key: 'actions', sortable: false },
+  { title: 'Edit', key: 'edit', sortable: false },
+  { title: 'Delete', key: 'delete', sortable: false },
 ];
 
 
@@ -172,21 +173,23 @@ const roles = ['Admin', 'Manager', 'Customer', 'Employee'];
               <v-card-text>
                   <v-row dense>
 
-                    <v-col cols="12" md="4" sm="6">
+                    <v-col cols="4">
                       <v-text-field
                         v-model="editedItem.user_name"
-                        label="user_name"
+                        label="User Name"
+                        disabled
                       ></v-text-field>
                     </v-col>
 
-                    <v-col cols="12" md="4" sm="6">
+                    <v-col cols="4">
                       <v-text-field
                         v-model="editedItem.email"
                         label="Email"
+                        disabled
                       ></v-text-field>
                     </v-col>
 
-                    <v-col cols="12" md="4" sm="6">
+                    <v-col cols="4">
                       <v-select
                         v-model="editedItem.role"
                         :items="roles"
@@ -245,33 +248,29 @@ const roles = ['Admin', 'Manager', 'Customer', 'Employee'];
         </v-toolbar>
       </template>
 
-      <template v-slot:item.actions="{ item }">
-        <v-tooltip text="Edit" location="top">
-          <template v-slot:activator="{ props }">
-            <v-btn
-              v-bind="props"
-              size="small"
-              class="me-2"
-              color="blue"
-              icon="mdi-pencil"
-              @click="editItem(item)"
-            ></v-btn>
-          </template>
-        </v-tooltip>
+      <template v-slot:item.edit="{ item }">
+        <v-icon
+          dark
+          elevation="0"
+          size="small"
+          class="me-2"
+          color="green"
+          icon="mdi-pencil"
+          @click="editItem(item)"
+        ></v-icon>
 
+      </template>
 
-        <v-tooltip text="Delete" location="top">
-          <template v-slot:activator="{ props }">
-            <v-btn
-              v-bind="props"
-              size="small"
-              class="me-2"
-              color="red"
-              icon="mdi-delete"
-              @click="deleteItem(item)"
-            ></v-btn>
-          </template>
-        </v-tooltip>
+      <template v-slot:item.delete="{ item }">
+        <v-icon
+          dark
+          elevation="0"
+          size="small"
+          class="me-2"
+          color="red"
+          icon="mdi-delete"
+          @click="deleteItem(item)"
+        ></v-icon>
       </template>
 
     </v-data-table>

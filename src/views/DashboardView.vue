@@ -10,11 +10,9 @@ import OrdersVsReturnsChart from '@/components/dashboard/OrdersVsReturnsChart.vu
 
   <AlertCards/>
 
-  <v-container>
     <v-row>
       <v-col cols="12" md="6">
         <v-card outlined>
-
           <v-card-text>
             <BarChart />
           </v-card-text>
@@ -33,7 +31,7 @@ import OrdersVsReturnsChart from '@/components/dashboard/OrdersVsReturnsChart.vu
       </v-col>
 
     </v-row>
-  </v-container>
+
 
 
 </template>

@@ -1,5 +1,21 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, nextTick } from 'vue'
+
+
+interface OrderItems {
+  PO_number: number;
+  customer_ID: string;
+  part_number: number;
+  order_date: string;
+  received_date: string;
+  due_date: string;
+  outbound_price: number;
+  inbound_price: number;
+  total_cost: number;
+  qty: number;
+  status: string;
+
+}
 
 const dialog = ref(false);
 const dialogEdit= ref(false);
@@ -12,86 +28,135 @@ const editedItem = ref({
   status: 'Pending'
 });
 
+const defaultItem = ref({
+  PO_number: 0,
+  customer_ID: '', //this should be getten by authentication and seeing which user is signed in
+  part_number: '',
+  qty: 0,
+  status: 'Pending'
+});
+
 const editedIndex = ref(-1);
 const formTitle = ref("New Order");
 const buttonTitle = computed(()=>{return editedIndex.value === -1 ? 'Add' : 'Update'})
 
+const orders = ref<OrderItems[]>([]);
+
+// search bar
+const search = ref('')
+
+// snack bar
+const snackbar = ref({
+  visible: false,
+  message: '',
+  timeout: 3000,
+});
+
+
 const headers = [
-  { title: 'Order ID', key: 'PO_number' },
-  { title: 'Customer', key: 'customer_ID' },
-  // { title: 'Product Name', key: 'product_name' },
-  { title: 'Part Number', key: 'part_number' },
+  { title: 'Order ID', key: 'PO_number', align: 'start', sortable: true, class: 'styled-header' },
+  { title: 'Customer', key: 'customer_ID', align: 'start', sortable: true, class: 'styled-header'},
+  // { title: 'Product Name', key: 'product_name', align: 'start', sortable: true, class: 'styled-header' },
+  { title: 'Part Number', key: 'part_number', align: 'start', sortable: true, class: 'styled-header' },
 
-  { title: 'Order Date', key: 'order_date' },
-  { title: 'Delivery Date', key: 'due_date' },
-  { title: 'Received Date', key: 'received_date' },
+  { title: 'Order Date', key: 'order_date', align: 'start', sortable: true, class: 'styled-header' },
+  { title: 'Delivery Date', key: 'due_date', align: 'start', sortable: true, class: 'styled-header' },
+  { title: 'Received Date', key: 'received_date', align: 'start', sortable: true, class: 'styled-header' },
 
-  { title: 'Quantity', key: 'qty' },
-  { title: 'Unit Price', key: 'outbound_price' },
-  { title: 'Total Cost', key: 'total_cost' },
-  { title: 'Status', key: 'status' },
-  { title: 'Edit', key: 'edit', sortable: false },
+  { title: 'Quantity', key: 'qty', align: 'start', sortable: true,class: 'styled-header' },
+  { title: 'Unit Price', key: 'outbound_price', align: 'start', sortable: true, class: 'styled-header' },
+  { title: 'Total Cost', key: 'total_cost', align: 'start', sortable: true, class: 'styled-header' },
+  { title: 'Status', key: 'status', align: 'start', sortable: true, class: 'styled-header' },
+  { title: 'Edit', key: 'edit', align: 'center', sortable: false, class: 'styled-header' },
 ];
 
-const order = ref([
-  { PO_number: 6, customer_ID: 'Kalyn', part_number: 43, order_date: '11-25-2023', due_date: '11/27/2023', received_date: '11/27/2023', outbound_price: 12, total_cost: 36, qty: 3, status: 'Pending', },
-  { PO_number: 5, customer_ID: 'Kalyn', part_number: 43, order_date: '11-25-2023', due_date: '11-27-2023', received_date: '11/27/2023', outbound_price: 12, total_cost: 36, qty: 3, status: 'Pending', },
-  { PO_number: 4, customer_ID: 'Jack', part_number: 43, order_date: '11-25-2023', due_date: '11-27-2023', received_date: '11/27/2023', outbound_price: 12, total_cost: 36, qty: 3, status: 'Unfulfilled', },
-  { PO_number: 3, customer_ID: 'Alex', part_number: 43, order_date: '11-25-2023', due_date: '11-27-2023', received_date: '11/27/2023', outbound_price: 12, total_cost: 36, qty: 3, status: 'Unfulfilled', },
-  { PO_number: 2, customer_ID: 'Alex', part_number: 43, order_date: '11-25-2023', due_date: '11-27-2023', received_date: '11/27/2023', outbound_price: 12, total_cost: 36, qty: 3, status: 'Fulfilled', },
-  { PO_number: 1, customer_ID: 'Josh', part_number: 43, order_date: '11-25-2023', due_date: '11-27-2023', received_date: '11/27/2023', outbound_price: 12, total_cost: 36, qty: 3, status: 'Fulfilled', },
-  { PO_number: 0, customer_ID: 'Kalyn', part_number: 43, order_date: '11-25-2023', due_date: '11-27-2023', received_date: '11/27/2023', outbound_price: 12, total_cost: 36, qty: 3, status: 'Fulfilled', },
-]);
+
+
+function initialize() {
+  orders.value = [
+    { PO_number: 6, customer_ID: 'Kalyn', part_number: 43, order_date: '2024-11-18T16:30:36.468Z', due_date: '2024-11-18T16:30:36.468Z', received_date: '2024-11-18T16:30:36.468Z', outbound_price: 12, total_cost: 36, qty: 3, status: 'Pending', },
+    { PO_number: 5, customer_ID: 'Kalyn', part_number: 43, order_date: '2024-11-18T16:30:36.468Z', due_date: '2024-11-18T16:30:36.468Z', received_date: '2024-11-18T16:30:36.468Z', outbound_price: 12, total_cost: 36, qty: 3, status: 'Pending', },
+    { PO_number: 4, customer_ID: 'Jack', part_number: 43, order_date: '2024-11-18T16:30:36.468Z', due_date: '2024-11-18T16:30:36.468Z', received_date: '2024-11-18T16:30:36.468Z', outbound_price: 12, total_cost: 36, qty: 3, status: 'Unfulfilled', },
+    { PO_number: 3, customer_ID: 'Alex', part_number: 43, order_date: '2024-11-18T16:30:36.468Z', due_date: '2024-11-18T16:30:36.468Z', received_date: '2024-11-18T16:30:36.468Z', outbound_price: 12, total_cost: 36, qty: 3, status: 'Unfulfilled', },
+    { PO_number: 2, customer_ID: 'Alex', part_number: 43, order_date: '2024-11-18T16:30:36.468Z', due_date: '2024-11-18T16:30:36.468Z', received_date: '2024-11-18T16:30:36.468Z', outbound_price: 12, total_cost: 36, qty: 3, status: 'Fulfilled', },
+    { PO_number: 1, customer_ID: 'Josh', part_number: 43, order_date: '2024-11-18T16:30:36.468Z', due_date: '2024-11-18T16:30:36.468Z', received_date: '2024-11-18T16:30:36.468Z', outbound_price: 12, total_cost: 36, qty: 3, status: 'Fulfilled', },
+    { PO_number: 0, customer_ID: 'Kalyn', part_number: 43, order_date: '2024-11-18T16:30:36.468Z', due_date: '2024-11-18T16:30:36.468Z', received_date: '2024-11-18T16:30:36.468Z', outbound_price: 12, total_cost: 36, qty: 3, status: 'Fulfilled', },
+  ];
+}
+
+
 
 
 const close = () => {
   dialog.value = false;
-  editedItem.value = { PO_number: 0, customer_ID: '', part_number: '', qty: 0, status: 'Pending' };
+  nextTick(() => {
+    editedItem.value = Object.assign({}, defaultItem.value);
+    editedIndex.value = -1;
+  });
 };
 
-const save = () => {
-  if(editedIndex.value === -1){
+
+function save() {
+  if (editedItem.value.PO_number) {
+    const index = orders.value.findIndex(o => o.PO_number === editedItem.value.PO_number);
+    if (index !== -1) {
+      orders.value[index] = { ...editedItem.value };
+    }
+  } else {
+
     const newOrder = {
-      PO_number: order.value.length + 1,
-      customer_id: editedItem.value.customer_ID,
+      PO_number: orders.value.length + 1,
+      customer_ID: editedItem.value.customer_ID,
       part_number: editedItem.value.part_number,
       order_date: new Date().toISOString(),
       delivery_date: new Date().toISOString(),
       due_date: new Date().toISOString(),
+      received_date: new Date().toISOString(),
       qty: editedItem.value.qty,
-      price: 5,
+      outbound_price: 5,
+      total_cost: (editedItem.value.qty * 5),
       status: 'Pending',
 
-    }
-    order.value.push(newOrder);
-  }else{
-    order.value[editedIndex.value] = { ...editedItem.value };
+    };
+
+    orders.value = [newOrder, ...orders.value];
   }
 
   close();
+  orders.value = [...orders.value]
+
+  editedItem.value = { PO_number: 0, customer_ID: '', part_number: '', qty: 0, status: 'Pending' };
+
 };
+
 
 const openDialog = () => {
   dialog.value = true;
-  formTitle.value = "New Order";
   editedItem.value = { PO_number: 0, customer_ID: '', part_number: '', qty: 0, status: 'Pending' };
 };
 
 function editItem(item: any){
-  editedIndex.value = order.value.indexOf(item)
+  editedIndex.value = orders.value.indexOf(item)
   editedItem.value = Object.assign({}, item)
   dialogEdit.value= true
 }
 
 const saveStatus = () => {
   if(editedIndex.value !== -1){
-    order.value[editedIndex.value].status = editedItem.value.status;
+    orders.value[editedIndex.value].status = editedItem.value.status;
+
+    snackbar.value ={
+      visible: true,
+      message: `PO #${editedItem.value.PO_number} Order Status Updated to ${editedItem.value.status}`,
+      timeout: 3000
+    }
+
   }
   dialogEdit.value = false;
+
 }
 
-// search bar
-const search = ref('')
+
 
 // status color
 const getColor = (status: string) =>{
@@ -101,11 +166,8 @@ const getColor = (status: string) =>{
 }
 
 
-const calculateTotalPrice = (qty: number, price: number) => {
-  return qty * price;
-};
 
-
+initialize();
 </script>
 
 
@@ -113,7 +175,7 @@ const calculateTotalPrice = (qty: number, price: number) => {
     <v-data-table
       v-model:search="search"
       :headers="headers"
-      :items="order"
+      :items="orders"
       item-value="PO_order"
       :filter-keys="['PO_order','customer_ID', 'part_number', 'status', 'order_date', 'due_date', 'received_date', 'total_cost', 'qty', 'outbound_price']"
     >
@@ -135,40 +197,51 @@ const calculateTotalPrice = (qty: number, price: number) => {
 
       <template v-slot:top>
         <v-toolbar flat>
-          <v-card-title class="d-flex align-center pe-2">
-            Customer Orders
-          </v-card-title>
+          <v-card-title class="d-flex align-center pe-2">Customer Orders</v-card-title>
+        </v-toolbar>
 
-          <v-spacer></v-spacer>
 
+        <v-row dense justify="space-between" align="center">
           <!-- Search Orders -->
-          <v-text-field
-            v-model="search"
-            density="compact"
-            label="Search Orders"
-            prepend-inner-icon="mdi-magnify"
-            variant="solo-filled"
-            flat
-            hide-details
-            single-line
-          ></v-text-field>
+          <v-col cols="8">
+
+            <v-text-field
+              v-model="search"
+              density="compact"
+              label="Search Orders"
+              prepend-inner-icon="mdi-magnify"
+              variant="solo-filled"
+              class="search-bar"
+              hide-details
+              single-line
+            ></v-text-field>
+
+          </v-col>
+
+        <!--Create a new customer order-->
+          <v-col cols="4" class="text-end" style="padding-right: 15px">
+            <v-dialog v-model="dialog" max-width="600px">
+
+                <!--new order button-->
+                <template v-slot:activator="{ props }">
+                  <v-btn
+                    class="text-none font-weight-regular"
+                    prepend-icon= "mdi-cart"
+                    text="New Order"
+                    variant="tonal"
+                    v-bind="props"
+                    @click="openDialog">
+                  </v-btn>
+                </template>
 
 
-          <!-- New Order Popup dialog  -->
-          <v-dialog v-model="dialog" max-width="600px">
-            <template v-slot:activator="{ props }">
-              <v-btn color="primary" dark v-bind="props"  @click="openDialog">
-                New Order
-              </v-btn>
+              <!--new order pop up to create an order-->
+              <v-card
+                prepend-icon="mdi-cart"
+                title="Customer Order"
+              >
 
-            </template>
-
-            <v-card
-              prepend-icon="mdi-cart"
-              title="Customer Order"
-            >
-
-              <v-card-text>
+                <v-card-text>
                   <v-row dense>
                     <v-col cols="12" md="6">
                       <v-text-field
@@ -195,78 +268,85 @@ const calculateTotalPrice = (qty: number, price: number) => {
                     </v-col>
 
                   </v-row>
-                <small class="text-caption text-medium-emphasis">*indicates required field</small>
-              </v-card-text>
+                  <small class="text-caption text-medium-emphasis">*indicates required field</small>
+                </v-card-text>
 
-              <v-card-actions>
-                <v-spacer></v-spacer>
+                <v-card-actions>
 
-                <v-btn
-                  text="Close"
-                  variant="plain"
-                  @click="dialog=false"
-                ></v-btn>
+                  <v-spacer></v-spacer>
 
-                <v-btn
-                  color="primary"
-                  variant="tonal"
-                  @click="save"
-                >{{buttonTitle}}</v-btn>
+                  <!--button to close dialog-->
+                  <v-btn
+                    text="Close"
+                    variant="plain"
+                    @click="dialog=false"
+                  ></v-btn>
 
-              </v-card-actions>
+                  <!--button to update/create order-->
+                  <v-btn
+                    color="primary"
+                    variant="tonal"
+                    @click="save"
+                  >{{buttonTitle}}</v-btn>
 
-            </v-card>
-          </v-dialog>
+                </v-card-actions>
+
+              </v-card>
+            </v-dialog>
+          </v-col>
+        </v-row>
 
 
-          <v-dialog v-model="dialogEdit" max-width="600px">
-            <v-card>
-              <v-card-title>
-                Edit Status
-              </v-card-title>
-              <v-card-text>
-                <v-row dense>
-                  <v-col cols="3">
-                    <v-text-field
-                      v-model="editedItem.PO_number"
-                      label="Order ID"
-                      disabled
-                    ></v-text-field>
-                  </v-col>
-                  <v-col cols="3">
-                    <v-text-field
-                      v-model="editedItem.customer_ID"
-                      label="Customer"
-                      disabled
-                    ></v-text-field>
-                  </v-col>
-                  <v-col cols="3">
-                    <v-text-field
-                      v-model="editedItem.part_number"
-                      label="Part Number"
-                      disabled
-                    ></v-text-field>
-                  </v-col>
-                  <v-col cols="3">
-                    <v-select
-                      v-model="editedItem.status"
-                      :items="['Pending', 'Unfulfilled', 'Fulfilled']"
-                      label="Status"
-                    ></v-select>
-                  </v-col>
-                </v-row>
-              </v-card-text>
-              <v-card-actions>
-                <v-spacer></v-spacer>
-                <v-btn text="Cancel" @click="dialogEdit = false">Cancel</v-btn>
-                <v-btn color="primary" @click="saveStatus">Save</v-btn>
-              </v-card-actions>
-            </v-card>
-          </v-dialog>
+        <!--edit dialog-->
+        <v-dialog v-model="dialogEdit" max-width="600px">
+          <v-card>
+            <v-card-title>
+              Edit Status
+            </v-card-title>
+            <v-card-text>
+              <v-row dense>
+                <v-col cols="3">
+                  <v-text-field
+                    v-model="editedItem.PO_number"
+                    label="Order ID"
+                    disabled
+                  ></v-text-field>
+                </v-col>
+                <v-col cols="3">
+                  <v-text-field
+                    v-model="editedItem.customer_ID"
+                    label="Customer"
+                    disabled
+                  ></v-text-field>
+                </v-col>
+                <v-col cols="3">
+                  <v-text-field
+                    v-model="editedItem.part_number"
+                    label="Part Number"
+                    disabled
+                  ></v-text-field>
+                </v-col>
+                <v-col cols="3">
+                  <v-select
+                    v-model="editedItem.status"
+                    :items="['Pending', 'Unfulfilled', 'Fulfilled']"
+                    label="Status"
+                  ></v-select>
+                </v-col>
+              </v-row>
+            </v-card-text>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn text="Cancel" @click="dialogEdit = false">Cancel</v-btn>
+              <v-btn color="primary" @click="saveStatus">Save</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
 
-        </v-toolbar>
       </template>
 
+
+<!--edit order status using this button. i feel like we shouldnt change the persons order only the status -->
       <template v-slot:item.edit="{ item }">
           <v-icon
             dark
@@ -281,11 +361,27 @@ const calculateTotalPrice = (qty: number, price: number) => {
           </v-icon>
       </template>
 
+
+
     </v-data-table>
+
+  <v-snackbar v-model="snackbar.visible" :timeout="snackbar.timeout" location="top">
+    {{snackbar.message}}
+  </v-snackbar>
 
 </template>
 
 <style scoped>
+.search-bar {
+  margin: 16px;
+  width: 500px;
+}
+
+.styled-header{
+  font-weight: bold;
+  color: #4a4a4a;
+  text-transform: uppercase;
+}
 </style>
 
 

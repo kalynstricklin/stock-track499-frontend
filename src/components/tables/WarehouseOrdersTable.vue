@@ -90,7 +90,7 @@ const getColor = (status: string) =>{
 
 <style scoped>
 .search-bar {
-  margin: 16px auto;
+  margin: 16px;
   width: 500px;
 }
 

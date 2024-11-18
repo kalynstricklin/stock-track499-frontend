@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import InBoundOrder from '@/components/tables/SupplierOrderTable.vue'
+import InBoundOrder from '@/components/tables/WarehouseOrdersTable.vue'
 </script>
 
 <template>

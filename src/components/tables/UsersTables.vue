@@ -135,21 +135,24 @@ const roles = ['Admin', 'Manager', 'Customer', 'Employee'];
       <template v-slot:top>
         <v-toolbar flat>
           <v-card-title class="d-flex align-center pe-2">Users</v-card-title>
+        </v-toolbar>
 
-          <v-spacer></v-spacer>
+        <v-row dense justify="space-between" align="center">
+          <v-col cols="8">
+            <!-- Search Users -->
+            <v-text-field
+              v-model="search"
+              density="compact"
+              label="Search Users"
+              prepend-inner-icon="mdi-magnify"
+              variant="solo-filled"
+              class="search-bar"
+              hide-details
+              single-line
+            ></v-text-field>
+          </v-col>
 
-          <!-- Search Users -->
-          <v-text-field
-            v-model="search"
-            density="compact"
-            label="Search Users"
-            prepend-inner-icon="mdi-magnify"
-            variant="solo-filled"
-            flat
-            hide-details
-            single-line
-          ></v-text-field>
-
+          <v-col cols="4" class="text-end" style="padding-right: 15px">
 
           <!-- New User Popup dialog  -->
           <v-dialog v-model="dialog" max-width="600px">
@@ -219,6 +222,8 @@ const roles = ['Admin', 'Manager', 'Customer', 'Employee'];
 
             </v-card>
           </v-dialog>
+          </v-col>
+        </v-row>
 
           <v-dialog v-model="dialogDelete" max-width="600px">
 
@@ -245,7 +250,7 @@ const roles = ['Admin', 'Manager', 'Customer', 'Employee'];
             </v-card>
           </v-dialog>
 
-        </v-toolbar>
+
       </template>
 
       <template v-slot:item.edit="{ item }">
@@ -278,4 +283,8 @@ const roles = ['Admin', 'Manager', 'Customer', 'Employee'];
 </template>
 
 <style scoped>
+.search-bar {
+  margin: 16px;
+  width: 500px;
+}
 </style>

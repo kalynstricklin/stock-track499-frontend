@@ -24,26 +24,37 @@ const editedItem = ref({ product_name: '', part_number: 0, supplier_ID: '', manu
 const defaultItem = ref({ product_name: '', part_number: 0, supplier_ID: '', manufacturer_ID: '',reorder_point: 0, stock_level: 0, status: '', inbound_price: 0, outbound_price: 0, on_hand: 0, reserved: 0, lead_time: 0  });
 const editedIndex = ref(-1);
 
-const formTitle = computed(()=>{return editedIndex.value === -1 ? 'Add New Item to Inventory' : 'Edit Item'})
 const buttonTitle = computed(()=>{return editedIndex.value === -1 ? 'Add' : 'Update'})
 const inventory = ref<InventoryItem[]>([])
 
+// search bar
+const search = ref('')
+
+
+// snack bar for reorder
+const snackbar = ref({
+  visible: false,
+  message: '',
+  timeout: 3000,
+});
+
 
 const headers = [
-  { title: 'Product Name', key: 'product_name' },
-  { title: 'Part Number', key: 'part_number' },
-  { title: 'Supplier', key: 'supplier_ID' },
-  { title: 'Manufacturer', key: 'manufacturer_ID' },
-  { title: 'Inbound Price', key: 'inbound_price' },
-  { title: 'Outbound Price', key: 'outbound_price' },
-  { title: 'On Hand', key: 'on_hand' },
-  { title: 'Stock Level', key: 'stock_level' },
-  { title: 'Reserved', key: 'reserved' },
-  { title: 'Lead time', key: 'lead_time' },
-  { title: 'Status', key: 'status' },
-  { title: 'Edit', key: 'edit', sortable: false },
-  { title: 'Delete', key: 'delete', sortable: false },
-  { title: 'Reorder', key: 'reorder', sortable: false },
+  { title: 'Product Name', key: 'product_name', align: 'start', sortable: true, },
+  { title: 'Part Number', key: 'part_number', align: 'start', sortable: true, },
+  { title: 'Supplier', key: 'supplier_ID', align: 'start', sortable: true, },
+  { title: 'Manufacturer', key: 'manufacturer_ID', align: 'start', sortable: true, },
+  { title: 'Inbound Price', key: 'inbound_price', align: 'start', sortable: true, },
+  { title: 'Outbound Price', key: 'outbound_price', align: 'start', sortable: true, },
+  { title: 'On Hand', key: 'on_hand', align: 'start', sortable: true, },
+  { title: 'Stock Level', key: 'stock_level', align: 'start', sortable: true, },
+  { title: 'Reserved', key: 'reserved', align: 'start', sortable: true, },
+  { title: 'Lead time', key: 'lead_time', align: 'start', sortable: true, },
+  { title: 'Status', key: 'status', align: 'start', sortable: true, },
+
+  { title: 'Edit', key: 'edit', align: 'center',sortable: false },
+  { title: 'Delete', key: 'delete', align: 'center',sortable: false },
+  { title: 'Reorder', key: 'reorder', align: 'center',sortable: false },
   // { title: '', key: 'reorder', sortable: false },
 ];
 
@@ -81,7 +92,7 @@ function save() {
 
     const newItem = {
       product_name: editedItem.value.product_name,
-      part_number: Math.random(),
+      part_number: editedItem.value.part_number,
       supplier_ID: editedItem.value.supplier_ID,
       manufacturer_ID: editedItem.value.manufacturer_ID,
       inbound_price: editedItem.value.inbound_price,
@@ -93,7 +104,13 @@ function save() {
       stock_level: 15,
       status: "Active",
     };
-    inventory.value.push(newItem);
+    inventory.value = [newItem, ...inventory.value];
+
+    snackbar.value ={
+      visible: true,
+      message: `New Item Added to Inventory.`,
+      timeout: 3000
+    }
   }
 
   close();
@@ -106,7 +123,6 @@ function save() {
 
 function openDialog(){
   dialog.value = true;
-  formTitle.value = "New Item";
   editedItem.value = {  product_name: '', part_number: 0, supplier_ID: '', manufacturer_ID: '',reorder_point: 0, stock_level: 0, status: '', inbound_price: 0, outbound_price: 0, on_hand: 0, reserved: 0, lead_time: 0};
 };
 
@@ -197,18 +213,6 @@ async function reorder(item: InventoryItem){
 
 }
 
-// search bar
-const search = ref('')
-
-
-// snack bar for reorder
-const snackbar = ref({
-  visible: false,
-  message: '',
-  timeout: 3000,
-});
-
-
 
 initialize();
 </script>
@@ -220,7 +224,6 @@ initialize();
     :headers="headers"
     :items="inventory"
     item-value="part_number"
-
     :filter-keys="['product_name','supplier_ID', 'part_number', 'status', 'manufacturer_ID', 'inbound_price', 'on_hand', 'reserved']"
   >
 
@@ -243,45 +246,48 @@ initialize();
 <!--    title of table-->
     <template v-slot:top>
       <v-toolbar flat>
-
         <v-card-title class="d-flex align-center pe-2">Warehouse Inventory</v-card-title>
+      </v-toolbar>
 
-        <v-spacer></v-spacer>
+      <v-row dense justify="space-between" align="center">
 
         <!-- Search Inventory -->
-        <v-text-field
-          v-model="search"
-          density="compact"
-          label="Search Inventory"
-          prepend-inner-icon="mdi-magnify"
-          variant="solo-filled"
-          flat
-          hide-details
-          single-line
-        ></v-text-field>
+        <v-col cols="8">
+          <v-text-field
+            v-model="search"
+            density="compact"
+            label="Search Suppliers"
+            prepend-inner-icon="mdi-magnify"
+            variant="solo-filled"
+            class="search-bar"
+            hide-details
+            single-line
+          ></v-text-field>
+        </v-col>
 
         <!--Add new item to inventory-->
-        <v-dialog v-model="dialog" max-width="600px">
+        <v-col cols="4" class="text-end" style="padding-right: 15px">
+          <v-dialog v-model="dialog" max-width="600px">
 
-          <template v-slot:activator="{ props }">
-            <v-btn
-              class="text-none font-weight-regular"
-              prepend-icon= "mdi-clipboard-list-outline"
-              text="New Item"
-              variant="tonal"
-              v-bind="props"
-              @click="openDialog">
-            </v-btn>
-          </template>
+            <template v-slot:activator="{ props }">
+              <v-btn
+                class="text-none font-weight-regular"
+                prepend-icon= "mdi-clipboard-list-outline"
+                text="New Item"
+                variant="tonal"
+                v-bind="props"
+                @click="openDialog">
+              </v-btn>
+            </template>
 
-          <v-card
-            prepend-icon="mdi-clipboard-list-outline"
-            title="Inventory Item"
-          >
-            <v-card-text>
-              <v-row dense>
+            <v-card
+              prepend-icon="mdi-clipboard-list-outline"
+              title="Inventory Item"
+            >
+              <v-card-text>
+                <v-row dense>
 
-                <v-col cols="12" md="4" sm="6">
+                  <v-col cols="12" md="4" sm="6">
                     <v-text-field
                       v-model="editedItem.product_name"
                       label="Product Name*"
@@ -289,7 +295,7 @@ initialize();
                     ></v-text-field>
                   </v-col>
 
-                <v-col cols="12" md="4" sm="6">
+                  <v-col cols="12" md="4" sm="6">
                     <v-text-field
                       v-model="editedItem.supplier_ID"
                       label="Supplier*"
@@ -297,7 +303,7 @@ initialize();
                     ></v-text-field>
                   </v-col>
 
-                <v-col cols="12" md="4" sm="6">
+                  <v-col cols="12" md="4" sm="6">
                     <v-text-field
                       v-model="editedItem.manufacturer_ID"
                       label="Manufacturer*"
@@ -305,7 +311,7 @@ initialize();
                     ></v-text-field>
                   </v-col>
 
-                <v-col cols="12" md="4" sm="6">
+                  <v-col cols="12" md="4" sm="6">
                     <v-text-field
                       v-model="editedItem.stock_level"
                       label="Stock Level*"
@@ -313,7 +319,7 @@ initialize();
                     ></v-text-field>
                   </v-col>
 
-                <v-col cols="12" md="4" sm="6">
+                  <v-col cols="12" md="4" sm="6">
                     <v-text-field
                       v-model="editedItem.inbound_price"
                       label="Price"
@@ -321,42 +327,41 @@ initialize();
                     ></v-text-field>
                   </v-col>
 
-                <v-col cols="12" md="4" sm="6">
+                  <v-col cols="12" md="4" sm="6">
                     <v-text-field
                       v-model="editedItem.outbound_price"
                       label=" Selling Price"
                       :rules="[v => v>=0 || 'Price must be non-negative']"
                     ></v-text-field>
                   </v-col>
-              </v-row>
-              <small class="text-caption text-medium-emphasis">*indicates required field</small>
-            </v-card-text>
+                </v-row>
+                <small class="text-caption text-medium-emphasis">*indicates required field</small>
+              </v-card-text>
 
 
-            <v-card-actions>
-              <v-spacer></v-spacer>
+              <v-card-actions>
+                <v-spacer></v-spacer>
 
-              <v-btn
-                text="Close"
-                variant="plain"
-                @click="dialog=false"
-              ></v-btn>
+                <v-btn
+                  text="Close"
+                  variant="plain"
+                  @click="dialog=false"
+                ></v-btn>
 
-              <v-btn
-                color="primary"
-                variant="tonal"
-                @click="save"
-              >{{buttonTitle}}</v-btn>
+                <v-btn
+                  color="primary"
+                  variant="tonal"
+                  @click="save"
+                >{{buttonTitle}}</v-btn>
 
-            </v-card-actions>
+              </v-card-actions>
 
+            </v-card>
+          </v-dialog>
+        </v-col>
 
+      </v-row>
 
-
-
-          </v-card>
-
-        </v-dialog>
 
         <!--Remove item from inventory-->
         <v-dialog v-model="dialogDelete" max-width="600px">
@@ -384,8 +389,6 @@ initialize();
           </v-card>
         </v-dialog>
 
-
-      </v-toolbar>
     </template>
 
 
@@ -436,4 +439,8 @@ initialize();
 </template>
 
 <style scoped>
+.search-bar {
+  margin: 16px;
+  width: 500px;
+}
 </style>

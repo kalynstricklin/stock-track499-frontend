@@ -1,11 +1,10 @@
 <script setup lang="ts">
-
-import RolesTable from '@/components/tables/RolesTable.vue'
+import InBoundOrder from '@/components/tables/SupplierOrderTable.vue'
 </script>
 
 <template>
   <v-container>
-    <RolesTable/>
+    <InBoundOrder/>
   </v-container>
 
 </template>

@@ -35,7 +35,7 @@ onMounted(() => {
         plugins: {
           title: {
             display: true,
-            text: 'On-hand Inventory',
+            text: 'Warehouse Inventory',
             font: {
               size: 18,
               weight: 'bold'

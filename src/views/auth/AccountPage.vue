@@ -54,8 +54,8 @@
 
 <!--    if user is admin show user list else show account details-->
     <v-container v-else>
-      <AdminList v-if="isAdmin"/>
-      <AccountDetails v-else/>
+<!--      <AdminList v-if="isAdmin"/>-->
+      <AccountDetails/>
     </v-container>
 
   </v-container>

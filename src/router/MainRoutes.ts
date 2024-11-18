@@ -15,9 +15,14 @@ const MainRoutes={
       component: () => import('@/views/auth/AccountPage.vue')
     },
     {
-      name: 'Orders',
-      path: '/orders',
-      component: () => import('@/views/OrdersView.vue')
+      name: 'InBound Orders',
+      path: '/inboundOrders',
+      component: () => import('@/views/InBoundsOrdersView.vue')
+    },
+    {
+      name: 'Customer Orders',
+      path: '/outboundOrders',
+      component: () => import('@/views/CustomerOrdersView.vue')
     },
     {
       name: 'Inventory',
@@ -29,30 +34,15 @@ const MainRoutes={
       path: '/settings',
       component: () => import('@/views/SettingsView.vue')
     },
-    // {
-    //   name: 'OrderDetails',
-    //   path: '/order/:id',
-    //   component: () => import('@/views/OrderDetailView.vue')
-    // },
-    {
-      name: 'Invoice',
-      path: '/invoice',
-      component: () => import('@/views/InvoiceView.vue')
-    },
-    {
-      name: 'Purchase Order',
-      path: '/purchase-order',
-      component: () => import('@/views/PurchaseOrderView.vue')
-    },
     {
       name: 'Reports',
       path: '/report',
       component: () => import('@/views/ReportView.vue')
     },
     {
-      name: 'Roles',
-      path: '/roles',
-      component: () => import('@/views/admin/RolesView.vue')
+      name: 'Suppliers',
+      path: '/suppliers',
+      component: () => import('@/views/SuppliersView.vue')
     },
     {
       name: 'Users',

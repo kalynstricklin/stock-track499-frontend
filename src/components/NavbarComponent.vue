@@ -12,9 +12,18 @@
     <v-navigation-drawer v-model="drawer" app>
       <v-list>
         <v-list-item prepend-icon="mdi-view-dashboard" title="Dashboard" :to="{ path: '/dashboard' }"></v-list-item>
+
         <v-list-item prepend-icon="mdi-clipboard-list-outline" title="Inventory" :to="{ path: '/inventory' }"></v-list-item>
-        <v-list-item prepend-icon="mdi-cart" title="Orders" :to="{ path: '/orders' }"></v-list-item>
+        <v-list-item prepend-icon="mdi-account-multiple" title="Suppliers" :to="{ path: '/suppliers' }"></v-list-item>
+
+
         <v-divider></v-divider>
+        <v-list-item prepend-icon="mdi-cart" title="Warehouse Orders" :to="{ path: '/inboundOrders' }"></v-list-item>
+        <v-list-item prepend-icon="mdi-cart" title="Customer Orders" :to="{ path: '/outboundOrders' }"></v-list-item>
+
+        <v-divider></v-divider>
+
+
 
 <!--        <v-list-item prepend-icon="mdi-wallet" title="Purchase Order" :to="{ path: '/purchase-order' }"></v-list-item>-->
 <!--        <v-list-item prepend-icon="mdi-file" title="Invoice" :to="{ path: '/invoice' }"></v-list-item>-->
@@ -28,7 +37,7 @@
               <!--        only see these as admin?-->
 <!--        <v-list-group v-if="isAdmin" prepend-icon="mdi-account" title="Admin">-->
           <v-list-item prepend-icon="mdi-account" title="Users" :to="{ path: '/users' }"></v-list-item>
-          <v-list-item prepend-icon="mdi-badge-account" title="Roles" :to="{ path: '/roles' }"></v-list-item>
+
 <!--        </v-list-group>-->
 
       </v-list>

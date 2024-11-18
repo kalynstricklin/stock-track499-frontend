@@ -12,24 +12,27 @@ import OrdersVsReturnsChart from '@/components/dashboard/OrdersVsReturnsChart.vu
 
   <v-container>
     <v-row>
-      <div style="width: 800px; padding:20px">
-        <v-col>
-          <v-row>
+      <v-col cols="12" md="6">
+        <v-card outlined>
+
+          <v-card-text>
             <BarChart />
+          </v-card-text>
+        </v-card>
+      </v-col>
 
-          </v-row>
-        </v-col>
 
-      </div>
       <v-spacer></v-spacer>
-      <div style="width: 800px; padding:20px">
-        <StockLevelChart />
-<!--        <OrdersVsReturnsChart/>-->
+      <v-col cols="12" md="6">
+        <v-card outlined>
 
-      </div>
+          <v-card-text>
+            <StockLevelChart />
+          </v-card-text>
+        </v-card>
+      </v-col>
+
     </v-row>
-
-
   </v-container>
 
 

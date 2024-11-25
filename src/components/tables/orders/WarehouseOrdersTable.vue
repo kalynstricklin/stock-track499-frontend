@@ -40,6 +40,7 @@ const getColor = (status: string) =>{
   else if(status === 'Delivered') return 'green'
 }
 
+
 </script>
 
 

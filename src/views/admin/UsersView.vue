@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import UsersTables from '@/components/tables/UsersTables.vue'
+import UsersTables from '@/components/admin/UsersTables.vue'
 </script>
 
 <template>

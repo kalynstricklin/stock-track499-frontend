@@ -16,25 +16,25 @@ interface OrderItems {
   status: string;
 
 }
+const defaultOrder: OrderItems = {
+  PO_number: 0,
+  customer_ID: '',
+  part_number: 0,
+  order_date: '',
+  received_date: '',
+  due_date: '',
+  outbound_price: 0,
+  inbound_price: 0,
+  total_cost: 0,
+  qty: 0,
+  status: 'Pending',
+};
 
 const dialog = ref(false);
 const dialogEdit= ref(false);
 
-const editedItem = ref({
-  PO_number: 0,
-  customer_ID: '', //this should be getten by authentication and seeing which user is signed in
-  part_number: '',
-  qty: 0,
-  status: 'Pending'
-});
-
-const defaultItem = ref({
-  PO_number: 0,
-  customer_ID: '', //this should be getten by authentication and seeing which user is signed in
-  part_number: '',
-  qty: 0,
-  status: 'Pending'
-});
+const editedItem = ref<OrderItems>({ ...defaultOrder });
+const defaultItem = ref<OrderItems>({ ...defaultOrder });
 
 const editedIndex = ref(-1);
 const formTitle = ref("New Order");
@@ -50,7 +50,9 @@ const snackbar = ref({
   visible: false,
   message: '',
   timeout: 3000,
+  color: 'success'
 });
+
 
 
 const headers = [
@@ -74,18 +76,26 @@ const headers = [
 
 function initialize() {
   orders.value = [
-    { PO_number: 6, customer_ID: 'Kalyn', part_number: 43, order_date: '2024-11-18T16:30:36.468Z', due_date: '2024-11-18T16:30:36.468Z', received_date: '2024-11-18T16:30:36.468Z', outbound_price: 12, total_cost: 36, qty: 3, status: 'Pending', },
-    { PO_number: 5, customer_ID: 'Kalyn', part_number: 43, order_date: '2024-11-18T16:30:36.468Z', due_date: '2024-11-18T16:30:36.468Z', received_date: '2024-11-18T16:30:36.468Z', outbound_price: 12, total_cost: 36, qty: 3, status: 'Pending', },
-    { PO_number: 4, customer_ID: 'Jack', part_number: 43, order_date: '2024-11-18T16:30:36.468Z', due_date: '2024-11-18T16:30:36.468Z', received_date: '2024-11-18T16:30:36.468Z', outbound_price: 12, total_cost: 36, qty: 3, status: 'Unfulfilled', },
-    { PO_number: 3, customer_ID: 'Alex', part_number: 43, order_date: '2024-11-18T16:30:36.468Z', due_date: '2024-11-18T16:30:36.468Z', received_date: '2024-11-18T16:30:36.468Z', outbound_price: 12, total_cost: 36, qty: 3, status: 'Unfulfilled', },
-    { PO_number: 2, customer_ID: 'Alex', part_number: 43, order_date: '2024-11-18T16:30:36.468Z', due_date: '2024-11-18T16:30:36.468Z', received_date: '2024-11-18T16:30:36.468Z', outbound_price: 12, total_cost: 36, qty: 3, status: 'Fulfilled', },
-    { PO_number: 1, customer_ID: 'Josh', part_number: 43, order_date: '2024-11-18T16:30:36.468Z', due_date: '2024-11-18T16:30:36.468Z', received_date: '2024-11-18T16:30:36.468Z', outbound_price: 12, total_cost: 36, qty: 3, status: 'Fulfilled', },
-    { PO_number: 0, customer_ID: 'Kalyn', part_number: 43, order_date: '2024-11-18T16:30:36.468Z', due_date: '2024-11-18T16:30:36.468Z', received_date: '2024-11-18T16:30:36.468Z', outbound_price: 12, total_cost: 36, qty: 3, status: 'Fulfilled', },
+    { PO_number: 6, customer_ID: 'Kalyn', part_number: 43, order_date: '2024-11-18T16:30:36.468Z', due_date: '2024-11-18T16:30:36.468Z', received_date: '2024-11-18T16:30:36.468Z',inbound_price: 12, outbound_price: 12, total_cost: 36, qty: 3, status: 'Pending', },
+    { PO_number: 5, customer_ID: 'Kalyn', part_number: 43, order_date: '2024-11-18T16:30:36.468Z', due_date: '2024-11-18T16:30:36.468Z', received_date: '2024-11-18T16:30:36.468Z',inbound_price: 12, outbound_price: 12, total_cost: 36, qty: 3, status: 'Pending', },
+    { PO_number: 4, customer_ID: 'Jack', part_number: 43, order_date: '2024-11-18T16:30:36.468Z', due_date: '2024-11-18T16:30:36.468Z', received_date: '2024-11-18T16:30:36.468Z', inbound_price: 12,outbound_price: 12, total_cost: 36, qty: 3, status: 'Unfulfilled', },
+    { PO_number: 3, customer_ID: 'Alex', part_number: 43, order_date: '2024-11-18T16:30:36.468Z', due_date: '2024-11-18T16:30:36.468Z', received_date: '2024-11-18T16:30:36.468Z',inbound_price: 12, outbound_price: 12, total_cost: 36, qty: 3, status: 'Unfulfilled', },
+    { PO_number: 2, customer_ID: 'Alex', part_number: 43, order_date: '2024-11-18T16:30:36.468Z', due_date: '2024-11-18T16:30:36.468Z', received_date: '2024-11-18T16:30:36.468Z', inbound_price: 12,outbound_price: 12, total_cost: 36, qty: 3, status: 'Fulfilled', },
+    { PO_number: 1, customer_ID: 'Josh', part_number: 43, order_date: '2024-11-18T16:30:36.468Z', due_date: '2024-11-18T16:30:36.468Z', received_date: '2024-11-18T16:30:36.468Z',inbound_price: 12, outbound_price: 12, total_cost: 36, qty: 3, status: 'Fulfilled', },
+    { PO_number: 0, customer_ID: 'Kalyn', part_number: 43, order_date: '2024-11-18T16:30:36.468Z', due_date: '2024-11-18T16:30:36.468Z', received_date: '2024-11-18T16:30:36.468Z', inbound_price: 12,outbound_price: 12, total_cost: 36, qty: 3, status: 'Fulfilled', },
   ];
 }
 
 
 
+const showSnackbar =(message: string, type: 'success'| 'error'| 'info' = 'success') => {
+  snackbar.value ={
+    visible: true,
+    message,
+    timeout: 3000,
+    color: type ==='success' ? 'green' : type === 'error' ? 'red' : 'blue'
+  };
+}
 
 const close = () => {
   dialog.value = false;
@@ -102,37 +112,41 @@ function save() {
     if (index !== -1) {
       orders.value[index] = { ...editedItem.value };
     }
+
   } else {
 
     const newOrder = {
       PO_number: orders.value.length + 1,
       customer_ID: editedItem.value.customer_ID,
       part_number: editedItem.value.part_number,
-      order_date: new Date().toISOString(),
-      delivery_date: new Date().toISOString(),
-      due_date: new Date().toISOString(),
-      received_date: new Date().toISOString(),
+      order_date: new Date().toLocaleString(),
+      delivery_date: new Date().toLocaleString(),
+      due_date: new Date().toLocaleString(),
+      received_date: new Date().toLocaleString(),
       qty: editedItem.value.qty,
       outbound_price: 5,
+      inbound_price: 5,
       total_cost: (editedItem.value.qty * 5),
       status: 'Pending',
 
     };
 
     orders.value = [newOrder, ...orders.value];
+
+    showSnackbar('Order created successfully', 'success');
   }
 
   close();
   orders.value = [...orders.value]
 
-  editedItem.value = { PO_number: 0, customer_ID: '', part_number: '', qty: 0, status: 'Pending' };
+  editedItem.value = { ...defaultOrder};
 
 };
 
 
 const openDialog = () => {
   dialog.value = true;
-  editedItem.value = { PO_number: 0, customer_ID: '', part_number: '', qty: 0, status: 'Pending' };
+  editedItem.value = {...defaultOrder};
 };
 
 function editItem(item: any){
@@ -145,11 +159,9 @@ const saveStatus = () => {
   if(editedIndex.value !== -1){
     orders.value[editedIndex.value].status = editedItem.value.status;
 
-    snackbar.value ={
-      visible: true,
-      message: `PO #${editedItem.value.PO_number} Order Status Updated to ${editedItem.value.status}`,
-      timeout: 3000
-    }
+
+    showSnackbar(`PO #${editedItem.value.PO_number} Order Status Updated to ${editedItem.value.status}`, 'info');
+
 
   }
   dialogEdit.value = false;
@@ -177,7 +189,7 @@ initialize();
       :headers="headers"
       :items="orders"
       item-value="PO_order"
-      :filter-keys="['PO_order','customer_ID', 'part_number', 'status', 'order_date', 'due_date', 'received_date', 'total_cost', 'qty', 'outbound_price']"
+      :filter-keys="['PO_number','customer_ID', 'part_number', 'status', 'order_date', 'due_date', 'received_date', 'total_cost', 'qty', 'outbound_price']"
     >
 
       <template v-slot:item.status="{ value }">
@@ -353,7 +365,6 @@ initialize();
             elevation="0"
             size="small"
             class="me-2"
-            icon
             color="green"
             @click="editItem(item)"
           >
@@ -365,7 +376,7 @@ initialize();
 
     </v-data-table>
 
-  <v-snackbar v-model="snackbar.visible" :timeout="snackbar.timeout" location="top">
+  <v-snackbar v-model="snackbar.visible" :timeout="snackbar.timeout" location="top" :color="snackbar.color" >
     {{snackbar.message}}
   </v-snackbar>
 

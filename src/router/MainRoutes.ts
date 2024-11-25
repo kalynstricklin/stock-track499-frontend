@@ -30,11 +30,6 @@ const MainRoutes={
       component: () => import('@/views/InventoryView.vue')
     },
     {
-      name: 'Settings',
-      path: '/settings',
-      component: () => import('@/views/SettingsView.vue')
-    },
-    {
       name: 'Reports',
       path: '/report',
       component: () => import('@/views/ReportView.vue')

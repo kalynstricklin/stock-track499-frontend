@@ -36,8 +36,17 @@ const snackbar = ref({
   visible: false,
   message: '',
   timeout: 3000,
+  color: 'success'
 });
 
+const showSnackbar =(message: string, type: 'success'| 'error'| 'info' = 'success') => {
+  snackbar.value ={
+    visible: true,
+    message,
+    timeout: 3000,
+    color: type ==='success' ? 'green' : type === 'error' ? 'red' : 'blue'
+  };
+}
 
 const headers = [
   { title: 'Product Name', key: 'product_name', align: 'start', sortable: true, },
@@ -88,6 +97,7 @@ function save() {
     if (index !== -1) {
       inventory.value[index] = { ...editedItem.value };
     }
+    showSnackbar(`${editedItem.value.product_name} updated`, 'info')
   } else {
 
     const newItem = {
@@ -106,11 +116,8 @@ function save() {
     };
     inventory.value = [newItem, ...inventory.value];
 
-    snackbar.value ={
-      visible: true,
-      message: `New Item Added to Inventory.`,
-      timeout: 3000
-    }
+    showSnackbar(`New Item Added to Inventory.`, 'info')
+
   }
 
   close();
@@ -137,6 +144,8 @@ function deleteItem(item: any){
   editedIndex.value = inventory.value.indexOf(item)
   editedItem.value = Object.assign({}, item)
   dialogDelete.value = true
+
+  showSnackbar(`${editedItem.value.product_name} deleted`, 'info')
 }
 
 function editItem(item: any){
@@ -191,21 +200,13 @@ async function reorder(item: InventoryItem){
     if(response.ok){
       const result = await response.json();
 
-      snackbar.value ={
-        visible: true,
-        message: `PO #${purchaseOrder.PO_number} created for ${item.product_name}`,
-        timeout: 3000
-      }
+      showSnackbar(`PO #${purchaseOrder.PO_number} created for ${item.product_name}`, 'success')
     }else{
       throw new Error('Failed to create PO');
     }
 
   }catch(error){
-    snackbar.value ={
-      visible: true,
-      message: `Failed to create PO #${purchaseOrder.PO_number}`,
-      timeout: 3000
-    };
+    showSnackbar(`Failed to create PO #${purchaseOrder.PO_number}`, 'error')
   }
 
 
@@ -433,7 +434,7 @@ initialize();
   </v-data-table>
 
 <!--  Re Order button snackbar-->
-  <v-snackbar v-model="snackbar.visible" :timeout="snackbar.timeout" location="top">
+  <v-snackbar v-model="snackbar.visible" :timeout="snackbar.timeout" location="top" :color="snackbar.color">
     {{snackbar.message}}
   </v-snackbar>
 </template>

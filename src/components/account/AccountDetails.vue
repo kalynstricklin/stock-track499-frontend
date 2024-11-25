@@ -19,6 +19,9 @@ async function signout() {
 <template>
   <v-container class="container-account-details">
     <h2 class="title font-weight-bold">Account Details</h2>
+<!--    <v-avatar>-->
+<!--      <v-icon>mdi-account</v-icon>-->
+<!--    </v-avatar>-->
 
     <br>
     <p>{{user?.displayName}}</p>

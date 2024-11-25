@@ -15,14 +15,14 @@ router.beforeEach(async (to, from, next) =>{
   const auth = getAuth();
   const user = auth.currentUser;
 
-  const publicPage = ['/dashboard']
-  // const publicPage = ['/auth/account']
+  // const publicPage = ['/dashboard']
+  const publicPage = ['/auth/account']
   const authReq = !publicPage.includes(to.path);
 
   if(authReq && !user){
 
-    next({path: "/dashboard"});
-    // next({path: "/auth/account"});
+    // next({path: "/dashboard"});
+    next({path: "/auth/account"});
     // next({path: "/auth/account", query: {redirect: to.fullPath}});
   }else{
     next();

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, nextTick } from 'vue'
+import { getStatusColor, sendRequest, showSnackbar, snackbar } from '@/utils/utils'
 
 
 interface InventoryItem {
@@ -15,37 +16,6 @@ interface InventoryItem {
   reorder_point: number;
   stock_level: number;
   status: string;
-}
-
-
-const dialog = ref(false)
-const dialogDelete = ref(false)
-const editedItem = ref({ product_name: '', part_number: 0, supplier_ID: '', manufacturer_ID: '', reorder_point: 0, stock_level: 0, status: '', inbound_price: 0, outbound_price: 0, on_hand: 0, reserved: 0, lead_time: 0});
-const defaultItem = ref({ product_name: '', part_number: 0, supplier_ID: '', manufacturer_ID: '',reorder_point: 0, stock_level: 0, status: '', inbound_price: 0, outbound_price: 0, on_hand: 0, reserved: 0, lead_time: 0  });
-const editedIndex = ref(-1);
-
-const buttonTitle = computed(()=>{return editedIndex.value === -1 ? 'Add' : 'Update'})
-const inventory = ref<InventoryItem[]>([])
-
-// search bar
-const search = ref('')
-
-
-// snack bar for reorder
-const snackbar = ref({
-  visible: false,
-  message: '',
-  timeout: 3000,
-  color: 'success'
-});
-
-const showSnackbar =(message: string, type: 'success'| 'error'| 'info' = 'success') => {
-  snackbar.value ={
-    visible: true,
-    message,
-    timeout: 3000,
-    color: type ==='success' ? 'green' : type === 'error' ? 'red' : 'blue'
-  };
 }
 
 const headers = [
@@ -67,18 +37,31 @@ const headers = [
   // { title: '', key: 'reorder', sortable: false },
 ];
 
+
+const dialog = ref(false)
+const dialogDelete = ref(false)
+const editedItem = ref({ product_name: '', part_number: 0, supplier_ID: '', manufacturer_ID: '', reorder_point: 0, stock_level: 0, status: '', inbound_price: 0, outbound_price: 0, on_hand: 0, reserved: 0, lead_time: 0});
+const defaultItem = ref({ product_name: '', part_number: 0, supplier_ID: '', manufacturer_ID: '',reorder_point: 0, stock_level: 0, status: '', inbound_price: 0, outbound_price: 0, on_hand: 0, reserved: 0, lead_time: 0  });
+const editedIndex = ref(-1);
+
+const buttonTitle = computed(()=>{return editedIndex.value === -1 ? 'Add' : 'Update'})
+const inventory = ref<InventoryItem[]>([])
+
+// search bar
+const search = ref('')
+
 function initialize() {
   inventory.value = [
-    { product_name: 'item 1', part_number: 1, supplier_ID: '1', manufacturer_ID: '1', reorder_point: 5, stock_level: 5, inbound_price: 12, outbound_price: 12, on_hand: 10, reserved: 2, status: 'Active', lead_time: 1},
-    { product_name: 'item 2', part_number: 1, supplier_ID: '1', manufacturer_ID: '1', reorder_point: 5, stock_level: 5, inbound_price: 12, outbound_price: 12, on_hand: 10, reserved: 2, status: 'Active',lead_time: 1 },
+    { product_name: 'item 1', part_number: 1, supplier_ID: '1', manufacturer_ID: '1', reorder_point: 5, stock_level: 5, inbound_price: 12, outbound_price: 12, on_hand: 10, reserved: 2, status: 'In Stock', lead_time: 1},
+    { product_name: 'item 2', part_number: 1, supplier_ID: '1', manufacturer_ID: '1', reorder_point: 5, stock_level: 5, inbound_price: 12, outbound_price: 12, on_hand: 10, reserved: 2, status: 'In Stock',lead_time: 1 },
     { product_name: 'item 3', part_number: 1, supplier_ID: '1', manufacturer_ID: '1', reorder_point: 5, stock_level: 5, inbound_price: 12, outbound_price: 12, on_hand: 0, reserved: 2, status: 'Out of Stock',lead_time: 1},
     { product_name: 'item 4', part_number: 1, supplier_ID: '1', manufacturer_ID: '1', reorder_point: 5, stock_level: 5, inbound_price: 12, outbound_price: 12, on_hand: 2, reserved: 2, status: 'Low Stock',lead_time: 1},
     { product_name: 'item 5', part_number: 1, supplier_ID: '1', manufacturer_ID: '1', reorder_point: 5, stock_level: 5, inbound_price: 12, outbound_price: 12, on_hand: 0, reserved: 2, status: 'Out of Stock', lead_time: 1},
-    { product_name: 'item 6', part_number: 1, supplier_ID: '1', manufacturer_ID: '1', reorder_point: 5, stock_level: 5, inbound_price: 12, outbound_price: 12, on_hand: 10, reserved: 2, status: 'Active', lead_time: 1 },
+    { product_name: 'item 6', part_number: 1, supplier_ID: '1', manufacturer_ID: '1', reorder_point: 5, stock_level: 5, inbound_price: 12, outbound_price: 12, on_hand: 10, reserved: 2, status: 'In Stock', lead_time: 1 },
     { product_name: 'item 7', part_number: 1, supplier_ID: '1', manufacturer_ID: '1', reorder_point: 5, stock_level: 5, inbound_price: 12, outbound_price: 12, on_hand: 3, reserved: 2, status: 'Low Stock', lead_time: 1 },
     { product_name: 'item 8', part_number: 1, supplier_ID: '1', manufacturer_ID: '1', reorder_point: 5, stock_level: 5, inbound_price: 12, outbound_price: 12, on_hand: 0, reserved: 2, status: 'Out of Stock', lead_time: 1},
-    { product_name: 'item 9', part_number: 1, supplier_ID: '1', manufacturer_ID: '1', reorder_point: 5, stock_level: 5, inbound_price: 12, outbound_price: 12, on_hand: 10, reserved: 2, status: 'Active', lead_time: 1 },
-    { product_name: 'item 10',part_number: 1, supplier_ID: '1', manufacturer_ID: '1', reorder_point: 5, stock_level: 5, inbound_price: 12, outbound_price: 12, on_hand: 10, reserved: 2, status: 'Active', lead_time:1 },
+    { product_name: 'item 9', part_number: 1, supplier_ID: '1', manufacturer_ID: '1', reorder_point: 5, stock_level: 5, inbound_price: 12, outbound_price: 12, on_hand: 10, reserved: 2, status: 'In Stock', lead_time: 1 },
+    { product_name: 'item 10',part_number: 1, supplier_ID: '1', manufacturer_ID: '1', reorder_point: 5, stock_level: 5, inbound_price: 12, outbound_price: 12, on_hand: 10, reserved: 2, status: 'In Stock', lead_time:1 },
   ];
 }
 
@@ -91,7 +74,12 @@ function close() {
   });
 }
 
-function save() {
+async function save() {
+  if(!editedItem.value.product_name || !editedItem.value.part_number || !editedItem.value.supplier_ID || !editedItem.value.manufacturer_ID || !editedItem.value.inbound_price || !editedItem.value.outbound_price || !editedItem.value.stock_level || !editedItem.value.lead_time){
+    showSnackbar("Please fill out all required fields", 'error')
+    return;
+  }
+
   if (editedItem.value.part_number) {
     const index = inventory.value.findIndex(o => o.part_number === editedItem.value.part_number);
     if (index !== -1) {
@@ -112,12 +100,12 @@ function save() {
       lead_time: 2,
       reorder_point: 3,
       stock_level: 15,
-      status: "Active",
+      status: "In Stock",
     };
-    inventory.value = [newItem, ...inventory.value];
 
-    showSnackbar(`New Item Added to Inventory.`, 'info')
-
+    //send request for new item to backend.
+    await sendRequest(newItem);
+    // inventory.value = [newItem, ...inventory.value];
   }
 
   close();
@@ -133,12 +121,6 @@ function openDialog(){
   editedItem.value = {  product_name: '', part_number: 0, supplier_ID: '', manufacturer_ID: '',reorder_point: 0, stock_level: 0, status: '', inbound_price: 0, outbound_price: 0, on_hand: 0, reserved: 0, lead_time: 0};
 };
 
-// status color
-const getColor = (status: string) =>{
-  if(status === 'Active') return 'green'
-  else if(status === 'Out of Stock') return 'red'
-  else if(status === 'Low Stock') return 'orange'
-}
 
 function deleteItem(item: any){
   editedIndex.value = inventory.value.indexOf(item)
@@ -190,31 +172,11 @@ async function reorder(item: InventoryItem){
   };
 
   //send po to backend
-  try{
-    const response = await fetch('/django/whatever-the-api-is-for-requests', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ item }),
-    });
-
-    if(response.ok){
-      const result = await response.json();
-
-      showSnackbar(`PO #${purchaseOrder.PO_number} created for ${item.product_name}`, 'success')
-    }else{
-      throw new Error('Failed to create PO');
-    }
-
-  }catch(error){
-    showSnackbar(`Failed to create PO #${purchaseOrder.PO_number}`, 'error')
-  }
-
-
-
-
+  await sendRequest(purchaseOrder)
 }
 
 
+//init the tested data
 initialize();
 </script>
 
@@ -239,7 +201,7 @@ initialize();
 
     <!--  status styling -->
       <template v-slot:item.status="{ value }">
-        <v-chip :color="getColor(value)">
+        <v-chip :color="getStatusColor(value)">
           {{ value }}
         </v-chip>
       </template>
@@ -323,7 +285,7 @@ initialize();
                   <v-col cols="12" md="4" sm="6">
                     <v-text-field
                       v-model="editedItem.inbound_price"
-                      label="Price"
+                      label="Purchasing Price"
                       :rules="[v => v>=0 || 'Price must be non-negative']"
                     ></v-text-field>
                   </v-col>
@@ -335,6 +297,15 @@ initialize();
                       :rules="[v => v>=0 || 'Price must be non-negative']"
                     ></v-text-field>
                   </v-col>
+
+                  <v-col cols="12" md="4" sm="6">
+                    <v-text-field
+                      v-model="editedItem.lead_time"
+                      label="Lead Time*"
+                      required
+                    ></v-text-field>
+                  </v-col>
+
                 </v-row>
                 <small class="text-caption text-medium-emphasis">*indicates required field</small>
               </v-card-text>

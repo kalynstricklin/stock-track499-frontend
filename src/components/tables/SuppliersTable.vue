@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { ref, computed, nextTick } from 'vue'
+import { getStatusColor, sendRequest, showSnackbar, snackbar } from '@/utils/utils'
 
 
 interface SupplierItems {
   supplier_name: string;
   supplier_ID: number;
   created_on: string;
-
+  status: string;
 }
 
 
@@ -23,18 +24,12 @@ const suppliers = ref<SupplierItems[]>([])
 // search bar
 const search = ref('')
 
-// snack bar
-const snackbar = ref({
-  visible: false,
-  message: '',
-  timeout: 3000,
-});
-
 
 const headers = [
   { title: 'Supplier Name', key: 'supplier_name'},
   { title: 'Supplier ID', key: 'supplier_ID'},
   { title: 'Created On', key: 'created_on' },
+  { title: 'Status', key: 'status' },
   { title: 'Edit', key: 'edit', sortable: false },
   { title: 'Delete', key: 'delete', sortable: false },
 ];
@@ -42,10 +37,10 @@ const headers = [
 
 function initialize() {
   suppliers.value = [
-    { supplier_name: 'Amazon', supplier_ID: 1, created_on: '2024-10-12' },
-    { supplier_name: 'Walmart', supplier_ID: 2,created_on: '2024-10-12' },
-    { supplier_name: 'Target',supplier_ID: 3, created_on: '2024-10-12' },
-    { supplier_name: 'Home Depot',supplier_ID: 4, created_on: '2024-10-12' },
+    { supplier_name: 'Amazon', supplier_ID: 1, created_on: '2024-10-12',status: 'Active' },
+    { supplier_name: 'Walmart', supplier_ID: 2,created_on: '2024-10-12',status: 'Active'},
+    { supplier_name: 'Target',supplier_ID: 3, created_on: '2024-10-12',status: 'Active' },
+    { supplier_name: 'Home Depot',supplier_ID: 4, created_on: '2024-10-12',status: 'Active' },
   ];
 }
 
@@ -59,34 +54,31 @@ function close() {
 }
 
 
-function save() {
-  if (editedItem.value.supplier_ID) {
-    const index = suppliers.value.findIndex(o => o.supplier_ID === editedItem.value.supplier_ID);
-    if (index !== -1) {
-      suppliers.value[index] = { ...editedItem.value };
-    }
-  } else {
+async function save() {
+  if (!editedItem.value.supplier_name || !editedItem.value.supplier_ID) {
+    showSnackbar("Please fill out all required fields", 'error');
+    return;
+  }
 
+  if(editedIndex.value === -1){
     const newItem = {
       supplier_name: editedItem.value.supplier_name,
       supplier_ID: editedItem.value.supplier_ID,
       created_on: new Date().toISOString()
     };
+    // suppliers.value =[newItem, ...suppliers.value]
 
-    suppliers.value =[newItem, ...suppliers.value]
+    await sendRequest(newItem)
 
-    snackbar.value ={
-      visible: true,
-      message: `Supplier ${editItem.value.supplier_name} Created.`,
-      timeout: 3000
-    }
-
+  }else{
+    suppliers.value =[...suppliers.value];
   }
 
   close();
   suppliers.value = [...suppliers.value]
 
-  editedItem.value = { supplier_name: '', supplier_ID: 0};
+  editedItem.value = defaultItem.value;
+  editedIndex.value = -1;
 
 };
 
@@ -139,6 +131,12 @@ initialize();
     item-value="supplier_ID"
     :filter-keys="['supplier_name', 'supplier_ID', 'created_on']"
   >
+
+    <template v-slot:item.status="{ value }">
+      <v-chip :color="getStatusColor(value)">
+        {{ value }}
+      </v-chip>
+    </template>
 
 
     <!--    title of table-->
@@ -283,7 +281,7 @@ initialize();
 
   </v-data-table>
 
-  <v-snackbar v-model="snackbar.visible" :timeout="snackbar.timeout" location="top">
+  <v-snackbar v-model="snackbar.visible" :timeout="snackbar.timeout" location="top" :color="snackbar.color">
     {{snackbar.message}}
   </v-snackbar>
 

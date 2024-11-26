@@ -1,8 +1,16 @@
 <script setup lang="ts">
 import { ref, computed, nextTick } from 'vue'
+import { getStatusColor, sendRequest, showSnackbar, snackbar } from '@/utils/utils'
+
+interface UserItem {
+  user_name: string;
+  email: string;
+  role: string;
+  createdOn: string;
+  status: string;
+}
 
 
-const expanded = ref([]);
 const dialog = ref(false);
 const dialogDelete = ref(false)
 const editedItem = ref({ user_name: '', email: '', role: '', createdOn: '', status: ''});
@@ -10,9 +18,6 @@ const defaultItem = ref({ user_name: '', email: '', role: '', createdOn: '', sta
 const editedIndex = ref(-1);
 const selected = ref([])
 
-const formTitle = computed(()=>{
-  return editedIndex.value === -1 ? 'New User' : 'Edit User'
-})
 
 const buttonTitle = computed(()=>{return editedIndex.value === -1 ? 'Add' : 'Update'})
 
@@ -27,7 +32,7 @@ const headers = [
 ];
 
 
-const users = ref([
+const users = ref<UserItem[]>([
   { user_name: 'Kalyn', email: 'kms0081@uah.edu', role: 'Admin', createdOn: '2024-11-13', status: 'Active' },
   { user_name: 'Alex', email: 'alex@uah.edu', role: 'Manager', createdOn: '2024-11-13', status: 'Active' },
   { user_name: 'Ashley', email: 'ashley@uah.edu', role: 'Customer', createdOn: '2024-11-13', status: 'Active' },
@@ -42,20 +47,22 @@ const close = () => {
   editedItem.value = { user_name: '', email: '', role: '', createdOn: '', status: ''};
 };
 
-const save = () => {
+const save = async () => {
   if (!editedItem.value.user_name || !editedItem.value.email || !editedItem.value.role) {
-    alert("Please fill out all fields");
+    showSnackbar("Please fill out all required fields", 'error');
     return;
   }
   if (editedIndex.value === -1) {
-    const newItem = {
+    const newUser = {
       user_name: editedItem.value.user_name,
       email: editedItem.value.email,
       role: editedItem.value.role,
       createdOn: new Date().toISOString(),
       status: 'Active'
     };
-    users.value.push(newItem);
+    // users.value = [newUser, ...users.value];
+
+    await sendRequest(newUser)
   }else{
     users.value[editedIndex.value] = {...editedItem.value}
   }
@@ -63,28 +70,23 @@ const save = () => {
   close();
   users.value = [...users.value]
 
-  editedItem.value = { user_name: '', email: '', role: '', createdOn: '', status: ''};
+  editedItem.value = defaultItem.value;
   editedIndex.value = -1;
 };
 
 const openDialog = () => {
   dialog.value = true;
-  formTitle.value = "New User";
-  editedItem.value = { user_name: '', email: '', role: '', createdOn: '', status: ''};
+
+  editedItem.value = defaultItem.value;
 };
 
 // search bar
 const search = ref('')
 
-// status color
-const getColor = (status: string) =>{
-  if(status === 'Active') return 'green'
-  else if(status === 'Inactive') return 'red'
-}
 
 function deleteItemConfirm() {
   if (editedIndex.value !== -1) {
-    roles.value.splice(editedIndex.value, 1);
+    users.value.splice(editedIndex.value, 1);
     closeDelete();
   }
 }
@@ -111,6 +113,7 @@ function editItem(item: any){
 
 const roles = ['Admin', 'Manager', 'Customer', 'Employee'];
 
+
 </script>
 
 
@@ -127,7 +130,7 @@ const roles = ['Admin', 'Manager', 'Customer', 'Employee'];
 
 
       <template v-slot:item.status="{ value }">
-        <v-chip :color="getColor(value)">
+        <v-chip :color="getStatusColor(value)">
           {{ value }}
         </v-chip>
       </template>
@@ -139,6 +142,7 @@ const roles = ['Admin', 'Manager', 'Customer', 'Employee'];
 
         <v-row dense justify="space-between" align="center">
           <v-col cols="8">
+
             <!-- Search Users -->
             <v-text-field
               v-model="search"
@@ -152,76 +156,76 @@ const roles = ['Admin', 'Manager', 'Customer', 'Employee'];
             ></v-text-field>
           </v-col>
 
-          <v-col cols="4" class="text-end" style="padding-right: 15px">
-
           <!-- New User Popup dialog  -->
-          <v-dialog v-model="dialog" max-width="600px">
+          <v-col cols="4" class="text-end" style="padding-right: 15px">
+            <v-dialog v-model="dialog" max-width="600px">
 
-<!--            <template v-slot:activator="{ props }">-->
-<!--              <v-btn-->
-<!--                class="text-none font-weight-regular"-->
-<!--                prepend-icon= "mdi-account-multiple"-->
-<!--                text="New User"-->
-<!--                variant="tonal"-->
-<!--                v-bind="props"-->
-<!--                @click="openDialog">-->
-<!--              </v-btn>-->
-<!--            </template>-->
-
-
-            <v-card
-              prepend-icon="mdi-account"
-              title="User"
-            >
-              <v-card-text>
-                  <v-row dense>
-
-                    <v-col cols="4">
-                      <v-text-field
-                        v-model="editedItem.user_name"
-                        label="User Name"
-                        disabled
-                      ></v-text-field>
-                    </v-col>
-
-                    <v-col cols="4">
-                      <v-text-field
-                        v-model="editedItem.email"
-                        label="Email"
-                        disabled
-                      ></v-text-field>
-                    </v-col>
-
-                    <v-col cols="4">
-                      <v-select
-                        v-model="editedItem.role"
-                        :items="roles"
-                        label="Role">
-                      </v-select>
-                    </v-col>
-
-                  </v-row>
-              </v-card-text>
-              <v-card-actions>
-                <v-spacer></v-spacer>
-
+              <template v-slot:activator="{ props }">
                 <v-btn
-                  text="Close"
-                  variant="plain"
-                  @click="dialog=false"
-                ></v-btn>
-
-                <v-btn
-                  color="primary"
+                  class="text-none font-weight-regular"
+                  prepend-icon= "mdi-account-multiple"
+                  text="New User"
                   variant="tonal"
-                  @click="save"
-                >{{buttonTitle}}</v-btn>
+                  v-bind="props"
+                  @click="openDialog">
+                </v-btn>
+              </template>
 
-              </v-card-actions>
+
+              <v-card
+                prepend-icon="mdi-account"
+                title="User"
+              >
+                <v-card-text>
+                    <v-row dense>
+
+                      <v-col cols="4">
+                        <v-text-field
+                          v-model="editedItem.user_name"
+                          label="User Name*"
+
+                        ></v-text-field>
+                      </v-col>
+
+                      <v-col cols="4">
+                        <v-text-field
+                          v-model="editedItem.email"
+                          label="Email*"
+
+                        ></v-text-field>
+                      </v-col>
+
+                      <v-col cols="4">
+                        <v-select
+                          v-model="editedItem.role"
+                          :items="roles"
+                          label="Role*">
+                        </v-select>
+                      </v-col>
+
+                    </v-row>
+                  <small class="text-caption text-medium-emphasis">*indicates required field</small>
+                </v-card-text>
+                <v-card-actions>
+                  <v-spacer></v-spacer>
+
+                  <v-btn
+                    text="Close"
+                    variant="plain"
+                    @click="dialog=false"
+                  ></v-btn>
+
+                  <v-btn
+                    color="primary"
+                    variant="tonal"
+                    @click= "save"
+                  >{{buttonTitle}}</v-btn>
+
+                </v-card-actions>
 
 
-            </v-card>
-          </v-dialog>
+              </v-card>
+            </v-dialog>
           </v-col>
         </v-row>
 
@@ -279,6 +283,10 @@ const roles = ['Admin', 'Manager', 'Customer', 'Employee'];
       </template>
 
     </v-data-table>
+
+  <v-snackbar v-model="snackbar.visible" :timeout="snackbar.timeout" location="top" :color="snackbar.color">
+    {{snackbar.message}}
+  </v-snackbar>
 
 </template>
 

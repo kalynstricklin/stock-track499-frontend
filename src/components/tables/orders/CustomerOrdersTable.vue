@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, nextTick } from 'vue'
+import { getStatusColor } from '@/utils/utils'
 
 
 interface OrderItems {
@@ -78,11 +79,11 @@ function initialize() {
   orders.value = [
     { PO_number: 6, customer_ID: 'Kalyn', part_number: 43, order_date: '2024-11-18T16:30:36.468Z', due_date: '2024-11-18T16:30:36.468Z', received_date: '2024-11-18T16:30:36.468Z',inbound_price: 12, outbound_price: 12, total_cost: 36, qty: 3, status: 'Pending', },
     { PO_number: 5, customer_ID: 'Kalyn', part_number: 43, order_date: '2024-11-18T16:30:36.468Z', due_date: '2024-11-18T16:30:36.468Z', received_date: '2024-11-18T16:30:36.468Z',inbound_price: 12, outbound_price: 12, total_cost: 36, qty: 3, status: 'Pending', },
-    { PO_number: 4, customer_ID: 'Jack', part_number: 43, order_date: '2024-11-18T16:30:36.468Z', due_date: '2024-11-18T16:30:36.468Z', received_date: '2024-11-18T16:30:36.468Z', inbound_price: 12,outbound_price: 12, total_cost: 36, qty: 3, status: 'Unfulfilled', },
-    { PO_number: 3, customer_ID: 'Alex', part_number: 43, order_date: '2024-11-18T16:30:36.468Z', due_date: '2024-11-18T16:30:36.468Z', received_date: '2024-11-18T16:30:36.468Z',inbound_price: 12, outbound_price: 12, total_cost: 36, qty: 3, status: 'Unfulfilled', },
-    { PO_number: 2, customer_ID: 'Alex', part_number: 43, order_date: '2024-11-18T16:30:36.468Z', due_date: '2024-11-18T16:30:36.468Z', received_date: '2024-11-18T16:30:36.468Z', inbound_price: 12,outbound_price: 12, total_cost: 36, qty: 3, status: 'Fulfilled', },
-    { PO_number: 1, customer_ID: 'Josh', part_number: 43, order_date: '2024-11-18T16:30:36.468Z', due_date: '2024-11-18T16:30:36.468Z', received_date: '2024-11-18T16:30:36.468Z',inbound_price: 12, outbound_price: 12, total_cost: 36, qty: 3, status: 'Fulfilled', },
-    { PO_number: 0, customer_ID: 'Kalyn', part_number: 43, order_date: '2024-11-18T16:30:36.468Z', due_date: '2024-11-18T16:30:36.468Z', received_date: '2024-11-18T16:30:36.468Z', inbound_price: 12,outbound_price: 12, total_cost: 36, qty: 3, status: 'Fulfilled', },
+    { PO_number: 4, customer_ID: 'Jack', part_number: 43, order_date: '2024-11-18T16:30:36.468Z', due_date: '2024-11-18T16:30:36.468Z', received_date: '2024-11-18T16:30:36.468Z', inbound_price: 12,outbound_price: 12, total_cost: 36, qty: 3, status: 'Shipped', },
+    { PO_number: 3, customer_ID: 'Alex', part_number: 43, order_date: '2024-11-18T16:30:36.468Z', due_date: '2024-11-18T16:30:36.468Z', received_date: '2024-11-18T16:30:36.468Z',inbound_price: 12, outbound_price: 12, total_cost: 36, qty: 3, status: 'Shipped', },
+    { PO_number: 2, customer_ID: 'Alex', part_number: 43, order_date: '2024-11-18T16:30:36.468Z', due_date: '2024-11-18T16:30:36.468Z', received_date: '2024-11-18T16:30:36.468Z', inbound_price: 12,outbound_price: 12, total_cost: 36, qty: 3, status: 'Shipped', },
+    { PO_number: 1, customer_ID: 'Josh', part_number: 43, order_date: '2024-11-18T16:30:36.468Z', due_date: '2024-11-18T16:30:36.468Z', received_date: '2024-11-18T16:30:36.468Z',inbound_price: 12, outbound_price: 12, total_cost: 36, qty: 3, status: 'Delivered', },
+    { PO_number: 0, customer_ID: 'Kalyn', part_number: 43, order_date: '2024-11-18T16:30:36.468Z', due_date: '2024-11-18T16:30:36.468Z', received_date: '2024-11-18T16:30:36.468Z', inbound_price: 12,outbound_price: 12, total_cost: 36, qty: 3, status: 'Delivered', },
   ];
 }
 
@@ -169,16 +170,6 @@ const saveStatus = () => {
 }
 
 
-
-// status color
-const getColor = (status: string) =>{
-  if(status === 'Unfulfilled') return 'red'
-  else if(status === 'Pending') return 'orange'
-  else if(status === 'Fulfilled') return 'green'
-}
-
-
-
 initialize();
 </script>
 
@@ -193,7 +184,7 @@ initialize();
     >
 
       <template v-slot:item.status="{ value }">
-        <v-chip :color="getColor(value)">
+        <v-chip :color="getStatusColor(value)">
           {{ value }}
         </v-chip>
       </template>
@@ -341,7 +332,7 @@ initialize();
                 <v-col cols="3">
                   <v-select
                     v-model="editedItem.status"
-                    :items="['Pending', 'Unfulfilled', 'Fulfilled']"
+                    :items="['Pending', 'Shipped', 'Delivered']"
                     label="Status"
                   ></v-select>
                 </v-col>

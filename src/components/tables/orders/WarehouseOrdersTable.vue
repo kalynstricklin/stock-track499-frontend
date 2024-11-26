@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { getStatusColor } from '@/utils/utils'
 
 
 const headers = [
@@ -20,9 +21,9 @@ const headers = [
 const order = ref([
   { PO_order: 9, product_name: "Nails", part_number: 233, supplier_ID: 233, manufacturer_ID: 233, order_date: '11-20-2023', due_date: '11-28-2023', received_date: '11-28-2023', qty: 15, inbound_price: 5, status: 'Pending'},
   { PO_order: 8, product_name: "Hammer", part_number: 233, supplier_ID: 233, manufacturer_ID: 233, order_date: '11-20-2023', due_date: '11-28-2023', received_date: '11-28-2023', qty: 15, inbound_price: 5, status: 'Pending'},
-  { PO_order: 7, product_name: "Screws", part_number: 233, supplier_ID: 233, manufacturer_ID: 233, order_date: '11-20-2023', due_date: '11-28-2023', received_date: '11-28-2023', qty: 15, inbound_price: 5, status: 'Received'},
-  { PO_order: 6, product_name: "Drill", part_number: 233, supplier_ID: 233, manufacturer_ID: 233, order_date: '11-20-2023', due_date: '11-28-2023', received_date: '11-28-2023', qty: 15, inbound_price: 5, status: 'Received'},
-  { PO_order: 5, product_name: "Paint", part_number: 233, supplier_ID: 233, manufacturer_ID: 233, order_date: '11-20-2023', due_date: '11-28-2023', received_date: '11-28-2023', qty: 15, inbound_price: 5, status: 'Delivered'},
+  { PO_order: 7, product_name: "Screws", part_number: 233, supplier_ID: 233, manufacturer_ID: 233, order_date: '11-20-2023', due_date: '11-28-2023', received_date: '11-28-2023', qty: 15, inbound_price: 5, status: 'Shipped'},
+  { PO_order: 6, product_name: "Drill", part_number: 233, supplier_ID: 233, manufacturer_ID: 233, order_date: '11-20-2023', due_date: '11-28-2023', received_date: '11-28-2023', qty: 15, inbound_price: 5, status: 'Shipped'},
+  { PO_order: 5, product_name: "Paint", part_number: 233, supplier_ID: 233, manufacturer_ID: 233, order_date: '11-20-2023', due_date: '11-28-2023', received_date: '11-28-2023', qty: 15, inbound_price: 5, status: 'Shipped'},
   { PO_order: 4, product_name: "Wire", part_number: 233, supplier_ID: 233, manufacturer_ID: 233, order_date: '11-20-2023', due_date: '11-28-2023', received_date: '11-28-2023', qty: 15, inbound_price: 5, status: 'Delivered'},
   { PO_order: 3, product_name: "Nails", part_number: 233, supplier_ID: 233, manufacturer_ID: 233, order_date: '11-20-2023', due_date: '11-28-2023', received_date: '11-28-2023', qty: 15, inbound_price: 5, status: 'Delivered'},
   { PO_order: 2, product_name: "Nails", part_number: 233, supplier_ID: 233, manufacturer_ID: 233, order_date: '11-20-2023', due_date: '11-28-2023', received_date: '11-28-2023', qty: 15, inbound_price: 5, status: 'Delivered'},
@@ -32,13 +33,6 @@ const order = ref([
 
 // search bar
 const search = ref('')
-
-// status color
-const getColor = (status: string) =>{
-  if(status === 'Pending') return 'red'
-  else if(status === 'Received') return 'orange'
-  else if(status === 'Delivered') return 'green'
-}
 
 
 </script>
@@ -57,7 +51,7 @@ const getColor = (status: string) =>{
       </template>
 
       <template v-slot:item.status="{ value }">
-        <v-chip :color="getColor(value)">
+        <v-chip :color="getStatusColor(value)">
           {{ value }}
         </v-chip>
       </template>

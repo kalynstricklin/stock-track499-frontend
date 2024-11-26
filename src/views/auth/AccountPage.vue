@@ -3,7 +3,7 @@
   import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
   import UserLogin from '@/components/account/UserLogin.vue';
   import UserSignup from '@/components/account/UserSignup.vue'
-  import AdminList from '@/components/admin/AdminList.vue'
+  import AdminList from '@/components/tables/admin/AdminList.vue'
   import AccountDetails from '@/components/account/AccountDetails.vue'
 
   const user = ref();

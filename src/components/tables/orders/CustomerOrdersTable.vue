@@ -1,8 +1,34 @@
 <script setup lang="ts">
-import { ref, computed, nextTick } from 'vue'
-import { getStatusColor } from '@/utils/utils'
+import { ref, computed, nextTick, onMounted, watch } from 'vue'
+import { getStatusColor, showSnackbar, snackbar } from '@/utils/utils'
+import { auth } from '@/firebase'
+import {
+  createOrderRequest,
+  editOrderRequest,
+  fetchItemDetails,
+  fetchOrderRequest,
+  type Order
+} from '@/server/services/OrdersHandler'
 
 
+
+
+const defaultOrder: Order = {
+  manufacturer_ID: '',
+  product_name: '',
+  supplier_ID: '',
+  PO_number: 0,
+  customer_ID: '',
+  part_number: 0,
+  order_date: '',
+  received_date: '',
+  due_date: '',
+  outbound_price: 0,
+  inbound_price: 0,
+  total_cost: 0,
+  qty: 0,
+  status: 'Pending'
+};
 interface OrderItems {
   PO_number: number;
   customer_ID: string;
@@ -17,43 +43,21 @@ interface OrderItems {
   status: string;
 
 }
-const defaultOrder: OrderItems = {
-  PO_number: 0,
-  customer_ID: '',
-  part_number: 0,
-  order_date: '',
-  received_date: '',
-  due_date: '',
-  outbound_price: 0,
-  inbound_price: 0,
-  total_cost: 0,
-  qty: 0,
-  status: 'Pending',
-};
 
 const dialog = ref(false);
 const dialogEdit= ref(false);
 
-const editedItem = ref<OrderItems>({ ...defaultOrder });
-const defaultItem = ref<OrderItems>({ ...defaultOrder });
+const editedItem = ref<Order>({ ...defaultOrder });
+const defaultItem = ref<Order>({ ...defaultOrder });
 
 const editedIndex = ref(-1);
-const formTitle = ref("New Order");
+
 const buttonTitle = computed(()=>{return editedIndex.value === -1 ? 'Add' : 'Update'})
 
 const orders = ref<OrderItems[]>([]);
 
 // search bar
 const search = ref('')
-
-// snack bar
-const snackbar = ref({
-  visible: false,
-  message: '',
-  timeout: 3000,
-  color: 'success'
-});
-
 
 
 const headers = [
@@ -75,7 +79,7 @@ const headers = [
 
 
 
-function initialize() {
+async function initialize() {
   orders.value = [
     { PO_number: 6, customer_ID: 'Kalyn', part_number: 43, order_date: '2024-11-18T16:30:36.468Z', due_date: '2024-11-18T16:30:36.468Z', received_date: '2024-11-18T16:30:36.468Z',inbound_price: 12, outbound_price: 12, total_cost: 36, qty: 3, status: 'Pending', },
     { PO_number: 5, customer_ID: 'Kalyn', part_number: 43, order_date: '2024-11-18T16:30:36.468Z', due_date: '2024-11-18T16:30:36.468Z', received_date: '2024-11-18T16:30:36.468Z',inbound_price: 12, outbound_price: 12, total_cost: 36, qty: 3, status: 'Pending', },
@@ -85,18 +89,52 @@ function initialize() {
     { PO_number: 1, customer_ID: 'Josh', part_number: 43, order_date: '2024-11-18T16:30:36.468Z', due_date: '2024-11-18T16:30:36.468Z', received_date: '2024-11-18T16:30:36.468Z',inbound_price: 12, outbound_price: 12, total_cost: 36, qty: 3, status: 'Delivered', },
     { PO_number: 0, customer_ID: 'Kalyn', part_number: 43, order_date: '2024-11-18T16:30:36.468Z', due_date: '2024-11-18T16:30:36.468Z', received_date: '2024-11-18T16:30:36.468Z', inbound_price: 12,outbound_price: 12, total_cost: 36, qty: 3, status: 'Delivered', },
   ];
+  // if(!auth.currentUser){
+  //   return;
+  // }
+  //
+  // const token = (await (auth.currentUser.getIdTokenResult())).token;
+  //
+  // try{
+  //   const customerOrders = await fetchOrderRequest(token);
+  //   orders.value = customerOrders;
+  //   showSnackbar(`Loaded all customer orders!`, 'success');
+  //
+  // }catch(error: any){
+  //   showSnackbar(`Error loading customer orders: ${error.message}`, 'error');
+  // }
 }
 
+watch(
+  () => editedItem.value.part_number,
+  async(newPartNumber) => {
+    if(!newPartNumber) return;
 
+    if(!auth.currentUser){
+      showSnackbar('You must be logged in to fetch item details.', 'error');
+      return;
+    }
 
-const showSnackbar =(message: string, type: 'success'| 'error'| 'info' = 'success') => {
-  snackbar.value ={
-    visible: true,
-    message,
-    timeout: 3000,
-    color: type ==='success' ? 'green' : type === 'error' ? 'red' : 'blue'
-  };
-}
+    const token = (await auth.currentUser.getIdTokenResult()).token;
+
+    try{
+      const itemDetails = await fetchItemDetails(newPartNumber, token);
+
+      editedItem.value ={
+        ...editedItem.value,
+        product_name: itemDetails.product_name,
+        supplier_ID: itemDetails.supplier_ID,
+        manufacturer_ID: itemDetails.manufacturer_ID,
+        inbound_price: itemDetails.inbound_price,
+        outbound_price: itemDetails.outbound_price,
+      };
+
+      showSnackbar(`Item details for part #${newPartNumber} found!`, 'success')
+    }catch(error: any){
+      showSnackbar(`Error: ${error.message}`, 'error')
+    }
+  }
+)
 
 const close = () => {
   dialog.value = false;
@@ -106,42 +144,32 @@ const close = () => {
   });
 };
 
-
-function save() {
-  if (editedItem.value.PO_number) {
-    const index = orders.value.findIndex(o => o.PO_number === editedItem.value.PO_number);
-    if (index !== -1) {
-      orders.value[index] = { ...editedItem.value };
-    }
-
-  } else {
-
-    const newOrder = {
-      PO_number: orders.value.length + 1,
-      customer_ID: editedItem.value.customer_ID,
-      part_number: editedItem.value.part_number,
-      order_date: new Date().toLocaleString(),
-      delivery_date: new Date().toLocaleString(),
-      due_date: new Date().toLocaleString(),
-      received_date: new Date().toLocaleString(),
-      qty: editedItem.value.qty,
-      outbound_price: 5,
-      inbound_price: 5,
-      total_cost: (editedItem.value.qty * 5),
-      status: 'Pending',
-
-    };
-
-    orders.value = [newOrder, ...orders.value];
-
-    showSnackbar('Order created successfully', 'success');
+async function save() {
+  //check if authorized user
+  if(!auth.currentUser){
+    return;
   }
 
-  close();
-  orders.value = [...orders.value]
+  const token = (await (auth.currentUser.getIdTokenResult())).token;
+  try{
+    const newOrder = {
+      ...editedItem.value,
+      PO_number: orders.value.length +1,
+      total_cost: editedItem.value.qty * editedItem.value.outbound_price,
+      status: 'Pending'
+    };
 
-  editedItem.value = { ...defaultOrder};
-
+    const response = await createOrderRequest(newOrder, token);
+    if (response === 'Success') {
+      showSnackbar(`Order #${newOrder.PO_number} created successfully!`, 'success');
+      orders.value = [newOrder, ...orders.value];
+      close();
+    } else {
+      showSnackbar(`Failed to create order: ${response}`, 'error');
+    }
+  } catch (error: any) {
+    showSnackbar(`Error saving order: ${error.message}`, 'error');
+  }
 };
 
 
@@ -169,8 +197,11 @@ const saveStatus = () => {
 
 }
 
+//when component is mounted data will load
+onMounted(() => {
+  initialize();
+});
 
-initialize();
 </script>
 
 
@@ -249,8 +280,16 @@ initialize();
                     <v-col cols="12" md="6">
                       <v-text-field
                         v-model="editedItem.customer_ID"
-                        label="Customer*"
+                        label="Customer ID*"
                         required
+                      ></v-text-field>
+                    </v-col>
+
+                    <v-col cols="12" md="6">
+                      <v-text-field
+                        v-model="editedItem.product_name"
+                        label="Product Name"
+                        disabled
                       ></v-text-field>
                     </v-col>
 
@@ -261,15 +300,38 @@ initialize();
                         required
                       ></v-text-field>
                     </v-col>
+                    <v-text-field
+                      v-model="editedItem.qty"
+                      label="Quantity*"
+                      :rules="[v => v > 0 || 'Quantity must be greater than 0']"
+                      required
+                    ></v-text-field>
+
+
 
                     <v-col cols="12" md="6">
                       <v-text-field
-                        v-model="editedItem.qty"
-                        label="Quantity*"
-                        required
+                        v-model="editedItem.supplier_ID"
+                        label="Supplier"
+                        disabled
                       ></v-text-field>
                     </v-col>
 
+<!--                    <v-col cols="12" md="6">-->
+<!--                      <v-text-field-->
+<!--                        v-model="editedItem.inbound_price"-->
+<!--                        label="Inbound Price"-->
+<!--                        disabled-->
+<!--                      ></v-text-field>-->
+<!--                    </v-col>-->
+
+                    <v-col cols="12" md="6">
+                      <v-text-field
+                        v-model="editedItem.outbound_price"
+                        label="Price"
+                        disabled
+                      ></v-text-field>
+                    </v-col>
                   </v-row>
                   <small class="text-caption text-medium-emphasis">*indicates required field</small>
                 </v-card-text>

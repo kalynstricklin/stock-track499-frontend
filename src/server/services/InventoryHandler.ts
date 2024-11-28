@@ -55,7 +55,7 @@ export async function editInventoryRequest(inventory: InventoryItem, firebase_id
 //method to fetch inventory from the database
 export async function fetchInventoryRequest(firebase_id_token: string) {
 
-  const url = inventoryURL + '&firebase_id_token=${firebase_id_token}'
+  const url = inventoryURL + `&firebase_id_token=${firebase_id_token}`
 
   try{
     const response = await fetch(url, {

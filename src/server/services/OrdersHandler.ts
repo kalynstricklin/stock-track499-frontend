@@ -5,7 +5,7 @@ export const orderUrl: string = 'http://localhost:8000/order/';
 
 export interface Order {
   product_name: string;
-  PO_order: number;
+  PO_number: number;
   part_number: number;
   qty: number;
   supplier_ID: string;
@@ -16,10 +16,12 @@ export interface Order {
   status: string;
   inbound_price: number;
   outbound_price: number;
+  customer_ID: string;
+  total_cost: number;
 }
 
 export async function editOrderRequest(order: any, firebase_id_token: string){
-  const url = orderUrl + `&firebase_id_token=${firebase_id_token}`;
+  const url = orderUrl;
 
   //check if authorized order
   if(!auth.currentUser){
@@ -34,7 +36,10 @@ export async function editOrderRequest(order: any, firebase_id_token: string){
   try{
     const response = await fetch(url, {
       method: 'PATCH',
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+        Authorization: `Bearer ${firebase_id_token}`,
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify(order)
     });
 
@@ -50,34 +55,58 @@ export async function editOrderRequest(order: any, firebase_id_token: string){
 }
 
 
-
+export async function fetchOrderRequest(firebase_id_token: string){
 //method to fetch order from the database
-export async function fetchOrdersRequest(firebase_id_token: string) {
-  const url = orderUrl + '&firebase_id_token=${firebase_id_token}'
+  const url = orderUrl
 
   try{
     const response = await fetch(url, {
       method: 'GET',
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+        Authorization: `Bearer ${firebase_id_token}`,
+        'Content-Type': 'application/json',
+      },
     });
 
     if(!response.ok){
-      return `Error fetching supplier: ${response.text()}`
+      return `Error fetching order: ${response.text()}`
     }
 
-    const supplierList = await response.json()
-    return supplierList;
+    const orderList = await response.json()
+    return orderList;
 
   }catch(error: any){
-    return `Error fetching supplier: ${error.message}`
+    return `Error fetching order: ${error.message}`
   }
 }
 
+export async function fetchItemDetails(order: any, firebase_id_token: string){
+  const url = `http://localhost:8000/inventory?part_number=${order.part_number}`;
 
+  try{
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${firebase_id_token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if(!response.ok){
+      return `Error fetching item details: ${response.text()}`
+    }
+
+    const itemDetails = await response.json()
+    return itemDetails;
+
+  }catch(error: any){
+    return `Error fetching item details: ${error.message}`
+  }
+}
 
 export async function deleteOrderRequest(order_id: number, firebase_id_token: string) {
 
-  const url = orderUrl + `${order_id}&firebase_id_token=${firebase_id_token}`;
+  const url = orderUrl + `${order_id}`;
 
   //check if authorized order
   if(!auth.currentUser){
@@ -92,7 +121,10 @@ export async function deleteOrderRequest(order_id: number, firebase_id_token: st
   try{
     const response = await fetch(url, {
       method: 'DELETE',
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+        Authorization: `Bearer ${firebase_id_token}`,
+        'Content-Type': 'application/json',
+      },
     });
 
     if(!response.ok){
@@ -110,7 +142,7 @@ export async function deleteOrderRequest(order_id: number, firebase_id_token: st
 //function to create a new order
 export async function createOrderRequest(order: any, firebase_id_token: string){
 
-  const url = orderUrl + `?firebase_id_token=${firebase_id_token}`;
+  const url = orderUrl ;
 
 
   //check if authorized user
@@ -127,7 +159,10 @@ export async function createOrderRequest(order: any, firebase_id_token: string){
   try{
     const response = await fetch(url, {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+        Authorization: `Bearer ${firebase_id_token}`,
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify(order)
     });
 

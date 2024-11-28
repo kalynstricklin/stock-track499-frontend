@@ -47,7 +47,7 @@ export async function editSupplierRequest(supplier: any, firebase_id_token: stri
 //method to fetch supplier from the database
 export async function fetchSuppliersRequest( firebase_id_token: string) {
 
-  const url = supplierURL + '&firebase_id_token=${firebase_id_token}'
+  const url = supplierURL + `&firebase_id_token=${firebase_id_token}`
 
   try{
     const response = await fetch(url, {

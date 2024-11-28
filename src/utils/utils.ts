@@ -1,8 +1,4 @@
 import { ref } from 'vue'
-
-
-
-
 export const showSnackbar =(message: string, type: 'success'| 'error'| 'info' = 'success') => {
   snackbar.value ={
     visible: true,

@@ -21,12 +21,15 @@ const firebaseApp = initializeApp(firebaseConfig);
 
 // Export Firestore database
 const db = getFirestore(firebaseApp);
-export { firebaseApp, db };
-
-
 
 // export Firebase Auth
-export const auth = getAuth(firebaseApp);
+const auth = getAuth(firebaseApp);
+
+export { firebaseApp, db, auth };
+
+
+
+
 
 
 //{

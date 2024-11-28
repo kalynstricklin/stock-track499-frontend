@@ -1,25 +1,26 @@
 <script setup lang="ts">
-import { ref, computed, nextTick } from 'vue'
+import { ref, computed, nextTick, onMounted } from 'vue'
 import { getStatusColor, sendRequest, showSnackbar, snackbar } from '@/utils/utils'
+import {
+  createSupplierRequest,
+  deleteSupplierRequest,
+  editSupplierRequest, fetchSuppliersRequest,
+  type Supplier
+} from '@/server/services/SupplierHandler'
+import { auth } from '@/firebase'
 
 
-interface SupplierItems {
-  supplier_name: string;
-  supplier_ID: number;
-  created_on: string;
-  status: string;
-}
 
 
 const dialog = ref(false)
 const dialogDelete = ref(false)
-const editedItem = ref({ supplier_name: '', supplier_ID: 0});
-const defaultItem = ref({ supplier_name: '', supplier_ID: 0});
+const editedItem = ref({ supplier_name: '', supplier_ID: 0, created_on: new Date().toLocaleString(), status: "Active"});
+const defaultItem = ref({ supplier_name: '', supplier_ID: 0, created_on: new Date().toLocaleString(), status: "Active"});
 const editedIndex = ref(-1);
 
 
 const buttonTitle = computed(()=>{return editedIndex.value === -1 ? 'Add' : 'Update'})
-const suppliers = ref<SupplierItems[]>([])
+const suppliers = ref<Supplier[]>([])
 
 // search bar
 const search = ref('')
@@ -35,13 +36,27 @@ const headers = [
 ];
 
 
-function initialize() {
-  suppliers.value = [
-    { supplier_name: 'Amazon', supplier_ID: 1, created_on: '2024-10-12',status: 'Active' },
-    { supplier_name: 'Walmart', supplier_ID: 2,created_on: '2024-10-12',status: 'Active'},
-    { supplier_name: 'Target',supplier_ID: 3, created_on: '2024-10-12',status: 'Active' },
-    { supplier_name: 'Home Depot',supplier_ID: 4, created_on: '2024-10-12',status: 'Active' },
-  ];
+async function initialize() {
+  // suppliers.value = [
+  //   { supplier_name: 'Amazon', supplier_ID: 1, created_on: '2024-10-12',status: 'Active' },
+  //   { supplier_name: 'Walmart', supplier_ID: 2,created_on: '2024-10-12',status: 'Active'},
+  //   { supplier_name: 'Target',supplier_ID: 3, created_on: '2024-10-12',status: 'Active' },
+  //   { supplier_name: 'Home Depot',supplier_ID: 4, created_on: '2024-10-12',status: 'Active' },
+  // ];
+  if(!auth.currentUser){
+    return;
+  }
+
+  const token = (await (auth.currentUser.getIdTokenResult())).token;
+
+  try{
+    const supplierList = await fetchSuppliersRequest(token);
+    suppliers.value = supplierList;
+    showSnackbar(`Loaded all suppliers!`, 'success');
+
+  }catch(error: any){
+    showSnackbar(`Error loading suppliers: ${error.message}`, 'error');
+  }
 }
 
 
@@ -55,37 +70,66 @@ function close() {
 
 
 async function save() {
+  //check if required fields are filled
   if (!editedItem.value.supplier_name || !editedItem.value.supplier_ID) {
     showSnackbar("Please fill out all required fields", 'error');
     return;
   }
 
-  if(editedIndex.value === -1){
-    const newItem = {
-      supplier_name: editedItem.value.supplier_name,
-      supplier_ID: editedItem.value.supplier_ID,
-      created_on: new Date().toISOString()
-    };
-    // suppliers.value =[newItem, ...suppliers.value]
-
-    await sendRequest(newItem)
-
-  }else{
-    suppliers.value =[...suppliers.value];
+  //check if authorized user
+  if(!auth.currentUser){
+    return;
   }
 
-  close();
-  suppliers.value = [...suppliers.value]
+  const token = (await (auth.currentUser.getIdTokenResult())).token;
+  try{
 
-  editedItem.value = defaultItem.value;
-  editedIndex.value = -1;
+    if(editedIndex.value === -1){
+      //create new supplier with edited fields
+      const newItem: Supplier = {
+        supplier_name: editedItem.value.supplier_name,
+        supplier_ID: editedItem.value.supplier_ID,
+        created_on: new Date().toISOString(),
+        status: 'Active'
+      };
 
+      const response = await createSupplierRequest(newItem, token);
+
+      if(response === 'Success'){
+        showSnackbar(`New Supplier created: ${newItem.supplier_name}`, 'success');
+        suppliers.value =[newItem, ...suppliers.value];
+        close();
+
+      }
+      else{
+        showSnackbar(`Failed to create new Supplier: ${newItem.supplier_name}`, 'error');
+      }
+
+    }else{
+      const updatedItem = {
+        ...editedItem.value,
+      }
+
+        const response = await editSupplierRequest(updatedItem, token);
+
+        if(response === 'Success'){
+          showSnackbar(`Supplier updated: ${updatedItem.supplier_name}`, 'success');
+          suppliers.value.splice(editedIndex.value, 1, updatedItem);
+          close();
+        }else{
+          showSnackbar(`Failed to update Supplier: ${updatedItem.supplier_name}`, 'error');
+        }
+
+    }
+  }catch(error: any){
+    showSnackbar(`Error: ${error.message}`, 'error');
+  }
 };
 
 
 function openDialog(){
   dialog.value = true;
-  editedItem.value = { supplier_name: '', supplier_ID: 0};
+  editedItem.value = { supplier_name: '', supplier_ID: 0, created_on: new Date().toLocaleString(), status: "Active"};
 };
 
 
@@ -93,17 +137,36 @@ function deleteItem(item: any){
   editedIndex.value = suppliers.value.indexOf(item)
   editedItem.value = Object.assign({}, item)
   dialogDelete.value = true
+
 }
 
 function editItem(item: any){
   editedIndex.value = suppliers.value.indexOf(item)
-  editedItem.value = Object.assign({}, item)
+  editedItem.value = { ...item };
   dialog.value= true
 }
 
-function deleteItemConfirm() {
-  if (editedIndex.value !== -1) {
-    suppliers.value.splice(editedIndex.value, 1);
+async function deleteItemConfirm() {
+
+  if(!auth.currentUser){
+    return;
+  }
+
+  const token = (await (auth.currentUser.getIdTokenResult())).token;
+
+  try{
+    const response = await deleteSupplierRequest(editedItem.value.supplier_ID.toString(), token);
+
+    if(response === 'Success'){
+      showSnackbar(`Successfully deleted supplier: ${editedItem.value.supplier_name}`, 'success');
+      suppliers.value.splice(editedIndex.value, 1);
+    }else{
+      showSnackbar(`Failed to delete supplier: ${editedItem.value.supplier_name}`, 'error');
+    }
+
+  }catch(error: any){
+    showSnackbar(`Error: ${error.message}`, 'error');
+  }finally {
     closeDelete();
   }
 }
@@ -116,10 +179,10 @@ function closeDelete () {
   })
 }
 
-
-
-
-initialize();
+//when component is mounted data will load
+onMounted(() => {
+  initialize();
+});
 </script>
 
 
@@ -195,6 +258,22 @@ initialize();
                     <v-text-field
                       v-model="editedItem.supplier_ID"
                       label="Supplier ID*"
+                      required
+                    ></v-text-field>
+                  </v-col>
+
+                  <v-col cols="12" md="4" sm="6">
+                    <v-text-field
+                      v-model="editedItem.created_on"
+                      label="Created On*"
+                      disabled
+                    ></v-text-field>
+                  </v-col>
+
+                  <v-col cols="12" md="4" sm="6">
+                    <v-text-field
+                      v-model="editedItem.status"
+                      label="Status *"
                       required
                     ></v-text-field>
                   </v-col>

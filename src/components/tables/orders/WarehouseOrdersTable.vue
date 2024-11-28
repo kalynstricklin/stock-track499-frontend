@@ -1,6 +1,9 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import { getStatusColor } from '@/utils/utils'
+import { ref, computed, onMounted } from 'vue'
+import { getStatusColor, showSnackbar } from '@/utils/utils'
+import { auth } from '@/firebase'
+import { fetchSuppliersRequest, type Supplier } from '@/server/services/SupplierHandler'
+import { fetchOrdersRequest, type Order } from '@/server/services/OrdersHandler'
 
 
 const headers = [
@@ -18,22 +21,43 @@ const headers = [
   { title: 'Status', key: 'status' },
 ];
 
-const order = ref([
-  { PO_order: 9, product_name: "Nails", part_number: 233, supplier_ID: 233, manufacturer_ID: 233, order_date: '11-20-2023', due_date: '11-28-2023', received_date: '11-28-2023', qty: 15, inbound_price: 5, status: 'Pending'},
-  { PO_order: 8, product_name: "Hammer", part_number: 233, supplier_ID: 233, manufacturer_ID: 233, order_date: '11-20-2023', due_date: '11-28-2023', received_date: '11-28-2023', qty: 15, inbound_price: 5, status: 'Pending'},
-  { PO_order: 7, product_name: "Screws", part_number: 233, supplier_ID: 233, manufacturer_ID: 233, order_date: '11-20-2023', due_date: '11-28-2023', received_date: '11-28-2023', qty: 15, inbound_price: 5, status: 'Shipped'},
-  { PO_order: 6, product_name: "Drill", part_number: 233, supplier_ID: 233, manufacturer_ID: 233, order_date: '11-20-2023', due_date: '11-28-2023', received_date: '11-28-2023', qty: 15, inbound_price: 5, status: 'Shipped'},
-  { PO_order: 5, product_name: "Paint", part_number: 233, supplier_ID: 233, manufacturer_ID: 233, order_date: '11-20-2023', due_date: '11-28-2023', received_date: '11-28-2023', qty: 15, inbound_price: 5, status: 'Shipped'},
-  { PO_order: 4, product_name: "Wire", part_number: 233, supplier_ID: 233, manufacturer_ID: 233, order_date: '11-20-2023', due_date: '11-28-2023', received_date: '11-28-2023', qty: 15, inbound_price: 5, status: 'Delivered'},
-  { PO_order: 3, product_name: "Nails", part_number: 233, supplier_ID: 233, manufacturer_ID: 233, order_date: '11-20-2023', due_date: '11-28-2023', received_date: '11-28-2023', qty: 15, inbound_price: 5, status: 'Delivered'},
-  { PO_order: 2, product_name: "Nails", part_number: 233, supplier_ID: 233, manufacturer_ID: 233, order_date: '11-20-2023', due_date: '11-28-2023', received_date: '11-28-2023', qty: 15, inbound_price: 5, status: 'Delivered'},
-  { PO_order: 1, product_name: "Nails", part_number: 233, supplier_ID: 233, manufacturer_ID: 233, order_date: '11-20-2023', due_date: '11-28-2023', received_date: '11-28-2023', qty: 15, inbound_price: 5, status: 'Delivered'},
-]);
+const order = ref<Order[]>([])
+// const order = ref([
+//   { PO_order: 9, product_name: "Nails", part_number: 233, supplier_ID: 233, manufacturer_ID: 233, order_date: '11-20-2023', due_date: '11-28-2023', received_date: '11-28-2023', qty: 15, inbound_price: 5, status: 'Pending'},
+//   { PO_order: 8, product_name: "Hammer", part_number: 233, supplier_ID: 233, manufacturer_ID: 233, order_date: '11-20-2023', due_date: '11-28-2023', received_date: '11-28-2023', qty: 15, inbound_price: 5, status: 'Pending'},
+//   { PO_order: 7, product_name: "Screws", part_number: 233, supplier_ID: 233, manufacturer_ID: 233, order_date: '11-20-2023', due_date: '11-28-2023', received_date: '11-28-2023', qty: 15, inbound_price: 5, status: 'Shipped'},
+//   { PO_order: 6, product_name: "Drill", part_number: 233, supplier_ID: 233, manufacturer_ID: 233, order_date: '11-20-2023', due_date: '11-28-2023', received_date: '11-28-2023', qty: 15, inbound_price: 5, status: 'Shipped'},
+//   { PO_order: 5, product_name: "Paint", part_number: 233, supplier_ID: 233, manufacturer_ID: 233, order_date: '11-20-2023', due_date: '11-28-2023', received_date: '11-28-2023', qty: 15, inbound_price: 5, status: 'Shipped'},
+//   { PO_order: 4, product_name: "Wire", part_number: 233, supplier_ID: 233, manufacturer_ID: 233, order_date: '11-20-2023', due_date: '11-28-2023', received_date: '11-28-2023', qty: 15, inbound_price: 5, status: 'Delivered'},
+//   { PO_order: 3, product_name: "Nails", part_number: 233, supplier_ID: 233, manufacturer_ID: 233, order_date: '11-20-2023', due_date: '11-28-2023', received_date: '11-28-2023', qty: 15, inbound_price: 5, status: 'Delivered'},
+//   { PO_order: 2, product_name: "Nails", part_number: 233, supplier_ID: 233, manufacturer_ID: 233, order_date: '11-20-2023', due_date: '11-28-2023', received_date: '11-28-2023', qty: 15, inbound_price: 5, status: 'Delivered'},
+//   { PO_order: 1, product_name: "Nails", part_number: 233, supplier_ID: 233, manufacturer_ID: 233, order_date: '11-20-2023', due_date: '11-28-2023', received_date: '11-28-2023', qty: 15, inbound_price: 5, status: 'Delivered'},
+// ]);
 
+async function initialize() {
+  if(!auth.currentUser){
+    return;
+  }
+
+  const token = (await (auth.currentUser.getIdTokenResult())).token;
+
+  try{
+    const warehouseOrders = await fetchOrdersRequest(token);
+    order.value = warehouseOrders;
+    showSnackbar(`Loaded all warehouse orders!`, 'success');
+
+  }catch(error: any){
+    showSnackbar(`Error loading warehouse orders: ${error.message}`, 'error');
+  }
+}
 
 // search bar
 const search = ref('')
 
+//when component is mounted data will load
+onMounted(() => {
+  initialize();
+});
 
 </script>
 

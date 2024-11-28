@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { ref, computed, nextTick } from 'vue'
-import { getStatusColor, sendRequest, showSnackbar, snackbar } from '@/utils/utils'
+import { getStatusColor, showSnackbar, snackbar } from '@/utils/utils'
+
+import { auth } from '@/firebase'
+
+import { createUserRequest, deleteUserRequest, editUserRequest, fetchUserRequest } from '@/server/services/UserHandler'
 
 interface UserItem {
   user_name: string;
@@ -32,14 +36,36 @@ const headers = [
 ];
 
 
-const users = ref<UserItem[]>([
-  { user_name: 'Kalyn', email: 'kms0081@uah.edu', role: 'Admin', createdOn: '2024-11-13', status: 'Active' },
-  { user_name: 'Alex', email: 'alex@uah.edu', role: 'Manager', createdOn: '2024-11-13', status: 'Active' },
-  { user_name: 'Ashley', email: 'ashley@uah.edu', role: 'Customer', createdOn: '2024-11-13', status: 'Active' },
-  { user_name: 'Josh', email: 'josh1@uah.edu', role: 'Customer', createdOn: '2024-11-13', status: 'Active' },
-  { user_name: 'Josh', email: 'josh2@uah.edu', role: 'Manager', createdOn: '2024-11-13', status: 'Active' },
-  { user_name: 'Jack', email: 'jack@uah.edu', role: 'Customer', createdOn: '2024-11-13', status: 'Inactive' },
-]);
+// const users = ref<UserItem[]>([
+  // { user_name: 'Kalyn', email: 'kms0081@uah.edu', role: 'Admin', createdOn: '2024-11-13', status: 'Active' },
+  // { user_name: 'Alex', email: 'alex@uah.edu', role: 'Manager', createdOn: '2024-11-13', status: 'Active' },
+  // { user_name: 'Ashley', email: 'ashley@uah.edu', role: 'Customer', createdOn: '2024-11-13', status: 'Active' },
+  // { user_name: 'Josh', email: 'josh1@uah.edu', role: 'Customer', createdOn: '2024-11-13', status: 'Active' },
+  // { user_name: 'Josh', email: 'josh2@uah.edu', role: 'Manager', createdOn: '2024-11-13', status: 'Active' },
+  // { user_name: 'Jack', email: 'jack@uah.edu', role: 'Customer', createdOn: '2024-11-13', status: 'Inactive' },
+
+
+// ]);
+
+const users = ref<UserItem[]>([])
+
+async function initialize() {
+  if(!auth.currentUser){
+    return;
+  }
+
+  const token = (await (auth.currentUser.getIdTokenResult())).token;
+
+  try{
+    const userList = await fetchUserRequest(token);
+    users.value = userList;
+    showSnackbar(`Loaded all users!`, 'success');
+
+  }catch(error: any){
+    showSnackbar(`Error loading users: ${error.message}`, 'error');
+  }
+}
+
 
 
 const close = () => {
@@ -47,49 +73,100 @@ const close = () => {
   editedItem.value = { user_name: '', email: '', role: '', createdOn: '', status: ''};
 };
 
-const save = async () => {
+
+async function save() {
+  //check if required fields are filled
   if (!editedItem.value.user_name || !editedItem.value.email || !editedItem.value.role) {
     showSnackbar("Please fill out all required fields", 'error');
     return;
   }
-  if (editedIndex.value === -1) {
-    const newUser = {
-      user_name: editedItem.value.user_name,
-      email: editedItem.value.email,
-      role: editedItem.value.role,
-      createdOn: new Date().toISOString(),
-      status: 'Active'
-    };
-    // users.value = [newUser, ...users.value];
 
-    await sendRequest(newUser)
-  }else{
-    users.value[editedIndex.value] = {...editedItem.value}
+  //check if authorized user
+  if(!auth.currentUser){
+    return;
   }
 
-  close();
-  users.value = [...users.value]
+  const token = (await (auth.currentUser.getIdTokenResult())).token;
+  try{
 
-  editedItem.value = defaultItem.value;
-  editedIndex.value = -1;
+    if(editedIndex.value === -1){
+
+      const newUser = {
+        user_name: editedItem.value.user_name,
+        email: editedItem.value.email,
+        role: editedItem.value.role,
+        createdOn: new Date().toISOString(),
+        status: 'Active'
+      };
+      const response = await createUserRequest(newUser, token);
+
+      if(response === 'Success'){
+        showSnackbar(`New User created: ${newUser.user_name}`, 'success');
+        users.value =[newUser, ...users.value];
+        close();
+
+      }
+      else{
+        showSnackbar(`Failed to create new user: ${newUser.user_name}`, 'error');
+      }
+
+    }else{
+      const updatedItem = {
+        ...editedItem.value,
+      }
+
+      const response = await editUserRequest(updatedItem, token);
+
+      if(response === 'Success'){
+        showSnackbar(`User updated: ${updatedItem.user_name}`, 'success');
+        users.value.splice(editedIndex.value, 1, updatedItem);
+        close();
+      }else{
+        showSnackbar(`Failed to update user: ${updatedItem.user_name}`, 'error');
+      }
+
+    }
+  }catch(error: any){
+    showSnackbar(`Error: ${error.message}`, 'error');
+  }
 };
+
 
 const openDialog = () => {
   dialog.value = true;
-
   editedItem.value = defaultItem.value;
 };
 
 // search bar
 const search = ref('')
 
+async function deleteItemConfirm() {
 
-function deleteItemConfirm() {
-  if (editedIndex.value !== -1) {
-    users.value.splice(editedIndex.value, 1);
+  if(!auth.currentUser){
+    return;
+  }
+
+  const token = (await (auth.currentUser.getIdTokenResult())).token;
+
+  try{
+    if (editedIndex.value !== -1) {
+      const response = await deleteUserRequest(editedItem.value.user_name.toString(), token);
+
+      if(response === 'Success'){
+        showSnackbar(`Successfully deleted user: ${editedItem.value.user_name}`, 'success');
+        users.value.splice(editedIndex.value, 1);
+      }else{
+        showSnackbar(`Failed to delete user: ${editedItem.value.user_name}`, 'error');
+      }
+    }
+
+  }catch(error: any){
+    showSnackbar(`Error: ${error.message}`, 'error');
+  }finally {
     closeDelete();
   }
 }
+
 
 function closeDelete () {
   dialogDelete.value = false
@@ -100,6 +177,7 @@ function closeDelete () {
 }
 
 function deleteItem(item: any){
+
   editedIndex.value = users.value.indexOf(item)
   editedItem.value = Object.assign({}, item)
   dialogDelete.value = true
@@ -108,7 +186,7 @@ function deleteItem(item: any){
 function editItem(item: any){
   editedIndex.value = users.value.indexOf(item)
   editedItem.value = Object.assign({}, item)
-  dialog.value= true
+  dialog.value= true;
 }
 
 const roles = ['Admin', 'Manager', 'Customer', 'Employee'];

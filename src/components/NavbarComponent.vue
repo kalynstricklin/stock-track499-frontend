@@ -67,7 +67,7 @@ export default {
   },
   methods: {
     getRole(){
-      return 'customer'
+      return 'admin'
     }
   },
 };

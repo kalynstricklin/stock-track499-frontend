@@ -27,7 +27,8 @@ router.beforeEach(async (to, from, next) =>{
   const userRole = 'employee';
 
   if(authReq && !user){
-    next({path: "/auth/account", query: {redirect: to.fullPath}});
+    next({path: "/auth/account"});
+    // next({path: "/auth/account", query: {redirect: to.fullPath}});
   } else {
     next();
   }

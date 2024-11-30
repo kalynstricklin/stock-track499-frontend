@@ -59,7 +59,7 @@ const inventory = ref<InventoryItem[]>([])
 const search = ref('')
 
 //user roles
-const role = ref('employee')
+const role = ref('admin')
 
 async function initialize() {
   inventory.value = [

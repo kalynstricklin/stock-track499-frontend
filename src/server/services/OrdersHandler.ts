@@ -4,15 +4,16 @@ import { auth } from '../../firebase'
 export const orderUrl: string = 'http://localhost:8000/order/';
 
 export interface Order {
-  product_name: string;
   PO_number: number;
+  product_name: string;
   part_number: number;
-  qty: number;
   supplier_ID: string;
   manufacturer_ID: string;
+
   order_date: string;
   due_date: string;
   received_date: string;
+  qty: number;
   status: string;
   inbound_price: number;
   outbound_price: number;
@@ -21,8 +22,6 @@ export interface Order {
 }
 
 export async function editOrderRequest(order: any, firebase_id_token: string){
-  const url = orderUrl;
-
   //check if authorized order
   if(!auth.currentUser){
     return 'Unauthorized';
@@ -34,7 +33,7 @@ export async function editOrderRequest(order: any, firebase_id_token: string){
   }
 
   try{
-    const response = await fetch(url, {
+    const response = await fetch(orderUrl, {
       method: 'PATCH',
       headers: {
         Authorization: `Bearer ${firebase_id_token}`,
@@ -56,11 +55,8 @@ export async function editOrderRequest(order: any, firebase_id_token: string){
 
 
 export async function fetchOrderRequest(firebase_id_token: string){
-//method to fetch order from the database
-  const url = orderUrl
-
   try{
-    const response = await fetch(url, {
+    const response = await fetch(orderUrl, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${firebase_id_token}`,
@@ -142,9 +138,6 @@ export async function deleteOrderRequest(order_id: number, firebase_id_token: st
 //function to create a new order
 export async function createOrderRequest(order: any, firebase_id_token: string){
 
-  const url = orderUrl ;
-
-
   //check if authorized user
   if(!auth.currentUser){
     return 'Unauthorized';
@@ -157,7 +150,7 @@ export async function createOrderRequest(order: any, firebase_id_token: string){
 
 
   try{
-    const response = await fetch(url, {
+    const response = await fetch(orderUrl, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${firebase_id_token}`,

@@ -9,36 +9,36 @@
 
 
     <!--nav menu-->
-    <v-navigation-drawer v-model="drawer" app>
+    <v-navigation-drawer v-model="drawer" app width="300" >
       <v-list>
-        <v-list-item prepend-icon="mdi-view-dashboard" title="Dashboard" :to="{ path: '/dashboard' }"></v-list-item>
+        <!-- Employee and Admin section-->
+        <v-list-group v-if="role === 'employee' || role ==='admin' || role ==='manager'">
 
-        <v-list-item prepend-icon="mdi-clipboard-list-outline" title="Inventory" :to="{ path: '/inventory' }"></v-list-item>
-        <v-list-item prepend-icon="mdi-account-multiple" title="Suppliers" :to="{ path: '/suppliers' }"></v-list-item>
+          <v-list-item prepend-icon="mdi-view-dashboard" title="Dashboard" :to="{ path: '/dashboard' }"></v-list-item>
+          <v-list-item prepend-icon="mdi-clipboard-list-outline" title="Inventory" :to="{ path: '/inventory' }"></v-list-item>
+          <v-list-item prepend-icon="mdi-account-multiple" title="Suppliers" :to="{ path: '/suppliers' }"></v-list-item>
 
+          <v-divider></v-divider>
+          <v-list-item prepend-icon="mdi-basket" title="Warehouse Orders" :to="{ path: '/warehouseOrders' }"></v-list-item>
+          <v-list-item prepend-icon="mdi-cart" title="Customer Orders" :to="{ path: '/orders' }"></v-list-item>
 
-        <v-divider></v-divider>
-        <v-list-item prepend-icon="mdi-cart" title="Warehouse Orders" :to="{ path: '/inboundOrders' }"></v-list-item>
-        <v-list-item prepend-icon="mdi-cart" title="Customer Orders" :to="{ path: '/outboundOrders' }"></v-list-item>
+          <v-divider></v-divider>
 
-        <v-divider></v-divider>
+          <v-list-item prepend-icon="mdi-account-badge" title="Account" :to="{ path: '/auth/account' }"></v-list-item>
 
-
-
-<!--        <v-list-item prepend-icon="mdi-wallet" title="Purchase Order" :to="{ path: '/purchase-order' }"></v-list-item>-->
-<!--        <v-list-item prepend-icon="mdi-file" title="Invoice" :to="{ path: '/invoice' }"></v-list-item>-->
-<!--        <v-divider></v-divider>-->
-
-        <v-list-item prepend-icon="mdi-account-badge" title="Account" :to="{ path: '/auth/account' }"></v-list-item>
-        <v-list-item prepend-icon="mdi-folder" title="Reports" :to="{ path: '/report' }"></v-list-item>
-<!--        <v-list-item prepend-icon="mdi-cog" title="Settings" :to="{ path: '/settings' }"></v-list-item>-->
+          <v-list-item v-if="role === 'admin' || role ==='manager'" prepend-icon="mdi-account" title="Users" :to="{ path: '/users' }"></v-list-item>
+          <v-list-item v-if="role === 'admin'|| role ==='manager'" prepend-icon="mdi-folder" title="Reports" :to="{ path: '/reports' }"></v-list-item>
+        </v-list-group>
 
 
-              <!--        only see these as admin?-->
-<!--        <v-list-group v-if="isAdmin" prepend-icon="mdi-account" title="Admin">-->
-          <v-list-item prepend-icon="mdi-account" title="Users" :to="{ path: '/users' }"></v-list-item>
+        <!--Customer Section-->
+        <v-list-group v-if="role === 'customer'" >
+          <v-list-item prepend-icon="mdi-account-badge" title="Account" :to="{ path: '/auth/account' }"></v-list-item>
+          <v-list-item prepend-icon="mdi-clipboard-list-outline" title="Inventory" :to="{ path: '/inventory' }"></v-list-item>
+          <v-list-item prepend-icon="mdi-cart" title="My Orders" :to="{ path: '/orders' }"></v-list-item>
 
-<!--        </v-list-group>-->
+
+        </v-list-group>
 
       </v-list>
     </v-navigation-drawer>
@@ -48,7 +48,9 @@
 
 
 <style scoped>
-
+.v-list-item {
+  justify-content: flex-start;
+}
 </style>
 
 
@@ -57,19 +59,16 @@ export default {
   data() {
     return {
       drawer: false,
-      isAdmin: true,
-      adminGroupOpen: false
+      role: "", // values can be one of these:::: 'admin' 'employee' or 'customer'
     };
   },
   mounted() {
-    // replace this with actual admin role checking
-    this.isAdmin = this.checkIfAdmin();
+    this.role = this.getRole();
   },
   methods: {
-    checkIfAdmin() {
-
-      return true;
-    },
+    getRole(){
+      return 'customer'
+    }
   },
 };
 </script>

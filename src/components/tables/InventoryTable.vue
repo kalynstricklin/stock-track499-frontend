@@ -12,23 +12,38 @@ import { createOrderRequest } from '@/server/services/OrdersHandler'
 
 
 
-const headers = [
-  { title: 'Product Name', key: 'product_name', align: 'start', sortable: true, },
-  { title: 'Part Number', key: 'part_number', align: 'start', sortable: true, },
-  { title: 'Supplier', key: 'supplier_ID', align: 'start', sortable: true, },
-  { title: 'Manufacturer', key: 'manufacturer_ID', align: 'start', sortable: true, },
-  { title: 'Inbound Price', key: 'inbound_price', align: 'start', sortable: true, },
-  { title: 'Outbound Price', key: 'outbound_price', align: 'start', sortable: true, },
-  { title: 'On Hand', key: 'on_hand', align: 'start', sortable: true, },
-  { title: 'Stock Level', key: 'stock_level', align: 'start', sortable: true, },
-  { title: 'Reserved', key: 'reserved', align: 'start', sortable: true, },
-  { title: 'Lead time', key: 'lead_time', align: 'start', sortable: true, },
-  { title: 'Status', key: 'status', align: 'start', sortable: true, },
+const headers = computed(() => {
+  const base= [
+    { title: 'Product Name', key: 'product_name', align: 'start', sortable: true, },
+    { title: 'Part Number', key: 'part_number', align: 'start', sortable: true, },
+    { title: 'Supplier', key: 'supplier_ID', align: 'start', sortable: true, },
+    { title: 'Manufacturer', key: 'manufacturer_ID', align: 'start', sortable: true, },
+    { title: 'On Hand', key: 'on_hand', align: 'start', sortable: true, },
+    { title: 'Status', key: 'status', align: 'start', sortable: true, },
+    { title: 'Price', key: 'outbound_price', align: 'start', sortable: true, },
 
-  { title: 'Edit', key: 'edit', align: 'center', sortable: false },
-  { title: 'Delete', key: 'delete', align: 'center',sortable: false },
-  { title: 'Reorder', key: 'reorder', align: 'center',sortable: false },
-];
+  ];
+
+  // Employee and Admin roles should see the full
+  if(role.value === 'employee' || role.value === 'admin' || role.value === 'manager'){
+    base.push(
+      { title: 'Stock Level', key: 'stock_level', align: 'start', sortable: true, },
+      { title: 'Reserved', key: 'reserved', align: 'start', sortable: true, },
+      { title: 'Lead time', key: 'lead_time', align: 'start', sortable: true, },
+      { title: 'Inbound Price', key: 'inbound_price', align: 'start', sortable: true, },
+      { title: 'Reorder', key: 'reorder', align: 'center', sortable: false },
+    );
+
+    if(role.value === 'admin' || role.value === 'manager'){
+      base.push(
+        { title: 'Edit', key: 'edit', align: 'center', sortable: false },
+        { title: 'Delete', key: 'delete', align: 'center',sortable: false },
+      );
+    }
+  }
+
+  return base;
+});
 
 
 const dialog = ref(false)
@@ -43,34 +58,37 @@ const inventory = ref<InventoryItem[]>([])
 // search bar
 const search = ref('')
 
+//user roles
+const role = ref('employee')
+
 async function initialize() {
-  // inventory.value = [
-  //   { product_name: 'item 1', part_number: 1, supplier_ID: '1', manufacturer_ID: '1', reorder_point: 5, stock_level: 5, inbound_price: 12, outbound_price: 12, on_hand: 10, reserved: 2, status: 'In Stock', lead_time: 1},
-  //   { product_name: 'item 2', part_number: 1, supplier_ID: '1', manufacturer_ID: '1', reorder_point: 5, stock_level: 5, inbound_price: 12, outbound_price: 12, on_hand: 10, reserved: 2, status: 'In Stock',lead_time: 1 },
-  //   { product_name: 'item 3', part_number: 1, supplier_ID: '1', manufacturer_ID: '1', reorder_point: 5, stock_level: 5, inbound_price: 12, outbound_price: 12, on_hand: 0, reserved: 2, status: 'Out of Stock',lead_time: 1},
-  //   { product_name: 'item 4', part_number: 1, supplier_ID: '1', manufacturer_ID: '1', reorder_point: 5, stock_level: 5, inbound_price: 12, outbound_price: 12, on_hand: 2, reserved: 2, status: 'Low Stock',lead_time: 1},
-  //   { product_name: 'item 5', part_number: 1, supplier_ID: '1', manufacturer_ID: '1', reorder_point: 5, stock_level: 5, inbound_price: 12, outbound_price: 12, on_hand: 0, reserved: 2, status: 'Out of Stock', lead_time: 1},
-  //   { product_name: 'item 6', part_number: 1, supplier_ID: '1', manufacturer_ID: '1', reorder_point: 5, stock_level: 5, inbound_price: 12, outbound_price: 12, on_hand: 10, reserved: 2, status: 'In Stock', lead_time: 1 },
-  //   { product_name: 'item 7', part_number: 1, supplier_ID: '1', manufacturer_ID: '1', reorder_point: 5, stock_level: 5, inbound_price: 12, outbound_price: 12, on_hand: 3, reserved: 2, status: 'Low Stock', lead_time: 1 },
-  //   { product_name: 'item 8', part_number: 1, supplier_ID: '1', manufacturer_ID: '1', reorder_point: 5, stock_level: 5, inbound_price: 12, outbound_price: 12, on_hand: 0, reserved: 2, status: 'Out of Stock', lead_time: 1},
-  //   { product_name: 'item 9', part_number: 1, supplier_ID: '1', manufacturer_ID: '1', reorder_point: 5, stock_level: 5, inbound_price: 12, outbound_price: 12, on_hand: 10, reserved: 2, status: 'In Stock', lead_time: 1 },
-  //   { product_name: 'item 10',part_number: 1, supplier_ID: '1', manufacturer_ID: '1', reorder_point: 5, stock_level: 5, inbound_price: 12, outbound_price: 12, on_hand: 10, reserved: 2, status: 'In Stock', lead_time:1 },
-  // ];
+  inventory.value = [
+    { product_name: 'item 1', part_number: 1, supplier_ID: '1', manufacturer_ID: '1', reorder_point: 5, stock_level: 5, inbound_price: 12, outbound_price: 12, on_hand: 10, reserved: 2, status: 'In Stock', lead_time: 1},
+    { product_name: 'item 2', part_number: 1, supplier_ID: '1', manufacturer_ID: '1', reorder_point: 5, stock_level: 5, inbound_price: 12, outbound_price: 12, on_hand: 10, reserved: 2, status: 'In Stock',lead_time: 1 },
+    { product_name: 'item 3', part_number: 1, supplier_ID: '1', manufacturer_ID: '1', reorder_point: 5, stock_level: 5, inbound_price: 12, outbound_price: 12, on_hand: 0, reserved: 2, status: 'Out of Stock',lead_time: 1},
+    { product_name: 'item 4', part_number: 1, supplier_ID: '1', manufacturer_ID: '1', reorder_point: 5, stock_level: 5, inbound_price: 12, outbound_price: 12, on_hand: 2, reserved: 2, status: 'Low Stock',lead_time: 1},
+    { product_name: 'item 5', part_number: 1, supplier_ID: '1', manufacturer_ID: '1', reorder_point: 5, stock_level: 5, inbound_price: 12, outbound_price: 12, on_hand: 0, reserved: 2, status: 'Out of Stock', lead_time: 1},
+    { product_name: 'item 6', part_number: 1, supplier_ID: '1', manufacturer_ID: '1', reorder_point: 5, stock_level: 5, inbound_price: 12, outbound_price: 12, on_hand: 10, reserved: 2, status: 'In Stock', lead_time: 1 },
+    { product_name: 'item 7', part_number: 1, supplier_ID: '1', manufacturer_ID: '1', reorder_point: 5, stock_level: 5, inbound_price: 12, outbound_price: 12, on_hand: 3, reserved: 2, status: 'Low Stock', lead_time: 1 },
+    { product_name: 'item 8', part_number: 1, supplier_ID: '1', manufacturer_ID: '1', reorder_point: 5, stock_level: 5, inbound_price: 12, outbound_price: 12, on_hand: 0, reserved: 2, status: 'Out of Stock', lead_time: 1},
+    { product_name: 'item 9', part_number: 1, supplier_ID: '1', manufacturer_ID: '1', reorder_point: 5, stock_level: 5, inbound_price: 12, outbound_price: 12, on_hand: 10, reserved: 2, status: 'In Stock', lead_time: 1 },
+    { product_name: 'item 10',part_number: 1, supplier_ID: '1', manufacturer_ID: '1', reorder_point: 5, stock_level: 5, inbound_price: 12, outbound_price: 12, on_hand: 10, reserved: 2, status: 'In Stock', lead_time:1 },
+  ];
 
-  if(!auth.currentUser){
-    return;
-  }
-
-  const token = (await (auth.currentUser.getIdTokenResult())).token;
-
-  try{
-    const inventoryItems = await fetchInventoryRequest(token);
-    inventory.value = inventoryItems;
-    showSnackbar(`Loaded all suppliers!`, 'success');
-
-  }catch(error: any){
-    showSnackbar(`Error loading suppliers: ${error.message}`, 'error');
-  }
+  // if(!auth.currentUser){
+  //   return;
+  // }
+  //
+  // const token = (await (auth.currentUser.getIdTokenResult())).token;
+  //
+  // try{
+  //   const inventoryItems = await fetchInventoryRequest(token);
+  //   inventory.value = inventoryItems;
+  //   showSnackbar(`Loaded all items in the inventory!`, 'success');
+  //
+  // }catch(error: any){
+  //   showSnackbar(`Error loading inventory: ${error.message}`, 'error');
+  // }
 }
 
 
@@ -295,7 +313,7 @@ onMounted(() => {
         </v-col>
 
         <!--Add new item to inventory-->
-        <v-col cols="4" class="text-end" style="padding-right: 15px">
+        <v-col cols="4" class="text-end" style="padding-right: 15px" v-if="role === 'admin' || role=== 'manager'">
           <v-dialog v-model="dialog" max-width="600px">
 
             <template v-slot:activator="{ props }">
@@ -449,6 +467,7 @@ onMounted(() => {
 
     <template v-slot:item.edit="{ item }">
       <v-icon
+        v-if="role === 'manager' || role === 'admin'"
         dark
         elevation="0"
         size="small"
@@ -457,11 +476,11 @@ onMounted(() => {
         icon="mdi-pencil"
         @click="editItem(item)"
       ></v-icon>
-
     </template>
 
     <template v-slot:item.delete="{ item }">
       <v-icon
+        v-if="role === 'manager' || role === 'admin'"
         dark
         elevation="0"
         size="small"
@@ -474,6 +493,7 @@ onMounted(() => {
 
     <template v-slot:item.reorder="{ item }">
       <v-icon
+        v-if="role === 'manager' || role === 'admin' || role === 'employee'"
         dark
         elevation="0"
         size="small"
@@ -483,6 +503,7 @@ onMounted(() => {
         @click="reorder(item)"
       ></v-icon>
     </template>
+
 
   </v-data-table>
 

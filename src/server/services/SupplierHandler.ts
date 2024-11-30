@@ -12,7 +12,6 @@ export interface Supplier {
 
 
 export async function editSupplierRequest(supplier: any, firebase_id_token: string){
-  const url = supplierURL + `&firebase_id_token=${firebase_id_token}`;
 
   //check if authorized supplier
   if(!auth.currentUser){
@@ -25,9 +24,12 @@ export async function editSupplierRequest(supplier: any, firebase_id_token: stri
   }
 
   try{
-    const response = await fetch(url, {
+    const response = await fetch(supplierURL, {
       method: 'PATCH',
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+        Authorization: `Bearer ${firebase_id_token}`,
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify(supplier)
     });
 
@@ -47,12 +49,13 @@ export async function editSupplierRequest(supplier: any, firebase_id_token: stri
 //method to fetch supplier from the database
 export async function fetchSuppliersRequest( firebase_id_token: string) {
 
-  const url = supplierURL + `&firebase_id_token=${firebase_id_token}`
-
   try{
-    const response = await fetch(url, {
+    const response = await fetch(supplierURL, {
       method: 'GET',
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+        Authorization: `Bearer ${firebase_id_token}`,
+        'Content-Type': 'application/json',
+      },
     });
 
     if(!response.ok){
@@ -71,7 +74,7 @@ export async function fetchSuppliersRequest( firebase_id_token: string) {
 
 export async function deleteSupplierRequest(supplier_ID: string, firebase_id_token: string) {
 
-  const url = supplierURL + `${supplier_ID}&firebase_id_token=${firebase_id_token}`;
+  const url = supplierURL + `${supplier_ID}`;
 
   //check if authorized supplier
   if(!auth.currentUser){
@@ -84,9 +87,12 @@ export async function deleteSupplierRequest(supplier_ID: string, firebase_id_tok
   }
 
   try{
-    const response = await fetch(url, {
+    const response = await fetch(supplierURL, {
       method: 'DELETE',
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+        Authorization: `Bearer ${firebase_id_token}`,
+        'Content-Type': 'application/json',
+      },
     });
 
     if(!response.ok){
@@ -104,9 +110,6 @@ export async function deleteSupplierRequest(supplier_ID: string, firebase_id_tok
 //function to create a new supplier
 export async function createSupplierRequest(supplier: Supplier, firebase_id_token: string){
 
-  const url = supplierURL + `?firebase_id_token=${firebase_id_token}`;
-
-
   //check if authorized user
   if(!auth.currentUser){
     return 'Unauthorized';
@@ -119,9 +122,12 @@ export async function createSupplierRequest(supplier: Supplier, firebase_id_toke
 
 
   try{
-    const response = await fetch(url, {
+    const response = await fetch(supplierURL, {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+        Authorization: `Bearer ${firebase_id_token}`,
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify(supplier)
     });
 

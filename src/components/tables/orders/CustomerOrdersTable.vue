@@ -52,7 +52,9 @@ const defaultItem = ref<Order>({ ...defaultOrder });
 
 const editedIndex = ref(-1);
 
-const buttonTitle = computed(()=>{return editedIndex.value === -1 ? 'Add' : 'Update'})
+const buttonTitle = computed(() => {
+  return editedIndex.value === -1 ? 'Create Order' : 'Update Order';
+});
 
 const orders = ref<OrderItems[]>([]);
 
@@ -60,23 +62,35 @@ const orders = ref<OrderItems[]>([]);
 const search = ref('')
 
 
-const headers = [
-  { title: 'Order ID', key: 'PO_number', align: 'start', sortable: true, class: 'styled-header' },
-  { title: 'Customer', key: 'customer_ID', align: 'start', sortable: true, class: 'styled-header'},
-  // { title: 'Product Name', key: 'product_name', align: 'start', sortable: true, class: 'styled-header' },
-  { title: 'Part Number', key: 'part_number', align: 'start', sortable: true, class: 'styled-header' },
+const cxHeaders = computed(() =>{
+  const base = [
+    { title: 'Order ID', key: 'PO_number', align: 'start', sortable: true, class: 'styled-header' },
+    { title: 'Customer', key: 'customer_ID', align: 'start', sortable: true, class: 'styled-header'},
+    // { title: 'Product Name', key: 'product_name', align: 'start', sortable: true, class: 'styled-header' },
+    { title: 'Part Number', key: 'part_number', align: 'start', sortable: true, class: 'styled-header' },
 
-  { title: 'Order Date', key: 'order_date', align: 'start', sortable: true, class: 'styled-header' },
-  { title: 'Delivery Date', key: 'due_date', align: 'start', sortable: true, class: 'styled-header' },
-  { title: 'Received Date', key: 'received_date', align: 'start', sortable: true, class: 'styled-header' },
+    { title: 'Order Date', key: 'order_date', align: 'start', sortable: true, class: 'styled-header' },
+    { title: 'Delivery Date', key: 'due_date', align: 'start', sortable: true, class: 'styled-header' },
+    { title: 'Received Date', key: 'received_date', align: 'start', sortable: true, class: 'styled-header' },
 
-  { title: 'Quantity', key: 'qty', align: 'start', sortable: true,class: 'styled-header' },
-  { title: 'Unit Price', key: 'outbound_price', align: 'start', sortable: true, class: 'styled-header' },
-  { title: 'Total Cost', key: 'total_cost', align: 'start', sortable: true, class: 'styled-header' },
-  { title: 'Status', key: 'status', align: 'start', sortable: true, class: 'styled-header' },
-  { title: 'Edit', key: 'edit', align: 'center', sortable: false, class: 'styled-header' },
-];
+    { title: 'Quantity', key: 'qty', align: 'start', sortable: true,class: 'styled-header' },
+    { title: 'Unit Price', key: 'outbound_price', align: 'start', sortable: true, class: 'styled-header' },
+    { title: 'Total Cost', key: 'total_cost', align: 'start', sortable: true, class: 'styled-header' },
+    { title: 'Status', key: 'status', align: 'start', sortable: true, class: 'styled-header' },
 
+  ];
+
+  if(role.value === 'employee' || role.value==='manager' || role.value ==='admin'){
+    base.push(
+      { title: 'Edit', key: 'edit', align: 'center', sortable: false, class: 'styled-header' },
+    )
+  }
+
+  return base;
+});
+
+//user roles
+const role = ref('customer')
 
 
 async function initialize() {
@@ -174,11 +188,29 @@ async function save() {
 
 
 const openDialog = () => {
+
+  if(role.value === 'customer' && auth.currentUser){
+    try {
+      const user = auth.currentUser;
+
+      const customerName = user.displayName || user.email || 'Unknown';
+      editedItem.value.customer_ID = customerName
+    }catch(error: any){
+      showSnackbar(`Failed to assign customer ID: ${error.message}`, 'error')
+    }
+  }else{
+    editedItem.value.customer_ID = '';
+  }
+
   dialog.value = true;
   editedItem.value = {...defaultOrder};
 };
 
 function editItem(item: any){
+  if(!canEdit(item.status)){
+    showSnackbar('Cannot edit an order that is in Shipped or Delivered status.', 'error');
+    return;
+  }
   editedIndex.value = orders.value.indexOf(item)
   editedItem.value = Object.assign({}, item)
   dialogEdit.value= true
@@ -187,15 +219,17 @@ function editItem(item: any){
 const saveStatus = () => {
   if(editedIndex.value !== -1){
     orders.value[editedIndex.value].status = editedItem.value.status;
-
-
     showSnackbar(`PO #${editedItem.value.PO_number} Order Status Updated to ${editedItem.value.status}`, 'info');
-
-
   }
   dialogEdit.value = false;
 
 }
+
+const  canEdit = (status: string): boolean => {
+  return status === 'Pending';
+};
+
+
 
 //when component is mounted data will load
 onMounted(() => {
@@ -208,7 +242,7 @@ onMounted(() => {
 <template>
     <v-data-table
       v-model:search="search"
-      :headers="headers"
+      :headers="cxHeaders"
       :items="orders"
       item-value="PO_order"
       :filter-keys="['PO_number','customer_ID', 'part_number', 'status', 'order_date', 'due_date', 'received_date', 'total_cost', 'qty', 'outbound_price']"
@@ -282,6 +316,7 @@ onMounted(() => {
                         v-model="editedItem.customer_ID"
                         label="Customer ID*"
                         required
+
                       ></v-text-field>
                     </v-col>
 
@@ -403,7 +438,7 @@ onMounted(() => {
             <v-card-actions>
               <v-spacer></v-spacer>
               <v-btn text="Cancel" @click="dialogEdit = false">Cancel</v-btn>
-              <v-btn color="primary" @click="saveStatus">Save</v-btn>
+              <v-btn color="primary" @click="saveStatus">{{ buttonTitle }}</v-btn>
             </v-card-actions>
           </v-card>
         </v-dialog>
@@ -419,7 +454,8 @@ onMounted(() => {
             size="small"
             class="me-2"
             color="green"
-            @click="editItem(item)"
+            @click="canEdit(item.status) && editItem(item)"
+            :disabled="!canEdit(item.status)"
           >
             mdi-pencil
           </v-icon>

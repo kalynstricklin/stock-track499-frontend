@@ -1,14 +1,6 @@
 <script setup lang="ts">
-import BarChart from '@/components/dashboard/SalesChart.vue'
-import StockLevelChart from '@/components/dashboard/StockLevelChart.vue'
 
 </script>
-<!--alert cards-->
-
-<!--total inventory value-->
-<!--total revenue value-->
-<!--low stock items-->
-
 <template>
   <v-container id="dashboard" fluid tag="section">
     <v-row>

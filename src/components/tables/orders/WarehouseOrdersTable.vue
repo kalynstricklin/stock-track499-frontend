@@ -2,12 +2,11 @@
 import { ref, computed, onMounted } from 'vue'
 import { getStatusColor, showSnackbar } from '@/utils/utils'
 import { auth } from '@/firebase'
-import { fetchSuppliersRequest, type Supplier } from '@/server/services/SupplierHandler'
-import { fetchOrdersRequest, type Order } from '@/server/services/OrdersHandler'
+import { type Order } from '@/server/services/OrdersHandler'
 
 
 const headers = [
-  { title: 'Purchase Order ID', key: 'PO_order' },
+  { title: 'Purchase Order ID', key: 'PO_number' },
   { title: 'Product Name', key: 'product_name' },
   { title: 'Part Number', key: 'part_number' },
   { title: 'Supplier', key: 'supplier_ID' },
@@ -17,38 +16,64 @@ const headers = [
   { title: 'Received Date', key: 'received_date' },
   { title: 'Quantity', key: 'qty' },
   { title: 'Unit Price', key: 'inbound_price' },
-  // { title: 'Total Cost', key: 'total_cost' },
+  { title: 'Total', key: 'total_cost' },
   { title: 'Status', key: 'status' },
 ];
 
 const order = ref<Order[]>([])
-// const order = ref([
-//   { PO_order: 9, product_name: "Nails", part_number: 233, supplier_ID: 233, manufacturer_ID: 233, order_date: '11-20-2023', due_date: '11-28-2023', received_date: '11-28-2023', qty: 15, inbound_price: 5, status: 'Pending'},
-//   { PO_order: 8, product_name: "Hammer", part_number: 233, supplier_ID: 233, manufacturer_ID: 233, order_date: '11-20-2023', due_date: '11-28-2023', received_date: '11-28-2023', qty: 15, inbound_price: 5, status: 'Pending'},
-//   { PO_order: 7, product_name: "Screws", part_number: 233, supplier_ID: 233, manufacturer_ID: 233, order_date: '11-20-2023', due_date: '11-28-2023', received_date: '11-28-2023', qty: 15, inbound_price: 5, status: 'Shipped'},
-//   { PO_order: 6, product_name: "Drill", part_number: 233, supplier_ID: 233, manufacturer_ID: 233, order_date: '11-20-2023', due_date: '11-28-2023', received_date: '11-28-2023', qty: 15, inbound_price: 5, status: 'Shipped'},
-//   { PO_order: 5, product_name: "Paint", part_number: 233, supplier_ID: 233, manufacturer_ID: 233, order_date: '11-20-2023', due_date: '11-28-2023', received_date: '11-28-2023', qty: 15, inbound_price: 5, status: 'Shipped'},
-//   { PO_order: 4, product_name: "Wire", part_number: 233, supplier_ID: 233, manufacturer_ID: 233, order_date: '11-20-2023', due_date: '11-28-2023', received_date: '11-28-2023', qty: 15, inbound_price: 5, status: 'Delivered'},
-//   { PO_order: 3, product_name: "Nails", part_number: 233, supplier_ID: 233, manufacturer_ID: 233, order_date: '11-20-2023', due_date: '11-28-2023', received_date: '11-28-2023', qty: 15, inbound_price: 5, status: 'Delivered'},
-//   { PO_order: 2, product_name: "Nails", part_number: 233, supplier_ID: 233, manufacturer_ID: 233, order_date: '11-20-2023', due_date: '11-28-2023', received_date: '11-28-2023', qty: 15, inbound_price: 5, status: 'Delivered'},
-//   { PO_order: 1, product_name: "Nails", part_number: 233, supplier_ID: 233, manufacturer_ID: 233, order_date: '11-20-2023', due_date: '11-28-2023', received_date: '11-28-2023', qty: 15, inbound_price: 5, status: 'Delivered'},
-// ]);
+
 
 async function initialize() {
-  if(!auth.currentUser){
-    return;
-  }
 
-  const token = (await (auth.currentUser.getIdTokenResult())).token;
+  order.value = [
+    {
+      PO_number: 9,
+      product_name: 'Nails',
+      part_number: 233,
+      supplier_ID: '233',
+      manufacturer_ID: '33',
+      order_date: '11-20-2023',
+      due_date: '11-28-2023',
+      received_date: '11-28-2023',
+      qty: 15,
+      inbound_price: 5,
+      outbound_price: 7,
+      customer_ID: 'Stock',
+      total_cost: 105,
+      status: 'Pending',
+    },
+    {
+      PO_number: 8,
+      product_name: 'Hammer',
+      part_number: 234,
+      supplier_ID: '234',
+      manufacturer_ID: '34',
+      order_date: '11-20-2023',
+      due_date: '11-28-2023',
+      received_date: '11-28-2023',
+      qty: 10,
+      inbound_price: 12,
+      outbound_price: 15,
+      customer_ID: 'Retail',
+      total_cost: 150,
+      status: 'Shipped',
+    },
+  ];
 
-  try{
-    const warehouseOrders = await fetchOrdersRequest(token);
-    order.value = warehouseOrders;
-    showSnackbar(`Loaded all warehouse orders!`, 'success');
-
-  }catch(error: any){
-    showSnackbar(`Error loading warehouse orders: ${error.message}`, 'error');
-  }
+  // if(!auth.currentUser){
+  //   return;
+  // }
+  //
+  // const token = (await (auth.currentUser.getIdTokenResult())).token;
+  //
+  // try{
+  //   const warehouseOrders = await fetchOrdersRequest(token);
+  //   order.value = warehouseOrders;
+  //   showSnackbar(`Loaded all warehouse orders!`, 'success');
+  //
+  // }catch(error: any){
+  //   showSnackbar(`Error loading warehouse orders: ${error.message}`, 'error');
+  // }
 }
 
 // search bar
@@ -68,9 +93,9 @@ onMounted(() => {
       :headers="headers"
       :items="order"
       item-value="orderId"
-      :filter-keys="['product_name','supplier_ID', 'part_number', 'PO_order', 'status', 'order_date', 'due_date', 'received_date', 'manufacturer_ID']"
+      :filter-keys="['product_name','supplier_ID', 'part_number', 'PO_number', 'status', 'order_date', 'due_date', 'received_date', 'manufacturer_ID']"
     >
-      <template v-slot:item.PO_order="{ value }">
+      <template v-slot:item.PO_number="{ value }">
         {{ '#' + value }}
       </template>
 

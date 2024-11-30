@@ -20,7 +20,6 @@ export interface InventoryItem {
 }
 
 export async function editInventoryRequest(inventory: InventoryItem, firebase_id_token: string){
-  const url = inventoryURL + `&firebase_id_token=${firebase_id_token}`;
 
   //check if authorized inventory
   if(!auth.currentUser){
@@ -33,9 +32,12 @@ export async function editInventoryRequest(inventory: InventoryItem, firebase_id
   }
 
   try{
-    const response = await fetch(url, {
+    const response = await fetch(inventoryURL, {
       method: 'PATCH',
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+        Authorization: `Bearer ${firebase_id_token}`,
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify(inventory)
     });
 
@@ -55,12 +57,13 @@ export async function editInventoryRequest(inventory: InventoryItem, firebase_id
 //method to fetch inventory from the database
 export async function fetchInventoryRequest(firebase_id_token: string) {
 
-  const url = inventoryURL + `&firebase_id_token=${firebase_id_token}`
-
   try{
-    const response = await fetch(url, {
+    const response = await fetch(inventoryURL, {
       method: 'GET',
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+        Authorization: `Bearer ${firebase_id_token}`,
+        'Content-Type': 'application/json',
+      },
     });
 
     if(!response.ok){
@@ -79,7 +82,7 @@ export async function fetchInventoryRequest(firebase_id_token: string) {
 
 export async function deleteInventoryRequest(part_number: number, firebase_id_token: string) {
 
-  const url = inventoryURL + `${part_number}&firebase_id_token=${firebase_id_token}`;
+  const url = inventoryURL + `${part_number}`;
 
   //check if authorized inventory
   if(!auth.currentUser){
@@ -94,7 +97,10 @@ export async function deleteInventoryRequest(part_number: number, firebase_id_to
   try{
     const response = await fetch(url, {
       method: 'DELETE',
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+        Authorization: `Bearer ${firebase_id_token}`,
+        'Content-Type': 'application/json',
+      },
     });
 
     if(!response.ok){
@@ -111,10 +117,6 @@ export async function deleteInventoryRequest(part_number: number, firebase_id_to
 
 //function to create a new inventory
 export async function createInventoryRequest(inventory_item: InventoryItem, firebase_id_token: string){
-
-  const url = inventoryURL + `?firebase_id_token=${firebase_id_token}`;
-
-
   //check if authorized user
   if(!auth.currentUser){
     return 'Unauthorized';
@@ -127,9 +129,12 @@ export async function createInventoryRequest(inventory_item: InventoryItem, fire
 
 
   try{
-    const response = await fetch(url, {
+    const response = await fetch(inventoryURL, {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+        Authorization: `Bearer ${firebase_id_token}`,
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify(inventory_item)
     });
 

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import ReportCards from '@/components/report/ReportCards.vue'
 
-import SalesVsRevenueChart from '@/components/report/SalesChart.vue'
-import OrderStatsChart from '@/components/dashboard/OrderStatsChart.vue'
+import SalesVsRevenueChart from '@/components/report/SalesRevenueChart.vue'
+import OrderStatsChart from '@/components/report/OrderStatsChart.vue'
 import TopSellingTable from '@/components/report/TopSellingTable.vue'
 import { ref } from 'vue'
 

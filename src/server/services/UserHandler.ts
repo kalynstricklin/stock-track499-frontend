@@ -2,17 +2,17 @@ import { showSnackbar } from '@/utils/utils'
 import { auth } from '../../firebase'
 import { supplierURL } from '@/server/services/SupplierHandler'
 
-export const userURL: string = 'http://localhost:8000/users/';
+export const userURL: string = "http://localhost:8080";
 
 export async function editUserRequest(user: any, firebase_id_token: string){
-  const url = userURL;
+  const url = `${userURL}/users/`;
 
   //check if authorized user
   if(!auth.currentUser){
     return 'Unauthorized';
   }
 
-  const token = (await (auth.currentUser.getIdTokenResult())).token;
+  const token = await auth.currentUser.getIdToken();
   if(token !== firebase_id_token){
     return 'Unauthorized'
   }
@@ -21,17 +21,18 @@ export async function editUserRequest(user: any, firebase_id_token: string){
     const response = await fetch(url, {
       method: 'PATCH',
       headers: {
-        Authorization: `Bearer ${firebase_id_token}`,
+        // Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(user)
     });
 
     if(!response.ok){
+      console.log('Response: ', response.text())
       return `Error updating user information: ${response.text()}`
+    }else{
+      return 'Success'
     }
-
-    return 'Success'
 
   }catch(error: any){
     return `Error updating user information: ${error.message}`
@@ -42,7 +43,7 @@ export async function editUserRequest(user: any, firebase_id_token: string){
 
 //method to fetch users from the database
 export async function fetchUserRequest(firebase_id_token: string) {
-  const url = userURL;
+  const url = `${userURL}/users/`;
 
   try{
     const response = await fetch(url, {
@@ -70,14 +71,14 @@ export async function fetchUserRequest(firebase_id_token: string) {
 
 export async function deleteUserRequest(email: string, firebase_id_token: string) {
 
-  const url = userURL + `${email}`;
+  const url = `${userURL}/users/`;
 
   //check if authorized user
   if(!auth.currentUser){
     return 'Unauthorized';
   }
 
-  const token = (await (auth.currentUser.getIdTokenResult())).token;
+  const token = await auth.currentUser.getIdToken();
   if(token !== firebase_id_token){
     return 'Unauthorized'
   }
@@ -87,7 +88,7 @@ export async function deleteUserRequest(email: string, firebase_id_token: string
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${firebase_id_token}`
+        // Authorization: `Bearer ${firebase_id_token}`
       },
     });
 
@@ -106,23 +107,24 @@ export async function deleteUserRequest(email: string, firebase_id_token: string
 //function to create a new user
 export async function createUserRequest(user: any, firebase_id_token: string){
 
-  const url = userURL;
-
+  const url = `${userURL}/users/`;
 
   //check if authorized user
   if(!auth.currentUser){
     return 'Unauthorized';
   }
 
-  const token = (await (auth.currentUser.getIdTokenResult())).token;
+  const token = await auth.currentUser.getIdToken();
   if(token !== firebase_id_token){
     return 'Unauthorized'
   }
 
 
   try{
+    console.log('about to fetch')
     const response = await fetch(url, {
       method: 'POST',
+      mode: 'cors',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${firebase_id_token}`
@@ -130,7 +132,11 @@ export async function createUserRequest(user: any, firebase_id_token: string){
       body: JSON.stringify(user)
     });
 
+    console.log('Response status ', response.status);
+    console.log('Response status', await response.json());
+
     if(!response.ok){
+
       return `Error creating user: ${response.text()}`
     }
 

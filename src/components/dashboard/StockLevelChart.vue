@@ -25,40 +25,38 @@ onMounted(() => {
           {
             label: 'Count',
             data: data.map(row => row.count),
-            backgroundColor: data.map(row => row.count < 10 ? 'rgb(177,2,34, 0.3)' : 'rgba(2,138,124,0.3)'), // Red if count < 10, otherwise green
-            borderColor: data.map(row => row.count < 10 ? 'rgb(177,2,34)' : 'rgb(2,138,124)'), // Red border if count < 10, otherwise green
+            backgroundColor: data.map(row => row.count < 10 ? 'rgb(255,255,255)' : 'rgb(255,255,255)'), // Red if count < 10, otherwise green
+            borderColor: data.map(row => row.count < 10 ? 'rgb(255,255,255)' : 'rgb(255,255,255)'), // Red border if count < 10, otherwise green
             borderWidth: 1,
           },
         ]
       },
       options: {
+        responsive: true,
+        maintainAspectRatio: false,
         plugins: {
-          title: {
-            display: true,
-            text: 'Warehouse Inventory',
-            font: {
-              size: 18,
-              weight: 'bold'
-            },
-          },
           legend: {
-            position: 'bottom',
+            display: false,
           }
         },
         scales: {
           x:{
-            title: {
-              display: true,
-              text: 'Inventory Items'
+            ticks: {
+              color: 'rgba(255,255,255,0.51)',
+            },
+            grid: {
+              color: 'rgba(255,255,255,0.51)',
             },
             beginAtZero: true,
             stacked: true
 
           },
           y: {
-            title: {
-              display: true,
-              text: 'Count',
+            ticks: {
+              color: 'rgba(255,255,255,0.51)',
+            },
+            grid: {
+              color: 'rgba(255,255,255,0.51)',
             },
             stacked: true,
             beginAtZero: true
@@ -72,7 +70,7 @@ onMounted(() => {
 
 <template>
   <v-container id="stockLevelChart" fluid tag="section">
-    <div style="width: 800px;">
+    <div style="width: 100%; height: 100%;">
       <canvas id="stockLevels"></canvas>
     </div>
   </v-container>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, nextTick } from 'vue'
+import { ref, computed, nextTick, onMounted } from 'vue'
 import { getStatusColor, showSnackbar, snackbar } from '@/utils/utils'
 
 import { auth } from '@/firebase'
@@ -7,45 +7,34 @@ import { auth } from '@/firebase'
 import { createUserRequest, deleteUserRequest, editUserRequest, fetchUserRequest } from '@/server/services/UserHandler'
 
 interface UserItem {
-  user_name: string;
+  username: string;
   email: string;
   role: string;
-  createdOn: string;
-  status: string;
+  // profile_img: string;
 }
 
 
 const dialog = ref(false);
 const dialogDelete = ref(false)
-const editedItem = ref({ user_name: '', email: '', role: '', createdOn: '', status: ''});
-const defaultItem = ref({ user_name: '', email: '', role: '', createdOn: '', status: ''});
+const editedItem = ref({ username: '', email: '', role: ''});
+// const editedItem = ref({ username: '', email: '', role: '', profile_img: ''});
+const defaultItem = ref({ username: '', email: '', role: ''});
+// const defaultItem = ref({ username: '', email: '', role: '', profile_img: ''});
 const editedIndex = ref(-1);
 const selected = ref([])
-
+//
 
 const buttonTitle = computed(()=>{return editedIndex.value === -1 ? 'Add' : 'Update'})
 
 const headers = [
-  { title: 'User Name', key: 'user_name' },
+  { title: 'User Name', key: 'username' },
   { title: 'Email', key: 'email' },
   { title: 'Role', key: 'role' },
-  { title: 'Created On', key: 'createdOn' },
-  { title: 'Status', key: 'status' },
+
   { title: 'Edit', key: 'edit', sortable: false },
   { title: 'Delete', key: 'delete', sortable: false },
 ];
 
-
-// const users = ref<UserItem[]>([
-  // { user_name: 'Kalyn', email: 'kms0081@uah.edu', role: 'Admin', createdOn: '2024-11-13', status: 'Active' },
-  // { user_name: 'Alex', email: 'alex@uah.edu', role: 'Manager', createdOn: '2024-11-13', status: 'Active' },
-  // { user_name: 'Ashley', email: 'ashley@uah.edu', role: 'Customer', createdOn: '2024-11-13', status: 'Active' },
-  // { user_name: 'Josh', email: 'josh1@uah.edu', role: 'Customer', createdOn: '2024-11-13', status: 'Active' },
-  // { user_name: 'Josh', email: 'josh2@uah.edu', role: 'Manager', createdOn: '2024-11-13', status: 'Active' },
-  // { user_name: 'Jack', email: 'jack@uah.edu', role: 'Customer', createdOn: '2024-11-13', status: 'Inactive' },
-
-
-// ]);
 
 const users = ref<UserItem[]>([])
 
@@ -54,11 +43,13 @@ async function initialize() {
     return;
   }
 
-  const token = (await (auth.currentUser.getIdTokenResult())).token;
+
 
   try{
+    const token = await auth.currentUser.getIdToken();
+
     const userList = await fetchUserRequest(token);
-    users.value = userList;
+    users.value = Array.isArray(userList) ? userList : [];
     showSnackbar(`Loaded all users!`, 'success');
 
   }catch(error: any){
@@ -66,17 +57,21 @@ async function initialize() {
   }
 }
 
-
+//when component is mounted data will load
+onMounted(() => {
+  initialize();
+});
 
 const close = () => {
   dialog.value = false;
-  editedItem.value = { user_name: '', email: '', role: '', createdOn: '', status: ''};
+  editedItem.value = { username: '', email: '', role: ''};
+  // editedItem.value = { username: '', email: '', role: '', profile_img: ''};
 };
 
 
 async function save() {
   //check if required fields are filled
-  if (!editedItem.value.user_name || !editedItem.value.email || !editedItem.value.role) {
+  if (!editedItem.value.username || !editedItem.value.email || !editedItem.value.role) {
     showSnackbar("Please fill out all required fields", 'error');
     return;
   }
@@ -86,28 +81,33 @@ async function save() {
     return;
   }
 
-  const token = (await (auth.currentUser.getIdTokenResult())).token;
+
   try{
+    const token = await auth.currentUser.getIdToken();
+
 
     if(editedIndex.value === -1){
 
       const newUser = {
-        user_name: editedItem.value.user_name,
+        username: editedItem.value.username,
         email: editedItem.value.email,
         role: editedItem.value.role,
-        createdOn: new Date().toISOString(),
-        status: 'Active'
+        // profile_img: editedItem.value.profile_img
       };
+
+
       const response = await createUserRequest(newUser, token);
 
+      console.log('response', response);
+
       if(response === 'Success'){
-        showSnackbar(`New User created: ${newUser.user_name}`, 'success');
+        showSnackbar(`New User created: ${newUser.username}`, 'success');
         users.value =[newUser, ...users.value];
         close();
 
       }
       else{
-        showSnackbar(`Failed to create new user: ${newUser.user_name}`, 'error');
+        showSnackbar(response, 'error');
       }
 
     }else{
@@ -118,11 +118,11 @@ async function save() {
       const response = await editUserRequest(updatedItem, token);
 
       if(response === 'Success'){
-        showSnackbar(`User updated: ${updatedItem.user_name}`, 'success');
+        showSnackbar(`User updated: ${updatedItem.username}`, 'success');
         users.value.splice(editedIndex.value, 1, updatedItem);
         close();
       }else{
-        showSnackbar(`Failed to update user: ${updatedItem.user_name}`, 'error');
+        showSnackbar(`Failed to update user: ${updatedItem.username}`, 'error');
       }
 
     }
@@ -146,17 +146,17 @@ async function deleteItemConfirm() {
     return;
   }
 
-  const token = (await (auth.currentUser.getIdTokenResult())).token;
+  const token = await auth.currentUser.getIdToken();
 
   try{
     if (editedIndex.value !== -1) {
-      const response = await deleteUserRequest(editedItem.value.user_name.toString(), token);
+      const response = await deleteUserRequest(editedItem.value.username.toString(), token);
 
       if(response === 'Success'){
-        showSnackbar(`Successfully deleted user: ${editedItem.value.user_name}`, 'success');
+        showSnackbar(`Successfully deleted user: ${editedItem.value.username}`, 'success');
         users.value.splice(editedIndex.value, 1);
       }else{
-        showSnackbar(`Failed to delete user: ${editedItem.value.user_name}`, 'error');
+        showSnackbar(`Failed to delete user: ${editedItem.value.username}`, 'error');
       }
     }
 
@@ -189,7 +189,8 @@ function editItem(item: any){
   dialog.value= true;
 }
 
-const roles = ['Admin', 'Manager', 'Customer', 'Employee'];
+const roles = ['admin', 'manager', 'customer', 'employee'];
+
 
 
 </script>
@@ -202,16 +203,16 @@ const roles = ['Admin', 'Manager', 'Customer', 'Employee'];
       v-model:search="search"
       :headers="headers"
       :items="users"
-      item-value="user_name"
-      :filter-keys="['user_name', 'createdOn', 'status', 'role', 'email']"
+      item-value="username"
+      :filter-keys="['username', 'createdOn', 'status', 'role', 'email']"
     >
 
 
-      <template v-slot:item.status="{ value }">
-        <v-chip :color="getStatusColor(value)">
-          {{ value }}
-        </v-chip>
-      </template>
+<!--      <template v-slot:item.status="{ value }">-->
+<!--        <v-chip :color="getStatusColor(value)">-->
+<!--          {{ value }}-->
+<!--        </v-chip>-->
+<!--      </template>-->
 
       <template v-slot:top>
         <v-toolbar flat>
@@ -259,7 +260,7 @@ const roles = ['Admin', 'Manager', 'Customer', 'Employee'];
 
                       <v-col cols="4">
                         <v-text-field
-                          v-model="editedItem.user_name"
+                          v-model="editedItem.username"
                           label="User Name*"
 
                         ></v-text-field>
@@ -269,6 +270,7 @@ const roles = ['Admin', 'Manager', 'Customer', 'Employee'];
                         <v-text-field
                           v-model="editedItem.email"
                           label="Email*"
+                          readonly
 
                         ></v-text-field>
                       </v-col>
@@ -280,6 +282,13 @@ const roles = ['Admin', 'Manager', 'Customer', 'Employee'];
                           label="Role*">
                         </v-select>
                       </v-col>
+
+<!--                      <v-col cols="4">-->
+<!--                        <v-text-field-->
+<!--                          v-model="editedItem.profile_img"-->
+<!--                          label="Profile Image"-->
+<!--                        ></v-text-field>-->
+<!--                      </v-col>-->
 
                     </v-row>
                   <small class="text-caption text-medium-emphasis">*indicates required field</small>

@@ -8,36 +8,37 @@ import {
   editInventoryRequest, fetchInventoryRequest, type InventoryItem
 } from '@/server/services/InventoryHandler'
 import { createOrderRequest } from '@/server/services/OrdersHandler'
+import { fetchUserRequest } from '@/server/services/UserHandler'
 
 
 
 
 const headers = computed(() => {
   const base= [
-    { title: 'Product Name', key: 'product_name', align: 'start', sortable: true, },
-    { title: 'Part Number', key: 'part_number', align: 'start', sortable: true, },
-    { title: 'Supplier', key: 'supplier_ID', align: 'start', sortable: true, },
-    { title: 'Manufacturer', key: 'manufacturer_ID', align: 'start', sortable: true, },
-    { title: 'On Hand', key: 'on_hand', align: 'start', sortable: true, },
-    { title: 'Status', key: 'status', align: 'start', sortable: true, },
-    { title: 'Price', key: 'outbound_price', align: 'start', sortable: true, },
+    { title: 'Part Number', key: 'part_number',  sortable: true, },
+    { title: 'Supplier', key: 'supplier_id', sortable: true, },
+    // { title: 'On Hand', key: 'on_hand', align: 'start', sortable: true, },
+    // { title: 'Status', key: 'status', align: 'start', sortable: true, },
+
+    { title: 'Stock Level', key: 'stock_level',  sortable: true, },
+    { title: 'Reorder Threshold', key: 'reorder_point',  sortable: true, },
+    { title: 'Outbound Price', key: 'outbound_price',  sortable: true, },
 
   ];
 
   // Employee and Admin roles should see the full
   if(role.value === 'employee' || role.value === 'admin' || role.value === 'manager'){
     base.push(
-      { title: 'Stock Level', key: 'stock_level', align: 'start', sortable: true, },
-      { title: 'Reserved', key: 'reserved', align: 'start', sortable: true, },
-      { title: 'Lead time', key: 'lead_time', align: 'start', sortable: true, },
-      { title: 'Inbound Price', key: 'inbound_price', align: 'start', sortable: true, },
-      { title: 'Reorder', key: 'reorder', align: 'center', sortable: false },
+
+      // { title: 'Reserved', key: 'reserved', align: 'start', sortable: true, },
+      { title: 'Inbound Price', key: 'inbound_price', sortable: true, },
+      { title: 'Reorder', key: 'reorder',  sortable: false },
     );
 
     if(role.value === 'admin' || role.value === 'manager'){
       base.push(
-        { title: 'Edit', key: 'edit', align: 'center', sortable: false },
-        { title: 'Delete', key: 'delete', align: 'center',sortable: false },
+        { title: 'Edit', key: 'edit',  sortable: false },
+        { title: 'Delete', key: 'delete', sortable: false },
       );
     }
   }
@@ -48,47 +49,65 @@ const headers = computed(() => {
 
 const dialog = ref(false)
 const dialogDelete = ref(false)
-const editedItem = ref({ product_name: '', part_number: 0, supplier_ID: '', manufacturer_ID: '', reorder_point: 0, stock_level: 0, status: '', inbound_price: 0, outbound_price: 0, on_hand: 0, reserved: 0, lead_time: 0});
-const defaultItem = ref({ product_name: '', part_number: 0, supplier_ID: '', manufacturer_ID: '',reorder_point: 0, stock_level: 0, status: '', inbound_price: 0, outbound_price: 0, on_hand: 0, reserved: 0, lead_time: 0  });
+const editedItem = ref({ part_number: 0, supplier_id: 0, reorder_point: 0, stock_level: 0, inbound_price: 0.0, outbound_price: 0.0, });
+const defaultItem = ref({ part_number: 0, supplier_id: 0,reorder_point: 0, stock_level: 0, inbound_price: 0.0, outbound_price: 0.0, });
 const editedIndex = ref(-1);
 
 const buttonTitle = computed(()=>{return editedIndex.value === -1 ? 'Add' : 'Update'})
-const inventory = ref<InventoryItem[]>([])
+const inventory = ref<any[]>([])
 
 // search bar
 const search = ref('')
 
 //user roles
-const role = ref('admin')
+const role = ref('')
+
+const leadTimeForOrders = 2; //2 days
 
 async function initialize() {
-  inventory.value = [
-    { product_name: 'item 1', part_number: 1, supplier_ID: '1', manufacturer_ID: '1', reorder_point: 5, stock_level: 5, inbound_price: 12, outbound_price: 12, on_hand: 10, reserved: 2, status: 'In Stock', lead_time: 1},
-    { product_name: 'item 2', part_number: 1, supplier_ID: '1', manufacturer_ID: '1', reorder_point: 5, stock_level: 5, inbound_price: 12, outbound_price: 12, on_hand: 10, reserved: 2, status: 'In Stock',lead_time: 1 },
-    { product_name: 'item 3', part_number: 1, supplier_ID: '1', manufacturer_ID: '1', reorder_point: 5, stock_level: 5, inbound_price: 12, outbound_price: 12, on_hand: 0, reserved: 2, status: 'Out of Stock',lead_time: 1},
-    { product_name: 'item 4', part_number: 1, supplier_ID: '1', manufacturer_ID: '1', reorder_point: 5, stock_level: 5, inbound_price: 12, outbound_price: 12, on_hand: 2, reserved: 2, status: 'Low Stock',lead_time: 1},
-    { product_name: 'item 5', part_number: 1, supplier_ID: '1', manufacturer_ID: '1', reorder_point: 5, stock_level: 5, inbound_price: 12, outbound_price: 12, on_hand: 0, reserved: 2, status: 'Out of Stock', lead_time: 1},
-    { product_name: 'item 6', part_number: 1, supplier_ID: '1', manufacturer_ID: '1', reorder_point: 5, stock_level: 5, inbound_price: 12, outbound_price: 12, on_hand: 10, reserved: 2, status: 'In Stock', lead_time: 1 },
-    { product_name: 'item 7', part_number: 1, supplier_ID: '1', manufacturer_ID: '1', reorder_point: 5, stock_level: 5, inbound_price: 12, outbound_price: 12, on_hand: 3, reserved: 2, status: 'Low Stock', lead_time: 1 },
-    { product_name: 'item 8', part_number: 1, supplier_ID: '1', manufacturer_ID: '1', reorder_point: 5, stock_level: 5, inbound_price: 12, outbound_price: 12, on_hand: 0, reserved: 2, status: 'Out of Stock', lead_time: 1},
-    { product_name: 'item 9', part_number: 1, supplier_ID: '1', manufacturer_ID: '1', reorder_point: 5, stock_level: 5, inbound_price: 12, outbound_price: 12, on_hand: 10, reserved: 2, status: 'In Stock', lead_time: 1 },
-    { product_name: 'item 10',part_number: 1, supplier_ID: '1', manufacturer_ID: '1', reorder_point: 5, stock_level: 5, inbound_price: 12, outbound_price: 12, on_hand: 10, reserved: 2, status: 'In Stock', lead_time:1 },
-  ];
+  if(!auth.currentUser){
+    showSnackbar('No authenticated user found.', 'error');
+    return;
+  }
 
-  // if(!auth.currentUser){
-  //   return;
-  // }
-  //
-  // const token = (await (auth.currentUser.getIdTokenResult())).token;
-  //
-  // try{
-  //   const inventoryItems = await fetchInventoryRequest(token);
-  //   inventory.value = inventoryItems;
-  //   showSnackbar(`Loaded all items in the inventory!`, 'success');
-  //
-  // }catch(error: any){
-  //   showSnackbar(`Error loading inventory: ${error.message}`, 'error');
-  // }
+  try{
+    const token = await auth.currentUser.getIdToken();
+
+    //set user role
+    let users = await fetchUserRequest(token);
+
+    if (!users || users.length === 0) {
+      showSnackbar('No users found.', 'info');
+      return;
+    }
+
+
+    const currUser = users.find((u: any) => u.email === auth?.currentUser?.email);
+    if(!currUser){
+      showSnackbar('User role not found', 'info')
+      return;
+
+    }
+
+    role.value = currUser.role;
+    console.log('role', currUser)
+
+    //now fetch inventory items
+    const inventoryItems = await fetchInventoryRequest(token);
+    console.log('inventory items', inventoryItems)
+
+    if(inventoryItems){
+      inventory.value = Array.isArray(inventoryItems) ? inventoryItems : [];
+      showSnackbar(`Loaded all items in the inventory!`, 'success');
+
+    }else{
+      showSnackbar(`Error loading inventory items!`, 'error');
+
+    }
+
+  }catch(error: any){
+    showSnackbar(`Error loading inventory: ${error.message}`, 'error');
+  }
 }
 
 
@@ -102,7 +121,7 @@ function close() {
 
 async function save() {
 
-  if(!editedItem.value.product_name || !editedItem.value.part_number || !editedItem.value.supplier_ID || !editedItem.value.manufacturer_ID || !editedItem.value.inbound_price || !editedItem.value.outbound_price || !editedItem.value.stock_level || !editedItem.value.lead_time){
+  if( !editedItem.value.part_number || !editedItem.value.supplier_id || !editedItem.value.inbound_price || !editedItem.value.outbound_price || !editedItem.value.stock_level || !editedItem.value.reorder_point){
     showSnackbar("Please fill out all required fields", 'error')
     return;
   }
@@ -112,35 +131,39 @@ async function save() {
     return;
   }
 
-  const token = (await (auth.currentUser.getIdTokenResult())).token;
+
   try {
+    const token = await auth.currentUser.getIdToken();
+
     if (editedIndex.value === -1) {
+
       const newItem = {
-        product_name: editedItem.value.product_name,
         part_number: editedItem.value.part_number,
-        supplier_ID: editedItem.value.supplier_ID,
-        manufacturer_ID: editedItem.value.manufacturer_ID,
+        supplier_id: editedItem.value.supplier_id,
         inbound_price: editedItem.value.inbound_price,
         outbound_price: editedItem.value.outbound_price,
-        on_hand: editedItem.value.stock_level,
-        reserved: 0,
-        lead_time: editedItem.value.lead_time,
-        reorder_point: editedItem.value.reorder_point,
         stock_level: editedItem.value.stock_level,
-        status: "In Stock",
+        reorder_point: editedItem.value.reorder_point,
+
       };
 
+      console.log('new item', newItem)
       const response = await createInventoryRequest(newItem, token);
 
+      console.log('response', response)
+
       if (response === 'Success') {
-        showSnackbar(`New Item created: ${newItem.product_name}`, 'success');
+        showSnackbar(`New Item created: ${newItem.part_number}`, 'success');
         inventory.value = [newItem, ...inventory.value];
         close();
 
       } else {
-        showSnackbar(`Failed to create new item: ${newItem.product_name}`, 'error');
+        showSnackbar(response, 'error');
+
       }
-    }else {
+
+    }
+    else {
 
       const updatedItem = {
         ...editedItem.value,
@@ -149,12 +172,12 @@ async function save() {
       const response = await editInventoryRequest(updatedItem, token);
 
       if (response === 'Success') {
-        showSnackbar(`Supplier updated: ${updatedItem.product_name}`, 'success');
-        //     inventory.value[editedIndex.value] = {...editedItem.value}
-        inventory.value.splice(editedIndex.value, 1, updatedItem);
+        showSnackbar(`Supplier updated: ${updatedItem.part_number}`, 'success');
+            inventory.value[editedIndex.value] = {...editedItem.value}
+        // inventory.value.splice(editedIndex.value, 1, updatedItem);
         close();
       } else {
-        showSnackbar(`Failed to update Supplier: ${updatedItem.product_name}`, 'error');
+        showSnackbar(`Failed to update Supplier: ${updatedItem.part_number}`, 'error');
       }
     }
   }catch(error: any){
@@ -190,16 +213,15 @@ async function deleteItemConfirm() {
     return;
   }
 
-  const token = (await (auth.currentUser.getIdTokenResult())).token;
-
   try{
-    const response = await deleteInventoryRequest(editedItem.value.part_number, token);
+    const token = await auth.currentUser.getIdToken();
+    const response = await deleteInventoryRequest(editedItem.value, token);
 
     if(response === 'Success'){
-      showSnackbar(`Successfully deleted supplier: ${editedItem.value.product_name}`, 'success');
+      showSnackbar(`Successfully deleted inventory item: ${editedItem.value.part_number}`, 'success');
       inventory.value.splice(editedIndex.value, 1);
     }else{
-      showSnackbar(`Failed to delete supplier: ${editedItem.value.product_name}`, 'error');
+      showSnackbar(`Failed to delete inventory item: ${editedItem.value.part_number}`, 'error');
     }
 
   }catch(error: any){
@@ -220,26 +242,28 @@ function closeDelete () {
 async function reorder(item: InventoryItem){
   //check if authorized user
   if(!auth.currentUser){
+    showSnackbar('No authenticated user found.', 'error');
     return;
   }
 
-  const token = (await (auth.currentUser.getIdTokenResult())).token;
 
   try{
-    const qtyToReorder = item.reorder_point - item.on_hand + item.reserved;
+    const token = await auth.currentUser.getIdToken();
+
+    const qtyToReorder = item.stock_level
+    // const qtyToReorder = item.reorder_point - item.on_hand + item.reserved;
 
     const purchaseOrder = {
       PO_number: 233,
-      product_name: item.product_name,
       part_number: item.part_number,
-      supplier_ID: item.supplier_ID,
-      manufacturer_ID: item.manufacturer_ID,
-      order_date: new Date().toISOString(),
-      due_date: new Date(Date.now() + item.lead_time * 24 * 60 * 60 * 1000).toISOString(),
-      received_date: null,
+      supplier_id: item.supplier_id,
       qty: qtyToReorder, //this should be replaced automatically with the value associated with the restock value
-      price: item.inbound_price * qtyToReorder,
-      status: 'Pending'
+      created: new Date(),
+      due_date: new Date(Date.now() + leadTimeForOrders * 24 * 60 * 60 * 1000),
+      value: item.inbound_price * qtyToReorder,
+      customer_id: '',
+      is_outbound:  false,
+      // status: 'Pending'
     };
 
     //send po to backend
@@ -269,9 +293,9 @@ onMounted(() => {
   <v-data-table
     v-model:search="search"
     :headers="headers"
-    :items="inventory"
+    :items="Array.isArray(inventory) ? inventory : []"
     item-value="part_number"
-    :filter-keys="['product_name','supplier_ID', 'part_number', 'status', 'manufacturer_ID', 'inbound_price', 'on_hand', 'reserved', 'outbound_price']"
+    :filter-keys="['product_name','supplier_id', 'part_number', 'inbound_price', 'outbound_price']"
   >
 
     <template v-slot:item.inbound_price="{ value }">
@@ -336,14 +360,6 @@ onMounted(() => {
 
                   <v-col cols="12" md="4" sm="6">
                     <v-text-field
-                      v-model="editedItem.product_name"
-                      label="Product Name*"
-                      required
-                    ></v-text-field>
-                  </v-col>
-
-                  <v-col cols="12" md="4" sm="6">
-                    <v-text-field
                       v-model="editedItem.part_number"
                       label="Part Number*"
                       required
@@ -352,16 +368,8 @@ onMounted(() => {
 
                   <v-col cols="12" md="4" sm="6">
                     <v-text-field
-                      v-model="editedItem.supplier_ID"
+                      v-model="editedItem.supplier_id"
                       label="Supplier*"
-                      required
-                    ></v-text-field>
-                  </v-col>
-
-                  <v-col cols="12" md="4" sm="6">
-                    <v-text-field
-                      v-model="editedItem.manufacturer_ID"
-                      label="Manufacturer*"
                       required
                     ></v-text-field>
                   </v-col>
@@ -377,7 +385,7 @@ onMounted(() => {
                   <v-col cols="12" md="4" sm="6">
                     <v-text-field
                       v-model="editedItem.inbound_price"
-                      label="Purchasing Price"
+                      label="Inbound Price"
                       :rules="[v => v>=0 || 'Price must be non-negative']"
                     ></v-text-field>
                   </v-col>
@@ -385,16 +393,8 @@ onMounted(() => {
                   <v-col cols="12" md="4" sm="6">
                     <v-text-field
                       v-model="editedItem.outbound_price"
-                      label=" Selling Price"
+                      label=" Outbound Price"
                       :rules="[v => v>=0 || 'Price must be non-negative']"
-                    ></v-text-field>
-                  </v-col>
-
-                  <v-col cols="12" md="4" sm="6">
-                    <v-text-field
-                      v-model="editedItem.lead_time"
-                      label="Lead Time*"
-                      required
                     ></v-text-field>
                   </v-col>
 

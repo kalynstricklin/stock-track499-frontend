@@ -1,7 +1,7 @@
 import { showSnackbar } from '@/utils/utils'
 import { auth } from '../../firebase'
 
-export const supplierURL: string = 'http://localhost:8000/suppliers/';
+export const supplierURL: string = 'http://localhost:8080/suppliers/';
 
 export interface Supplier {
   supplier_name: string;

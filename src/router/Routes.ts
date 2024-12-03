@@ -33,11 +33,6 @@ const Routes = [
         component: () => import('@/views/admin/UsersView.vue')
       },
       {
-        name: 'Reports',
-        path: '/reports',
-        component: () => import('@/views/ReportView.vue')
-      },
-      {
         name: 'Dashboard',
         path: '/dashboard',
         component: () => import('@/views/DashboardView.vue')

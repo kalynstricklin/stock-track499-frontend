@@ -5,6 +5,7 @@ import InBoundOrder from '@/components/tables/orders/WarehouseOrdersTable.vue'
 <template>
   <v-container>
     <InBoundOrder/>
+
   </v-container>
 
 </template>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, computed, nextTick, onMounted } from 'vue'
-import { getStatusColor, sendRequest, showSnackbar, snackbar } from '@/utils/utils'
+import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
+import { getStatusColor, showSnackbar, snackbar } from '@/utils/utils'
 import {
   createSupplierRequest,
   deleteSupplierRequest,
@@ -37,26 +37,26 @@ const headers = [
 
 
 async function initialize() {
-  // suppliers.value = [
-  //   { supplier_name: 'Amazon', supplier_ID: 1, created_on: '2024-10-12',status: 'Active' },
-  //   { supplier_name: 'Walmart', supplier_ID: 2,created_on: '2024-10-12',status: 'Active'},
-  //   { supplier_name: 'Target',supplier_ID: 3, created_on: '2024-10-12',status: 'Active' },
-  //   { supplier_name: 'Home Depot',supplier_ID: 4, created_on: '2024-10-12',status: 'Active' },
-  // ];
-  if(!auth.currentUser){
-    return;
-  }
-
-  const token = (await (auth.currentUser.getIdTokenResult())).token;
-
-  try{
-    const supplierList = await fetchSuppliersRequest(token);
-    suppliers.value = supplierList;
-    showSnackbar(`Loaded all suppliers!`, 'success');
-
-  }catch(error: any){
-    showSnackbar(`Error loading suppliers: ${error.message}`, 'error');
-  }
+  suppliers.value = [
+    { supplier_name: 'Amazon', supplier_ID: 1, created_on: '2024-10-12',status: 'Active' },
+    { supplier_name: 'Walmart', supplier_ID: 2,created_on: '2024-10-12',status: 'Active'},
+    { supplier_name: 'Target',supplier_ID: 3, created_on: '2024-10-12',status: 'Active' },
+    { supplier_name: 'Home Depot',supplier_ID: 4, created_on: '2024-10-12',status: 'Active' },
+  ];
+//   if(!auth.currentUser){
+//     return;
+//   }
+//
+//   const token = (await (auth.currentUser.getIdTokenResult())).token;
+//
+//   try{
+//     const supplierList = await fetchSuppliersRequest(token);
+//     suppliers.value = supplierList;
+//     showSnackbar(`Loaded all suppliers!`, 'success');
+//
+//   }catch(error: any){
+//     showSnackbar(`Error loading suppliers: ${error.message}`, 'error');
+//   }
 }
 
 
@@ -124,13 +124,13 @@ async function save() {
   }catch(error: any){
     showSnackbar(`Error: ${error.message}`, 'error');
   }
-};
+}
 
 
 function openDialog(){
   dialog.value = true;
   editedItem.value = { supplier_name: '', supplier_ID: 0, created_on: new Date().toLocaleString(), status: "Active"};
-};
+}
 
 
 function deleteItem(item: any){
@@ -183,6 +183,10 @@ function closeDelete () {
 onMounted(() => {
   initialize();
 });
+
+
+onUnmounted(()=> {
+})
 </script>
 
 

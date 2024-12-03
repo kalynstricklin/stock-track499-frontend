@@ -27,9 +27,7 @@
           <v-list-item prepend-icon="mdi-account-badge" title="Account" :to="{ path: '/auth/account' }"></v-list-item>
 
           <v-list-item v-if="role === 'admin' || role ==='manager'" prepend-icon="mdi-account" title="Users" :to="{ path: '/users' }"></v-list-item>
-          <v-list-item v-if="role === 'admin'|| role ==='manager'" prepend-icon="mdi-folder" title="Reports" :to="{ path: '/reports' }"></v-list-item>
         </v-list-group>
-
 
         <!--Customer Section-->
         <v-list-group v-if="role === 'customer'" >
@@ -54,21 +52,53 @@
 </style>
 
 
-<script>
-export default {
-  data() {
-    return {
-      drawer: false,
-      role: "", // values can be one of these:::: 'admin' 'employee' or 'customer'
-    };
-  },
-  mounted() {
-    this.role = this.getRole();
-  },
-  methods: {
-    getRole(){
-      return 'admin'
+<script setup lang="ts">
+
+import { showSnackbar } from '@/utils/utils.js'
+import { auth } from '@/firebase.js'
+import { fetchUserRequest } from '@/server/services/UserHandler.js'
+import { onMounted, ref } from 'vue'
+
+//user roles
+const role = ref('')
+const drawer = ref(false);
+
+async function initialize(){
+  if(!auth.currentUser){
+    showSnackbar('No authenticated user found.', 'error');
+    return;
+  }
+
+  try{
+    const token = await auth.currentUser.getIdToken();
+
+    //set user role
+    let users = await fetchUserRequest(token);
+
+    if (!users || users.length === 0) {
+      showSnackbar('No users found.', 'info');
+      return;
     }
-  },
-};
+
+
+    const currUser = users.find((u: any) => u.email === auth?.currentUser?.email);
+    if(!currUser){
+      showSnackbar('User role not found', 'error')
+      return;
+
+    }
+
+    role.value = currUser.role;
+    console.log('role', currUser)
+
+  }catch(error: any){
+    showSnackbar(`Error: ${error.message}`, 'error');
+  }
+}
+
+// onMounted(() => {
+//   initialize();
+// });
+
+initialize();
 </script>

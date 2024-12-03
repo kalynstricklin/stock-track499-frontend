@@ -1,39 +1,34 @@
 import { showSnackbar } from '@/utils/utils'
 import { auth } from '../../firebase'
 
-export const orderUrl: string = 'http://localhost:8000/order/';
+export const orderUrl: string = 'http://localhost:8080';
 
 export interface Order {
   PO_number: number;
-  product_name: string;
   part_number: number;
-  supplier_ID: string;
-  manufacturer_ID: string;
-
-  order_date: string;
-  due_date: string;
-  received_date: string;
+  supplier_id: number;
   qty: number;
-  status: string;
-  inbound_price: number;
-  outbound_price: number;
-  customer_ID: string;
-  total_cost: number;
+  due_date: Date;
+  created: Date;
+  value: number;
+  customer_id: string;
+  is_outbound: boolean;
 }
 
 export async function editOrderRequest(order: any, firebase_id_token: string){
-  //check if authorized order
+  const url = `${orderUrl}/orders/`
+  //check if authorized inventory
   if(!auth.currentUser){
     return 'Unauthorized';
   }
 
-  const token = (await (auth.currentUser.getIdTokenResult())).token;
+  const token = await auth.currentUser.getIdToken();
   if(token !== firebase_id_token){
     return 'Unauthorized'
   }
 
   try{
-    const response = await fetch(orderUrl, {
+    const response = await fetch(url, {
       method: 'PATCH',
       headers: {
         Authorization: `Bearer ${firebase_id_token}`,
@@ -55,8 +50,18 @@ export async function editOrderRequest(order: any, firebase_id_token: string){
 
 
 export async function fetchOrderRequest(firebase_id_token: string){
+  const url = `${orderUrl}/orders/`
+  //check if authorized inventory
+  if(!auth.currentUser){
+    return 'Unauthorized';
+  }
+
+  const token = await auth.currentUser.getIdToken();
+  if(token !== firebase_id_token){
+    return 'Unauthorized'
+  }
   try{
-    const response = await fetch(orderUrl, {
+    const response = await fetch(url, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${firebase_id_token}`,
@@ -77,8 +82,16 @@ export async function fetchOrderRequest(firebase_id_token: string){
 }
 
 export async function fetchItemDetails(order: any, firebase_id_token: string){
-  const url = `http://localhost:8000/inventory?part_number=${order.part_number}`;
+  const url = `${orderUrl}/orders/`
+  //check if authorized inventory
+  if(!auth.currentUser){
+    return 'Unauthorized';
+  }
 
+  const token = await auth.currentUser.getIdToken();
+  if(token !== firebase_id_token){
+    return 'Unauthorized'
+  }
   try{
     const response = await fetch(url, {
       method: 'GET',
@@ -100,16 +113,15 @@ export async function fetchItemDetails(order: any, firebase_id_token: string){
   }
 }
 
-export async function deleteOrderRequest(order_id: number, firebase_id_token: string) {
+export async function deleteOrderRequest(order: any, firebase_id_token: string) {
 
-  const url = orderUrl + `${order_id}`;
-
-  //check if authorized order
+  const url = `${orderUrl}/orders/`
+  //check if authorized inventory
   if(!auth.currentUser){
     return 'Unauthorized';
   }
 
-  const token = (await (auth.currentUser.getIdTokenResult())).token;
+  const token = await auth.currentUser.getIdToken();
   if(token !== firebase_id_token){
     return 'Unauthorized'
   }
@@ -124,13 +136,13 @@ export async function deleteOrderRequest(order_id: number, firebase_id_token: st
     });
 
     if(!response.ok){
-      return `Error deleting order ${order_id} : ${response.text()}`
+      return `Error deleting order ${order.PO_number} : ${response.text()}`
     }
 
     return 'Success'
 
   }catch(error: any){
-    return `Error deleting order${order_id}: ${error.message}`
+    return `Error deleting order${order.PO_number}: ${error.message}`
   }
 }
 
@@ -138,19 +150,19 @@ export async function deleteOrderRequest(order_id: number, firebase_id_token: st
 //function to create a new order
 export async function createOrderRequest(order: any, firebase_id_token: string){
 
-  //check if authorized user
+  const url = `${orderUrl}/orders/`
+  //check if authorized inventory
   if(!auth.currentUser){
     return 'Unauthorized';
   }
 
-  const token = (await (auth.currentUser.getIdTokenResult())).token;
+  const token = await auth.currentUser.getIdToken();
   if(token !== firebase_id_token){
     return 'Unauthorized'
   }
 
-
   try{
-    const response = await fetch(orderUrl, {
+    const response = await fetch(url, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${firebase_id_token}`,

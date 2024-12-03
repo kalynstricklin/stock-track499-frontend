@@ -9,36 +9,40 @@ import {
   fetchOrderRequest,
   type Order
 } from '@/server/services/OrdersHandler'
+import { fetchUserRequest } from '@/server/services/UserHandler'
 
 
 
 
-const defaultOrder: Order = {
-  manufacturer_ID: '',
-  product_name: '',
-  supplier_ID: '',
+const defaultOrder: any = {
   PO_number: 0,
-  customer_ID: '',
   part_number: 0,
-  order_date: '',
-  received_date: '',
-  due_date: '',
+  supplier_id: 0,
+
+  customer_id: '',
+
+  created: new Date().toDateString(),
+  due_date: new Date().toDateString(),
   outbound_price: 0,
-  inbound_price: 0,
-  total_cost: 0,
+  // inbound_price: 0,
+  value: 0,
   qty: 0,
+  is_outbound: true,
   status: 'Pending'
 };
 interface OrderItems {
   PO_number: number;
-  customer_ID: string;
+
   part_number: number;
-  order_date: string;
-  received_date: string;
-  due_date: string;
+  supplier_id: number;
+  customer_id: string;
+  is_outbound: boolean;
+
+  created: Date;
+  due_date: Date;
   outbound_price: number;
-  inbound_price: number;
-  total_cost: number;
+  // inbound_price: number;
+  value: number;
   qty: number;
   status: string;
 
@@ -47,8 +51,8 @@ interface OrderItems {
 const dialog = ref(false);
 const dialogEdit= ref(false);
 
-const editedItem = ref<Order>({ ...defaultOrder });
-const defaultItem = ref<Order>({ ...defaultOrder });
+const editedItem = ref({ ...defaultOrder });
+const defaultItem = ref({ ...defaultOrder });
 
 const editedIndex = ref(-1);
 
@@ -60,22 +64,19 @@ const orders = ref<OrderItems[]>([]);
 
 // search bar
 const search = ref('')
-
+//user roles
+const role = ref('')
 
 const cxHeaders = computed(() =>{
   const base = [
     { title: 'Order ID', key: 'PO_number', align: 'start', sortable: true, class: 'styled-header' },
-    { title: 'Customer', key: 'customer_ID', align: 'start', sortable: true, class: 'styled-header'},
-    // { title: 'Product Name', key: 'product_name', align: 'start', sortable: true, class: 'styled-header' },
+    { title: 'Customer', key: 'customer_id', align: 'start', sortable: true, class: 'styled-header'},
     { title: 'Part Number', key: 'part_number', align: 'start', sortable: true, class: 'styled-header' },
-
-    { title: 'Order Date', key: 'order_date', align: 'start', sortable: true, class: 'styled-header' },
+    { title: 'Order Date', key: 'created', align: 'start', sortable: true, class: 'styled-header' },
     { title: 'Delivery Date', key: 'due_date', align: 'start', sortable: true, class: 'styled-header' },
-    { title: 'Received Date', key: 'received_date', align: 'start', sortable: true, class: 'styled-header' },
-
     { title: 'Quantity', key: 'qty', align: 'start', sortable: true,class: 'styled-header' },
     { title: 'Unit Price', key: 'outbound_price', align: 'start', sortable: true, class: 'styled-header' },
-    { title: 'Total Cost', key: 'total_cost', align: 'start', sortable: true, class: 'styled-header' },
+    { title: 'Total Cost', key: 'value', align: 'start', sortable: true, class: 'styled-header' },
     { title: 'Status', key: 'status', align: 'start', sortable: true, class: 'styled-header' },
 
   ];
@@ -89,31 +90,47 @@ const cxHeaders = computed(() =>{
   return base;
 });
 
-//user roles
-const role = ref('admin')
 
 
 async function initialize() {
-  // orders.value = [
-  //   { PO_number: 6, customer_ID: 'Kalyn', part_number: 43, order_date: '2024-11-18T16:30:36.468Z', due_date: '2024-11-18T16:30:36.468Z', received_date: '2024-11-18T16:30:36.468Z',inbound_price: 12, outbound_price: 12, total_cost: 36, qty: 3, status: 'Pending', },
-  //   { PO_number: 5, customer_ID: 'Kalyn', part_number: 43, order_date: '2024-11-18T16:30:36.468Z', due_date: '2024-11-18T16:30:36.468Z', received_date: '2024-11-18T16:30:36.468Z',inbound_price: 12, outbound_price: 12, total_cost: 36, qty: 3, status: 'Pending', },
-  //   { PO_number: 4, customer_ID: 'Jack', part_number: 43, order_date: '2024-11-18T16:30:36.468Z', due_date: '2024-11-18T16:30:36.468Z', received_date: '2024-11-18T16:30:36.468Z', inbound_price: 12,outbound_price: 12, total_cost: 36, qty: 3, status: 'Shipped', },
-  //   { PO_number: 3, customer_ID: 'Alex', part_number: 43, order_date: '2024-11-18T16:30:36.468Z', due_date: '2024-11-18T16:30:36.468Z', received_date: '2024-11-18T16:30:36.468Z',inbound_price: 12, outbound_price: 12, total_cost: 36, qty: 3, status: 'Shipped', },
-  //   { PO_number: 2, customer_ID: 'Alex', part_number: 43, order_date: '2024-11-18T16:30:36.468Z', due_date: '2024-11-18T16:30:36.468Z', received_date: '2024-11-18T16:30:36.468Z', inbound_price: 12,outbound_price: 12, total_cost: 36, qty: 3, status: 'Shipped', },
-  //   { PO_number: 1, customer_ID: 'Josh', part_number: 43, order_date: '2024-11-18T16:30:36.468Z', due_date: '2024-11-18T16:30:36.468Z', received_date: '2024-11-18T16:30:36.468Z',inbound_price: 12, outbound_price: 12, total_cost: 36, qty: 3, status: 'Delivered', },
-  //   { PO_number: 0, customer_ID: 'Kalyn', part_number: 43, order_date: '2024-11-18T16:30:36.468Z', due_date: '2024-11-18T16:30:36.468Z', received_date: '2024-11-18T16:30:36.468Z', inbound_price: 12,outbound_price: 12, total_cost: 36, qty: 3, status: 'Delivered', },
-  // ];
   if(!auth.currentUser){
+    showSnackbar('No authenticated user found.', 'error');
     return;
   }
 
-  const token = (await (auth.currentUser.getIdTokenResult())).token;
-
   try{
-    const customerOrders = await fetchOrderRequest(token);
-    orders.value = customerOrders;
-    showSnackbar(`Loaded all customer orders!`, 'success');
+    const token = await auth.currentUser.getIdToken();
 
+
+    //set user role
+    let users = await fetchUserRequest(token);
+
+    if (!users || users.length === 0) {
+      showSnackbar('No users found.', 'info');
+      return;
+    }
+
+
+    const currUser = users.find((u: any) => u.email === auth?.currentUser?.email);
+    if(!currUser){
+      showSnackbar('User role not found', 'info')
+      return;
+
+    }
+
+    role.value = currUser.role;
+    console.log('role', currUser)
+
+
+    const customerOrders = await fetchOrderRequest(token);
+
+    if(customerOrders){
+      orders.value = Array.isArray(customerOrders) ? customerOrders : [];
+      showSnackbar(`Loaded all customer orders!`, 'success');
+
+    }else{
+      showSnackbar(`Error loading customer orders!`, 'error');
+    }
   }catch(error: any){
     showSnackbar(`Error loading customer orders: ${error.message}`, 'error');
   }
@@ -129,18 +146,16 @@ watch(
       return;
     }
 
-    const token = (await auth.currentUser.getIdTokenResult()).token;
 
     try{
+      const token = (await auth.currentUser.getIdTokenResult()).token;
       const itemDetails = await fetchItemDetails(newPartNumber, token);
 
       editedItem.value ={
         ...editedItem.value,
-        product_name: itemDetails.product_name,
-        supplier_ID: itemDetails.supplier_ID,
-        manufacturer_ID: itemDetails.manufacturer_ID,
-        inbound_price: itemDetails.inbound_price,
-        outbound_price: itemDetails.outbound_price,
+        value: editedItem.value.qty * (3.5 || itemDetails.outbound_price),
+        supplier_id: itemDetails.supplier_id || 78,
+        outbound_price: itemDetails.outbound_price || 3.5,
       };
 
       showSnackbar(`Item details for part #${newPartNumber} found!`, 'success')
@@ -168,11 +183,12 @@ async function save() {
   try{
     const newOrder = {
       ...editedItem.value,
-      PO_number: orders.value.length +1,
-      total_cost: editedItem.value.qty * editedItem.value.outbound_price,
-      status: 'Pending'
+      PO_number: orders.value.length + 1,
+      // total_cost: editedItem.value.outbound_price * editedItem.value.qty,
+      // status: 'Pending'
     };
 
+    console.log('new order', newOrder)
     const response = await createOrderRequest(newOrder, token);
     if (response === 'Success') {
       showSnackbar(`Order #${newOrder.PO_number} created successfully!`, 'success');
@@ -187,20 +203,33 @@ async function save() {
 };
 
 
-const openDialog = () => {
+async function openDialog(){
 
-  if(role.value === 'customer' && auth.currentUser){
-    try {
-      const user = auth.currentUser;
-
-      const customerName = user.displayName || user.email || 'Unknown';
-      editedItem.value.customer_ID = customerName
-    }catch(error: any){
-      showSnackbar(`Failed to assign customer ID: ${error.message}`, 'error')
-    }
-  }else{
-    editedItem.value.customer_ID = '';
+  if(!auth.currentUser){
+    showSnackbar('No authenticated user found.', 'error');
+    return;
   }
+
+  try {
+    const token = await auth.currentUser.getIdToken();
+    let customerName = ''
+
+    //set user role
+    let users = await fetchUserRequest(token);
+
+    const currUser = users.find((u:any)=> u.email === auth?.currentUser?.email);
+
+
+    if(currUser.role === 'customer') {
+      customerName = currUser.username || currUser.email;
+      editedItem.value.customer_id = customerName
+    }else{
+      editedItem.value.customer_id = '';
+    }
+  }catch(error: any){
+    showSnackbar(`Failed to assign customer ID: ${error.message}`, 'error')
+  }
+
 
   dialog.value = true;
   editedItem.value = {...defaultOrder};
@@ -216,14 +245,14 @@ function editItem(item: any){
   dialogEdit.value= true
 }
 
-const saveStatus = () => {
-  if(editedIndex.value !== -1){
-    orders.value[editedIndex.value].status = editedItem.value.status;
-    showSnackbar(`PO #${editedItem.value.PO_number} Order Status Updated to ${editedItem.value.status}`, 'info');
-  }
-  dialogEdit.value = false;
-
-}
+// const saveStatus = () => {
+//   if(editedIndex.value !== -1){
+//     orders.value[editedIndex.value].status = editedItem.value.status;
+//     showSnackbar(`PO #${editedItem.value.PO_number} Order Status Updated to ${editedItem.value.status}`, 'info');
+//   }
+//   dialogEdit.value = false;
+//
+// }
 
 const  canEdit = (status: string): boolean => {
   return status === 'Pending';
@@ -236,6 +265,9 @@ onMounted(() => {
   initialize();
 });
 
+const formattedTotal = computed(() => {
+  return `$${editedItem.value.toFixed(2)}`;
+});
 </script>
 
 
@@ -245,7 +277,7 @@ onMounted(() => {
       :headers="cxHeaders"
       :items="orders"
       item-value="PO_order"
-      :filter-keys="['PO_number','customer_ID', 'part_number', 'status', 'order_date', 'due_date', 'received_date', 'total_cost', 'qty', 'outbound_price']"
+      :filter-keys="['PO_number','customer_id', 'part_number', 'status', 'created', 'due_date', 'value', 'qty', 'is_outbound', 'supplier_id']"
     >
 
       <template v-slot:item.status="{ value }">
@@ -254,7 +286,7 @@ onMounted(() => {
         </v-chip>
       </template>
 
-      <template v-slot:item.total_cost="{ value }">
+      <template v-slot:item.value="{ value }">
           {{'$'+ value }}
       </template>
 
@@ -313,18 +345,10 @@ onMounted(() => {
                   <v-row dense>
                     <v-col cols="12" md="6">
                       <v-text-field
-                        v-model="editedItem.customer_ID"
+                        v-model="editedItem.customer_id"
                         label="Customer ID*"
                         required
 
-                      ></v-text-field>
-                    </v-col>
-
-                    <v-col cols="12" md="6">
-                      <v-text-field
-                        v-model="editedItem.product_name"
-                        label="Product Name"
-                        disabled
                       ></v-text-field>
                     </v-col>
 
@@ -335,6 +359,7 @@ onMounted(() => {
                         required
                       ></v-text-field>
                     </v-col>
+
                     <v-text-field
                       v-model="editedItem.qty"
                       label="Quantity*"
@@ -343,30 +368,33 @@ onMounted(() => {
                     ></v-text-field>
 
 
-
                     <v-col cols="12" md="6">
                       <v-text-field
-                        v-model="editedItem.supplier_ID"
+                        v-model="editedItem.supplier_id"
                         label="Supplier"
                         disabled
                       ></v-text-field>
                     </v-col>
 
-<!--                    <v-col cols="12" md="6">-->
-<!--                      <v-text-field-->
-<!--                        v-model="editedItem.inbound_price"-->
-<!--                        label="Inbound Price"-->
-<!--                        disabled-->
-<!--                      ></v-text-field>-->
-<!--                    </v-col>-->
 
                     <v-col cols="12" md="6">
                       <v-text-field
-                        v-model="editedItem.outbound_price"
-                        label="Price"
+                        v-model="editedItem.value"
+                        label="Total"
                         disabled
+                        prepend-inner-icon="$"
+
                       ></v-text-field>
                     </v-col>
+
+                    <v-col cols="12" md="6">
+                      <v-checkbox
+                        v-model="editedItem.is_outbound"
+                        label="Is Outbound"
+                      ></v-checkbox>
+                    </v-col>
+
+
                   </v-row>
                   <small class="text-caption text-medium-emphasis">*indicates required field</small>
                 </v-card-text>
@@ -398,68 +426,68 @@ onMounted(() => {
 
 
         <!--edit dialog-->
-        <v-dialog v-model="dialogEdit" max-width="600px">
-          <v-card>
-            <v-card-title>
-              Edit Status
-            </v-card-title>
-            <v-card-text>
-              <v-row dense>
-                <v-col cols="3">
-                  <v-text-field
-                    v-model="editedItem.PO_number"
-                    label="Order ID"
-                    disabled
-                  ></v-text-field>
-                </v-col>
-                <v-col cols="3">
-                  <v-text-field
-                    v-model="editedItem.customer_ID"
-                    label="Customer"
-                    disabled
-                  ></v-text-field>
-                </v-col>
-                <v-col cols="3">
-                  <v-text-field
-                    v-model="editedItem.part_number"
-                    label="Part Number"
-                    disabled
-                  ></v-text-field>
-                </v-col>
-                <v-col cols="3">
-                  <v-select
-                    v-model="editedItem.status"
-                    :items="['Pending', 'Shipped', 'Delivered']"
-                    label="Status"
-                  ></v-select>
-                </v-col>
-              </v-row>
-            </v-card-text>
-            <v-card-actions>
-              <v-spacer></v-spacer>
-              <v-btn text="Cancel" @click="dialogEdit = false">Cancel</v-btn>
-              <v-btn color="primary" @click="saveStatus">{{ buttonTitle }}</v-btn>
-            </v-card-actions>
-          </v-card>
-        </v-dialog>
+<!--        <v-dialog v-model="dialogEdit" max-width="600px">-->
+<!--          <v-card>-->
+<!--            <v-card-title>-->
+<!--              Edit Status-->
+<!--            </v-card-title>-->
+<!--            <v-card-text>-->
+<!--              <v-row dense>-->
+<!--                <v-col cols="3">-->
+<!--                  <v-text-field-->
+<!--                    v-model="editedItem.PO_number"-->
+<!--                    label="Order ID"-->
+<!--                    disabled-->
+<!--                  ></v-text-field>-->
+<!--                </v-col>-->
+<!--                <v-col cols="3">-->
+<!--                  <v-text-field-->
+<!--                    v-model="editedItem.customer_id"-->
+<!--                    label="Customer"-->
+<!--                    disabled-->
+<!--                  ></v-text-field>-->
+<!--                </v-col>-->
+<!--                <v-col cols="3">-->
+<!--                  <v-text-field-->
+<!--                    v-model="editedItem.part_number"-->
+<!--                    label="Part Number"-->
+<!--                    disabled-->
+<!--                  ></v-text-field>-->
+<!--                </v-col>-->
+<!--                <v-col cols="3">-->
+<!--                  <v-select-->
+<!--                    v-model="editedItem.status"-->
+<!--                    :items="['Pending', 'Shipped', 'Delivered']"-->
+<!--                    label="Status"-->
+<!--                  ></v-select>-->
+<!--                </v-col>-->
+<!--              </v-row>-->
+<!--            </v-card-text>-->
+<!--            <v-card-actions>-->
+<!--              <v-spacer></v-spacer>-->
+<!--              <v-btn text="Cancel" @click="dialogEdit = false">Cancel</v-btn>-->
+<!--              <v-btn color="primary" @click="saveStatus">{{ buttonTitle }}</v-btn>-->
+<!--            </v-card-actions>-->
+<!--          </v-card>-->
+<!--        </v-dialog>-->
 
       </template>
 
 
 <!--edit order status using this button. i feel like we shouldnt change the persons order only the status -->
-      <template v-slot:item.edit="{ item }">
-          <v-icon
-            dark
-            elevation="0"
-            size="small"
-            class="me-2"
-            color="green"
-            @click="canEdit(item.status) && editItem(item)"
-            :disabled="!canEdit(item.status)"
-          >
-            mdi-pencil
-          </v-icon>
-      </template>
+<!--      <template v-slot:item.edit="{ item }">-->
+<!--          <v-icon-->
+<!--            dark-->
+<!--            elevation="0"-->
+<!--            size="small"-->
+<!--            class="me-2"-->
+<!--            color="green"-->
+<!--            @click="canEdit(item.status) && editItem(item)"-->
+<!--            :disabled="!canEdit(item.status)"-->
+<!--          >-->
+<!--            mdi-pencil-->
+<!--          </v-icon>-->
+<!--      </template>-->
 
 
 

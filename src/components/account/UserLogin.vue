@@ -19,6 +19,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { signInWithEmailAndPassword, getAuth, sendPasswordResetEmail } from 'firebase/auth'
+import { showSnackbar } from '@/utils/utils'
 
 const email = ref('');
 const password = ref('');
@@ -32,8 +33,8 @@ async function login() {
   loading.value = true;
   try {
     await signInWithEmailAndPassword(auth, email.value, password.value);
-  } catch (error) {
-    alert(error);
+  } catch (error: any) {
+    showSnackbar(error.msg, 'error');
   } finally {
     loading.value = false;
   }
@@ -42,10 +43,9 @@ async function login() {
 async function sendPWResetEmail (){
   try{
     await sendPasswordResetEmail(auth, email.value);
-    alert('Password reset email sent!')
+    showSnackbar('Password reset email sent!', 'info')
   }catch(error){
-    console.log(error)
-    alert("Error sending password reset email.")
+    showSnackbar("Error sending password reset email.",'error')
   }
 }
 </script>

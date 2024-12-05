@@ -1,31 +1,36 @@
 import { showSnackbar } from '@/utils/utils'
 import { auth } from '../../firebase'
 
-export const supplierURL: string = 'http://localhost:8080/suppliers/';
+export const supplierURL: string = 'http://localhost:8000';
 
 export interface Supplier {
   supplier_name: string;
-  supplier_ID: number;
-  created_on: string;
-  status: string;
+  supplier_id: number;
 }
+
+
 
 
 export async function editSupplierRequest(supplier: any, firebase_id_token: string){
 
-  //check if authorized supplier
+  const url = `${supplierURL}/suppliers/`;
+
+
+  //check if authorized inventory
   if(!auth.currentUser){
     return 'Unauthorized';
   }
 
-  const token = (await (auth.currentUser.getIdTokenResult())).token;
+  const token = await auth.currentUser.getIdToken();
+
   if(token !== firebase_id_token){
     return 'Unauthorized'
   }
 
   try{
-    const response = await fetch(supplierURL, {
+    const response = await fetch(url, {
       method: 'PATCH',
+      mode: 'cors',
       headers: {
         Authorization: `Bearer ${firebase_id_token}`,
         'Content-Type': 'application/json',
@@ -47,11 +52,14 @@ export async function editSupplierRequest(supplier: any, firebase_id_token: stri
 
 
 //method to fetch supplier from the database
-export async function fetchSuppliersRequest( firebase_id_token: string) {
+export async function fetchSuppliersRequest(firebase_id_token: string) {
+
+  const url = `${supplierURL}/suppliers/`;
 
   try{
-    const response = await fetch(supplierURL, {
+    const response = await fetch(url, {
       method: 'GET',
+      mode: 'cors',
       headers: {
         Authorization: `Bearer ${firebase_id_token}`,
         'Content-Type': 'application/json',
@@ -72,28 +80,31 @@ export async function fetchSuppliersRequest( firebase_id_token: string) {
 
 
 
-export async function deleteSupplierRequest(supplier_ID: string, firebase_id_token: string) {
+export async function deleteSupplierRequest(supplier: any, firebase_id_token: string) {
 
-  const url = supplierURL + `${supplier_ID}`;
+  const url = `${supplierURL}/suppliers/`;
 
-  //check if authorized supplier
+  //check if authorized inventory
   if(!auth.currentUser){
     return 'Unauthorized';
   }
 
-  const token = (await (auth.currentUser.getIdTokenResult())).token;
+  const token = await auth.currentUser.getIdToken();
+
   if(token !== firebase_id_token){
     return 'Unauthorized'
   }
 
   try{
-    const response = await fetch(supplierURL, {
+    const response = await fetch(url, {
       method: 'DELETE',
+      mode: 'cors',
       headers: {
         Authorization: `Bearer ${firebase_id_token}`,
         'Content-Type': 'application/json',
       },
     });
+
 
     if(!response.ok){
       return `Error deleting supplier: ${response.text()}`
@@ -108,28 +119,35 @@ export async function deleteSupplierRequest(supplier_ID: string, firebase_id_tok
 
 
 //function to create a new supplier
-export async function createSupplierRequest(supplier: Supplier, firebase_id_token: string){
+export async function createSupplierRequest(supplier: any, firebase_id_token: string){
 
-  //check if authorized user
+  const url = `${supplierURL}/suppliers/`;
+
+  //check if authorized inventory
   if(!auth.currentUser){
     return 'Unauthorized';
   }
 
-  const token = (await (auth.currentUser.getIdTokenResult())).token;
+  const token = await auth.currentUser.getIdToken();
+
   if(token !== firebase_id_token){
     return 'Unauthorized'
   }
 
 
   try{
-    const response = await fetch(supplierURL, {
+    const response = await fetch(url, {
       method: 'POST',
+      mode: 'cors',
       headers: {
-        Authorization: `Bearer ${firebase_id_token}`,
         'Content-Type': 'application/json',
+        Authorization: `Bearer ${firebase_id_token}`
       },
       body: JSON.stringify(supplier)
     });
+
+    console.log('Response status ', response.status);
+    console.log('Response json', await response.json());
 
     if(!response.ok){
       return `Error creating supplier: ${response.text()}`

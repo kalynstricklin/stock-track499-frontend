@@ -86,7 +86,6 @@ async function initialize() {
     if(!currUser){
       showSnackbar('User role not found', 'info')
       return;
-
     }
 
     role.value = currUser.role;
@@ -94,16 +93,12 @@ async function initialize() {
 
     //now fetch inventory items
     const inventoryItems = await fetchInventoryRequest(token);
-    console.log('inventory items', inventoryItems)
 
-    if(inventoryItems){
-      inventory.value = Array.isArray(inventoryItems) ? inventoryItems : [];
-      showSnackbar(`Loaded all items in the inventory!`, 'success');
+    console.log('inv items', inventoryItems)
+    inventory.value = Array.isArray(inventoryItems) ? inventoryItems : [];
 
-    }else{
-      showSnackbar(`Error loading inventory items!`, 'error');
 
-    }
+    showSnackbar(`Loaded all items in the inventory!`, 'success');
 
   }catch(error: any){
     showSnackbar(`Error loading inventory: ${error.message}`, 'error');
@@ -137,7 +132,7 @@ async function save() {
 
     if (editedIndex.value === -1) {
 
-      const newItem = {
+      const newItem: InventoryItem = {
         part_number: editedItem.value.part_number,
         supplier_id: editedItem.value.supplier_id,
         inbound_price: editedItem.value.inbound_price,
@@ -247,6 +242,14 @@ async function reorder(item: InventoryItem){
   }
 
 
+
+  const dueDate = new Date();
+  const createDate = new Date();
+
+  dueDate.setDate(dueDate.getDate() + 2)
+
+  var create =  createDate.getFullYear() + '-' +  (createDate.getMonth() + 1) + '-' + createDate.getDate();
+
   try{
     const token = await auth.currentUser.getIdToken();
 
@@ -257,9 +260,9 @@ async function reorder(item: InventoryItem){
       PO_number: 233,
       part_number: item.part_number,
       supplier_id: item.supplier_id,
-      qty: qtyToReorder, //this should be replaced automatically with the value associated with the restock value
-      created: new Date(),
-      due_date: new Date(Date.now() + leadTimeForOrders * 24 * 60 * 60 * 1000),
+      qty: item.stock_level, //this should be replaced automatically with the value associated with the restock value
+      due_date: dueDate.toISOString().split('T')[0],
+      created:  create,
       value: item.inbound_price * qtyToReorder,
       customer_id: '',
       is_outbound:  false,

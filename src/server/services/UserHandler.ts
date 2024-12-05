@@ -2,7 +2,7 @@ import { showSnackbar } from '@/utils/utils'
 import { auth } from '../../firebase'
 import { supplierURL } from '@/server/services/SupplierHandler'
 
-export const userURL: string = "http://localhost:8080";
+export const userURL: string = "http://localhost:8000";
 
 export async function editUserRequest(user: any, firebase_id_token: string){
   const url = `${userURL}/users/`;
@@ -20,6 +20,7 @@ export async function editUserRequest(user: any, firebase_id_token: string){
   try{
     const response = await fetch(url, {
       method: 'PATCH',
+      mode: 'cors',
       headers: {
         // Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
@@ -48,6 +49,7 @@ export async function fetchUserRequest(firebase_id_token: string) {
   try{
     const response = await fetch(url, {
       method: 'GET',
+      mode: 'cors',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${firebase_id_token}`
@@ -86,6 +88,7 @@ export async function deleteUserRequest(email: string, firebase_id_token: string
   try{
     const response = await fetch(url, {
       method: 'DELETE',
+      mode: 'cors',
       headers: {
         'Content-Type': 'application/json',
         // Authorization: `Bearer ${firebase_id_token}`

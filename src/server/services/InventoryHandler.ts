@@ -3,7 +3,7 @@ import { auth } from '../../firebase'
 import { supplierURL } from '@/server/services/SupplierHandler'
 import { userURL } from '@/server/services/UserHandler'
 
-export const inventoryURL: string = 'http://localhost:8080';
+export const inventoryURL: string = 'http://localhost:8000';
 
 export interface InventoryItem {
   part_number: number;
@@ -32,6 +32,7 @@ export async function editInventoryRequest(inventory: any, firebase_id_token: st
   try{
     const response = await fetch(url, {
       method: 'PATCH',
+      mode: 'cors',
       headers: {
         Authorization: `Bearer ${firebase_id_token}`,
         'Content-Type': 'application/json',
@@ -56,9 +57,11 @@ export async function editInventoryRequest(inventory: any, firebase_id_token: st
 export async function fetchInventoryRequest(firebase_id_token: string) {
 
   const url = `${inventoryURL}/inventory/`;
+
   try{
     const response = await fetch(url, {
       method: 'GET',
+      mode: 'cors',
       headers: {
         Authorization: `Bearer ${firebase_id_token}`,
         'Content-Type': 'application/json',
@@ -66,13 +69,15 @@ export async function fetchInventoryRequest(firebase_id_token: string) {
     });
 
     if(!response.ok){
-      return `Error`
+      return `Error fetching inventory: ${response.text()}`
     }
-    return await response.json()
+    const inventory = await response.json();
+
+    return inventory;
 
 
   }catch(error: any){
-    return [];
+    return `Error during get request: ${error.message}`
   }
 }
 
@@ -95,6 +100,7 @@ export async function deleteInventoryRequest(inventory_item: any, firebase_id_to
   try{
     const response = await fetch(url, {
       method: 'DELETE',
+      mode: 'cors',
       headers: {
         Authorization: `Bearer ${firebase_id_token}`,
         'Content-Type': 'application/json',

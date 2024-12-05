@@ -8,14 +8,15 @@ import {
   type Supplier
 } from '@/server/services/SupplierHandler'
 import { auth } from '@/firebase'
+import { fetchUserRequest } from '@/server/services/UserHandler'
 
 
 
 
 const dialog = ref(false)
 const dialogDelete = ref(false)
-const editedItem = ref({ supplier_name: '', supplier_ID: 0, created_on: new Date().toLocaleString(), status: "Active"});
-const defaultItem = ref({ supplier_name: '', supplier_ID: 0, created_on: new Date().toLocaleString(), status: "Active"});
+const editedItem = ref({ supplier_name: '', supplier_id: 0});
+const defaultItem = ref({ supplier_name: '', supplier_id: 0});
 const editedIndex = ref(-1);
 
 
@@ -26,37 +27,71 @@ const suppliers = ref<Supplier[]>([])
 const search = ref('')
 
 
-const headers = [
-  { title: 'Supplier Name', key: 'supplier_name'},
-  { title: 'Supplier ID', key: 'supplier_ID'},
-  { title: 'Created On', key: 'created_on' },
-  { title: 'Status', key: 'status' },
-  { title: 'Edit', key: 'edit', sortable: false },
-  { title: 'Delete', key: 'delete', sortable: false },
-];
+const headers = computed(() => {
+  const base = [
+    { title: 'Supplier Name', key: 'supplier_name', sortable: true, }, {
+      title: 'Supplier ID',
+      key: 'supplier_id',
+      sortable: true,
+    },
+    // { title: 'Created On', key: 'created' },
+    // { title: 'Status', key: 'status' },
+  ];
+
+  if (role.value === 'admin' || role.value === 'manager') {
+    base.push(
+      { title: 'Edit', key: 'edit', sortable: false },
+      { title: 'Delete', key: 'delete', sortable: false },
+    )
+  }
+
+  return base;
+});
+
+//user roles
+const role = ref('')
 
 
 async function initialize() {
-  suppliers.value = [
-    { supplier_name: 'Amazon', supplier_ID: 1, created_on: '2024-10-12',status: 'Active' },
-    { supplier_name: 'Walmart', supplier_ID: 2,created_on: '2024-10-12',status: 'Active'},
-    { supplier_name: 'Target',supplier_ID: 3, created_on: '2024-10-12',status: 'Active' },
-    { supplier_name: 'Home Depot',supplier_ID: 4, created_on: '2024-10-12',status: 'Active' },
-  ];
-//   if(!auth.currentUser){
-//     return;
-//   }
-//
-//   const token = (await (auth.currentUser.getIdTokenResult())).token;
-//
-//   try{
-//     const supplierList = await fetchSuppliersRequest(token);
-//     suppliers.value = supplierList;
-//     showSnackbar(`Loaded all suppliers!`, 'success');
-//
-//   }catch(error: any){
-//     showSnackbar(`Error loading suppliers: ${error.message}`, 'error');
-//   }
+
+  if(!auth.currentUser){
+    showSnackbar('No authenticated user found.', 'error');
+    return;
+  }
+
+
+  try{
+    const token = await auth.currentUser.getIdToken();
+
+    //set user role
+    let users = await fetchUserRequest(token);
+
+    if (!users || users.length === 0) {
+      showSnackbar('No users found.', 'info');
+      return;
+    }
+
+
+    const currUser = users.find((u: any) => u.email === auth?.currentUser?.email);
+    if(!currUser){
+      showSnackbar('User role not found', 'info')
+      return;
+
+    }
+
+    role.value = currUser.role;
+    console.log('role', currUser)
+
+    const supplierList = await fetchSuppliersRequest(token);
+    console.log('suppliers', supplierList)
+
+    suppliers.value = Array.isArray(supplierList) ? supplierList : [];
+
+    showSnackbar(`Loaded all suppliers!`, 'success');
+
+  }catch(error: any){
+    showSnackbar(`Error loading suppliers: ${error.message}`, 'error');
+  }
 }
 
 
@@ -71,29 +106,33 @@ function close() {
 
 async function save() {
   //check if required fields are filled
-  if (!editedItem.value.supplier_name || !editedItem.value.supplier_ID) {
+  if (!editedItem.value.supplier_name || !editedItem.value.supplier_id) {
     showSnackbar("Please fill out all required fields", 'error');
     return;
   }
+
+  const index = suppliers.value.findIndex(o => o.supplier_name === editedItem.value.supplier_name)
 
   //check if authorized user
   if(!auth.currentUser){
     return;
   }
 
-  const token = (await (auth.currentUser.getIdTokenResult())).token;
   try{
 
+    const token = await auth.currentUser.getIdToken();
+
     if(editedIndex.value === -1){
+
       //create new supplier with edited fields
       const newItem: Supplier = {
         supplier_name: editedItem.value.supplier_name,
-        supplier_ID: editedItem.value.supplier_ID,
-        created_on: new Date().toISOString(),
-        status: 'Active'
+        supplier_id: editedItem.value.supplier_id,
+
       };
 
       const response = await createSupplierRequest(newItem, token);
+      console.log("response", response)
 
       if(response === 'Success'){
         showSnackbar(`New Supplier created: ${newItem.supplier_name}`, 'success');
@@ -110,15 +149,15 @@ async function save() {
         ...editedItem.value,
       }
 
-        const response = await editSupplierRequest(updatedItem, token);
+      const response = await editSupplierRequest(updatedItem, token);
 
-        if(response === 'Success'){
-          showSnackbar(`Supplier updated: ${updatedItem.supplier_name}`, 'success');
-          suppliers.value.splice(editedIndex.value, 1, updatedItem);
-          close();
-        }else{
-          showSnackbar(`Failed to update Supplier: ${updatedItem.supplier_name}`, 'error');
-        }
+      if(response === 'Success'){
+        showSnackbar(`Supplier updated: ${updatedItem.supplier_name}`, 'success');
+        suppliers.value[index] = {...editedItem.value}
+        close();
+      }else{
+        showSnackbar(`Failed to update Supplier: ${updatedItem.supplier_name}`, 'error');
+      }
 
     }
   }catch(error: any){
@@ -129,7 +168,7 @@ async function save() {
 
 function openDialog(){
   dialog.value = true;
-  editedItem.value = { supplier_name: '', supplier_ID: 0, created_on: new Date().toLocaleString(), status: "Active"};
+  editedItem.value = { supplier_name: '', supplier_id: 0};
 }
 
 
@@ -155,7 +194,7 @@ async function deleteItemConfirm() {
   const token = (await (auth.currentUser.getIdTokenResult())).token;
 
   try{
-    const response = await deleteSupplierRequest(editedItem.value.supplier_ID.toString(), token);
+    const response = await deleteSupplierRequest(editedItem.value.supplier_id.toString(), token);
 
     if(response === 'Success'){
       showSnackbar(`Successfully deleted supplier: ${editedItem.value.supplier_name}`, 'success');
@@ -195,15 +234,15 @@ onUnmounted(()=> {
     v-model:search="search"
     :headers="headers"
     :items="suppliers"
-    item-value="supplier_ID"
-    :filter-keys="['supplier_name', 'supplier_ID', 'created_on']"
+    item-value="supplier_id"
+    :filter-keys="['supplier_name', 'supplier_id']"
   >
 
-    <template v-slot:item.status="{ value }">
-      <v-chip :color="getStatusColor(value)">
-        {{ value }}
-      </v-chip>
-    </template>
+<!--    <template v-slot:item.status="{ value }">-->
+<!--      <v-chip :color="getStatusColor(value)">-->
+<!--        {{ value }}-->
+<!--      </v-chip>-->
+<!--    </template>-->
 
 
     <!--    title of table-->
@@ -260,27 +299,12 @@ onUnmounted(()=> {
 
                   <v-col cols="12" md="4" sm="6">
                     <v-text-field
-                      v-model="editedItem.supplier_ID"
+                      v-model="editedItem.supplier_id"
                       label="Supplier ID*"
                       required
                     ></v-text-field>
                   </v-col>
 
-                  <v-col cols="12" md="4" sm="6">
-                    <v-text-field
-                      v-model="editedItem.created_on"
-                      label="Created On*"
-                      disabled
-                    ></v-text-field>
-                  </v-col>
-
-                  <v-col cols="12" md="4" sm="6">
-                    <v-text-field
-                      v-model="editedItem.status"
-                      label="Status *"
-                      required
-                    ></v-text-field>
-                  </v-col>
 
                 </v-row>
                 <small class="text-caption text-medium-emphasis">*indicates required field</small>

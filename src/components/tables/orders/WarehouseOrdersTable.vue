@@ -3,22 +3,26 @@ import { ref, computed, onMounted } from 'vue'
 import { getStatusColor, showSnackbar } from '@/utils/utils'
 import { auth } from '@/firebase'
 import { fetchOrderRequest, type Order } from '@/server/services/OrdersHandler'
+import { fetchUserRequest } from '@/server/services/UserHandler'
 
 
 const headers = [
-  { title: 'Purchase Order ID', key: 'PO_number' },
+  { title: 'Order ID', key: 'PO_number' },
   { title: 'Part Number', key: 'part_number' },
-  { title: 'Supplier', key: 'supplier_id' },
+  { title: 'Supplier ID', key: 'supplier_id' },
   { title: 'Order Date', key: 'created' },
   { title: 'Delivery Date', key: 'due_date' },
   { title: 'Quantity', key: 'qty' },
-  // { title: 'Unit Price', key: 'inbound_price' },
+  // { title: 'Inbound Price', key: 'inbound_price' },
   { title: 'Total', key: 'value' },
-  { title: 'Status', key: 'status' },
+  // { title: 'Status', key: 'status' },
 ];
 
 const order = ref<Order[]>([])
 
+
+//user roles
+const role = ref('')
 
 async function initialize() {
 
@@ -31,15 +35,39 @@ async function initialize() {
   try{
     const token = await auth.currentUser.getIdToken();
 
-    const warehouseOrders = await fetchOrderRequest(token);
-    if(warehouseOrders){
-      order.value = Array.isArray(warehouseOrders) ? warehouseOrders : [];
-      showSnackbar(`Loaded all warehouse orders!`, 'success');
+    //set user role
+    let users = await fetchUserRequest(token);
 
-    }else{
-      showSnackbar(`Error loading warehouse orders!`, 'error');
-
+    if (!users || users.length === 0) {
+      return;
     }
+
+
+    const currUser = users.find((u: any) => u.email === auth?.currentUser?.email);
+    if(!currUser){
+      showSnackbar('User role not found', 'info')
+      return;
+    }
+
+    role.value = currUser.role;
+
+
+    const allOrders = await fetchOrderRequest(token);
+
+    if (!allOrders || allOrders.length === 0) {
+      showSnackbar('No orders found.', 'info');
+      return;
+    }
+
+    console.log('all orders', allOrders.message)
+
+    const inbound_orders = allOrders.message.filter((order: any) => {
+
+      return !order.is_outbound
+    });
+    order.value = Array.isArray(inbound_orders) ? inbound_orders : [];
+    showSnackbar(`Loaded all warehouse orders!`, 'success');
+
 
   }catch(error: any){
     showSnackbar(`Error loading warehouse orders: ${error.message}`, 'error');
@@ -62,18 +90,18 @@ onMounted(() => {
       v-model:search="search"
       :headers="headers"
       :items="order"
-      item-value="orderId"
-      :filter-keys="['product_name','supplier_ID', 'part_number', 'PO_number', 'status', 'order_date', 'due_date', 'received_date', 'manufacturer_ID']"
+      item-value="PO_number"
+      :filter-keys="['supplier_id', 'part_number', 'PO_number', 'status', 'created', 'due_date', 'received_date']"
     >
       <template v-slot:item.PO_number="{ value }">
         {{ '#' + value }}
       </template>
 
-      <template v-slot:item.status="{ value }">
-        <v-chip :color="getStatusColor(value)">
-          {{ value }}
-        </v-chip>
-      </template>
+<!--      <template v-slot:item.status="{ value }">-->
+<!--        <v-chip :color="getStatusColor(value)">-->
+<!--          {{ value }}-->
+<!--        </v-chip>-->
+<!--      </template>-->
 
       <template v-slot:item.value="{ value }">
           {{'$' + value }}

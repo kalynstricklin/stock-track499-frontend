@@ -1,15 +1,15 @@
 import { showSnackbar } from '@/utils/utils'
 import { auth } from '../../firebase'
 
-export const orderUrl: string = 'http://localhost:8080';
+export const orderUrl: string = 'http://localhost:8000';
 
 export interface Order {
   PO_number: number;
   part_number: number;
   supplier_id: number;
   qty: number;
-  due_date: Date;
-  created: Date;
+  due_date: string;
+  created: string;
   value: number;
   customer_id: string;
   is_outbound: boolean;
@@ -30,6 +30,7 @@ export async function editOrderRequest(order: any, firebase_id_token: string){
   try{
     const response = await fetch(url, {
       method: 'PATCH',
+      mode: 'cors',
       headers: {
         Authorization: `Bearer ${firebase_id_token}`,
         'Content-Type': 'application/json',
@@ -51,18 +52,12 @@ export async function editOrderRequest(order: any, firebase_id_token: string){
 
 export async function fetchOrderRequest(firebase_id_token: string){
   const url = `${orderUrl}/orders/`
-  //check if authorized inventory
-  if(!auth.currentUser){
-    return 'Unauthorized';
-  }
 
-  const token = await auth.currentUser.getIdToken();
-  if(token !== firebase_id_token){
-    return 'Unauthorized'
-  }
+
   try{
     const response = await fetch(url, {
       method: 'GET',
+      mode: 'cors',
       headers: {
         Authorization: `Bearer ${firebase_id_token}`,
         'Content-Type': 'application/json',
@@ -70,7 +65,7 @@ export async function fetchOrderRequest(firebase_id_token: string){
     });
 
     if(!response.ok){
-      return `Error fetching order: ${response.text()}`
+      return `Error fetching orders: ${response.text()}`
     }
 
     const orderList = await response.json()
@@ -81,37 +76,39 @@ export async function fetchOrderRequest(firebase_id_token: string){
   }
 }
 
-export async function fetchItemDetails(order: any, firebase_id_token: string){
-  const url = `${orderUrl}/orders/`
-  //check if authorized inventory
-  if(!auth.currentUser){
-    return 'Unauthorized';
-  }
-
-  const token = await auth.currentUser.getIdToken();
-  if(token !== firebase_id_token){
-    return 'Unauthorized'
-  }
-  try{
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${firebase_id_token}`,
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if(!response.ok){
-      return `Error fetching item details: ${response.text()}`
-    }
-
-    const itemDetails = await response.json()
-    return itemDetails;
-
-  }catch(error: any){
-    return `Error fetching item details: ${error.message}`
-  }
-}
+// export async function fetchItemDetails(firebase_id_token: string){
+//   const url = `${orderUrl}/inventory/`
+//
+//   //check if authorized inventory
+//   if(!auth.currentUser){
+//     return 'Unauthorized';
+//   }
+//
+//   const token = await auth.currentUser.getIdToken();
+//   if(token !== firebase_id_token){
+//     return 'Unauthorized'
+//   }
+//   try{
+//     const response = await fetch(url, {
+//       method: 'GET',
+//       mode: 'cors',
+//       headers: {
+//         Authorization: `Bearer ${firebase_id_token}`,
+//         'Content-Type': 'application/json',
+//       },
+//     });
+//
+//     if(!response.ok){
+//       return `Error fetching item details: ${response.text()}`
+//     }
+//
+//     const itemDetails = await response.json()
+//     return itemDetails;
+//
+//   }catch(error: any){
+//     return `Error fetching item details: ${error.message}`
+//   }
+// }
 
 export async function deleteOrderRequest(order: any, firebase_id_token: string) {
 
@@ -129,6 +126,7 @@ export async function deleteOrderRequest(order: any, firebase_id_token: string) 
   try{
     const response = await fetch(url, {
       method: 'DELETE',
+      mode: 'cors',
       headers: {
         Authorization: `Bearer ${firebase_id_token}`,
         'Content-Type': 'application/json',
@@ -164,6 +162,7 @@ export async function createOrderRequest(order: any, firebase_id_token: string){
   try{
     const response = await fetch(url, {
       method: 'POST',
+      mode: 'cors',
       headers: {
         Authorization: `Bearer ${firebase_id_token}`,
         'Content-Type': 'application/json',

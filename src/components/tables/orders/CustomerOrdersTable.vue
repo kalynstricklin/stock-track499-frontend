@@ -4,49 +4,28 @@ import { getStatusColor, showSnackbar, snackbar } from '@/utils/utils'
 import { auth } from '@/firebase'
 import {
   createOrderRequest,
-  editOrderRequest,
-  fetchItemDetails,
   fetchOrderRequest,
   type Order
 } from '@/server/services/OrdersHandler'
 import { fetchUserRequest } from '@/server/services/UserHandler'
+import { fetchInventoryRequest } from '@/server/services/InventoryHandler'
 
 
 
-
-const defaultOrder: any = {
+const defaultOrder = {
   PO_number: 0,
   part_number: 0,
   supplier_id: 0,
-
-  customer_id: '',
-
-  created: new Date().toDateString(),
-  due_date: new Date().toDateString(),
-  outbound_price: 0,
-  // inbound_price: 0,
-  value: 0,
   qty: 0,
+  due_date: new Date().toDateString(),
+  created: new Date().toDateString(),
+  value: 0,
+  customer_id: '',
   is_outbound: true,
-  status: 'Pending'
+  status: ''
 };
-interface OrderItems {
-  PO_number: number;
 
-  part_number: number;
-  supplier_id: number;
-  customer_id: string;
-  is_outbound: boolean;
 
-  created: Date;
-  due_date: Date;
-  outbound_price: number;
-  // inbound_price: number;
-  value: number;
-  qty: number;
-  status: string;
-
-}
 
 const dialog = ref(false);
 const dialogEdit= ref(false);
@@ -60,7 +39,7 @@ const buttonTitle = computed(() => {
   return editedIndex.value === -1 ? 'Create Order' : 'Update Order';
 });
 
-const orders = ref<OrderItems[]>([]);
+const orders = ref<Order[]>([]);
 
 // search bar
 const search = ref('')
@@ -72,24 +51,23 @@ const cxHeaders = computed(() =>{
     { title: 'Order ID', key: 'PO_number', align: 'start', sortable: true, class: 'styled-header' },
     { title: 'Customer', key: 'customer_id', align: 'start', sortable: true, class: 'styled-header'},
     { title: 'Part Number', key: 'part_number', align: 'start', sortable: true, class: 'styled-header' },
+    { title: 'Supplier ID', key: 'supplier_id', align: 'start', sortable: true, class: 'styled-header' },
     { title: 'Order Date', key: 'created', align: 'start', sortable: true, class: 'styled-header' },
     { title: 'Delivery Date', key: 'due_date', align: 'start', sortable: true, class: 'styled-header' },
     { title: 'Quantity', key: 'qty', align: 'start', sortable: true,class: 'styled-header' },
-    { title: 'Unit Price', key: 'outbound_price', align: 'start', sortable: true, class: 'styled-header' },
+    // { title: 'Unit Price', key: 'outbound_price', align: 'start', sortable: true, class: 'styled-header' },
     { title: 'Total Cost', key: 'value', align: 'start', sortable: true, class: 'styled-header' },
-    { title: 'Status', key: 'status', align: 'start', sortable: true, class: 'styled-header' },
-
+    // { title: 'Status', key: 'status', align: 'start', sortable: true, class: 'styled-header' },
   ];
 
-  if(role.value === 'employee' || role.value==='manager' || role.value ==='admin'){
-    base.push(
-      { title: 'Edit', key: 'edit', align: 'center', sortable: false, class: 'styled-header' },
-    )
-  }
+  // if(role.value === 'employee' || role.value==='manager' || role.value ==='admin'){
+  //   base.push(
+  //     { title: 'Edit', key: 'edit', align: 'center', sortable: false, class: 'styled-header' },
+  //   )
+  // }
 
   return base;
 });
-
 
 
 async function initialize() {
@@ -101,15 +79,12 @@ async function initialize() {
   try{
     const token = await auth.currentUser.getIdToken();
 
-
     //set user role
     let users = await fetchUserRequest(token);
-
     if (!users || users.length === 0) {
       showSnackbar('No users found.', 'info');
       return;
     }
-
 
     const currUser = users.find((u: any) => u.email === auth?.currentUser?.email);
     if(!currUser){
@@ -119,51 +94,18 @@ async function initialize() {
     }
 
     role.value = currUser.role;
-    console.log('role', currUser)
-
 
     const customerOrders = await fetchOrderRequest(token);
 
-    if(customerOrders){
-      orders.value = Array.isArray(customerOrders) ? customerOrders : [];
-      showSnackbar(`Loaded all customer orders!`, 'success');
 
-    }else{
-      showSnackbar(`Error loading customer orders!`, 'error');
-    }
+    orders.value = Array.isArray(customerOrders) ? customerOrders : [];
+    showSnackbar(`Loaded all customer orders!`, 'success');
+
   }catch(error: any){
     showSnackbar(`Error loading customer orders: ${error.message}`, 'error');
   }
 }
 
-watch(
-  () => editedItem.value.part_number,
-  async(newPartNumber) => {
-    if(!newPartNumber) return;
-
-    if(!auth.currentUser){
-      showSnackbar('You must be logged in to fetch item details.', 'error');
-      return;
-    }
-
-
-    try{
-      const token = (await auth.currentUser.getIdTokenResult()).token;
-      const itemDetails = await fetchItemDetails(newPartNumber, token);
-
-      editedItem.value ={
-        ...editedItem.value,
-        value: editedItem.value.qty * (3.5 || itemDetails.outbound_price),
-        supplier_id: itemDetails.supplier_id || 78,
-        outbound_price: itemDetails.outbound_price || 3.5,
-      };
-
-      showSnackbar(`Item details for part #${newPartNumber} found!`, 'success')
-    }catch(error: any){
-      showSnackbar(`Error: ${error.message}`, 'error')
-    }
-  }
-)
 
 const close = () => {
   dialog.value = false;
@@ -173,23 +115,74 @@ const close = () => {
   });
 };
 
+
 async function save() {
+
+  if( !editedItem.value.part_number || !editedItem.value.customer_id || !editedItem.value.qty){
+    showSnackbar("Please fill out all required fields", 'error')
+    return;
+  }
+
+  const index = orders.value.findIndex(o => o.PO_number === editedItem.value.PO_number)
+
+  editedItem.value.part_number = Number(editedItem.value.part_number);
+  editedItem.value.qty = Number(editedItem.value.qty);
+
   //check if authorized user
   if(!auth.currentUser){
     return;
   }
 
-  const token = (await (auth.currentUser.getIdTokenResult())).token;
   try{
+    const token = await auth.currentUser.getIdToken();
+    //fetch inv item details based on that part number
+    const itemDetails = await fetchInventoryRequest(token);
+
+    if (!itemDetails || itemDetails.length === 0) {
+      showSnackbar('No inventory items found.', 'info');
+      return;
+    }
+
+    console.log('item details', itemDetails)
+    console.log('edited item', editedItem.value)
+
+    const invItem = itemDetails.filter((u: any) => u.part_number === editedItem.value.part_number);
+
+    console.log('item', itemDetails.filter((u: any) =>  u.part_number === editedItem.value.part_number))
+
+
+    if (!invItem) {
+      showSnackbar(`No inventory item found with part number ${editedItem.value.part_number}.`, 'info');
+      return;
+    }
+
+    const dueDate = new Date();
+    const createDate = new Date();
+
+    dueDate.setDate(dueDate.getDate() + 2)
+
+    var create =  createDate.getFullYear() + '-' +  (createDate.getMonth() + 1) + '-' + createDate.getDate();
+
+
     const newOrder = {
-      ...editedItem.value,
       PO_number: orders.value.length + 1,
-      // total_cost: editedItem.value.outbound_price * editedItem.value.qty,
+      customer_id: editedItem.value.customer_id,
+      part_number: editedItem.value.part_number,
+      supplier_id: invItem[0].supplier_id,
+      due_date: dueDate.toISOString().split('T')[0],
+      created:  create,
+      // due_date: due,
+      // created:  create,
+      qty: editedItem.value.qty,
+      value: editedItem.value.qty * invItem[0].outbound_price,
+      is_outbound: editedItem.value.is_outbound,
       // status: 'Pending'
     };
 
     console.log('new order', newOrder)
     const response = await createOrderRequest(newOrder, token);
+
+
     if (response === 'Success') {
       showSnackbar(`Order #${newOrder.PO_number} created successfully!`, 'success');
       orders.value = [newOrder, ...orders.value];
@@ -245,14 +238,14 @@ function editItem(item: any){
   dialogEdit.value= true
 }
 
-// const saveStatus = () => {
-//   if(editedIndex.value !== -1){
-//     orders.value[editedIndex.value].status = editedItem.value.status;
-//     showSnackbar(`PO #${editedItem.value.PO_number} Order Status Updated to ${editedItem.value.status}`, 'info');
-//   }
-//   dialogEdit.value = false;
-//
-// }
+const saveStatus = () => {
+  if(editedIndex.value !== -1){
+    orders.value[editedIndex.value].status = editedItem.value.status;
+    showSnackbar(`PO #${editedItem.value.PO_number} Order Status Updated to ${editedItem.value.status}`, 'info');
+  }
+  dialogEdit.value = false;
+
+}
 
 const  canEdit = (status: string): boolean => {
   return status === 'Pending';
@@ -266,7 +259,7 @@ onMounted(() => {
 });
 
 const formattedTotal = computed(() => {
-  return `$${editedItem.value.toFixed(2)}`;
+  return `$${editedItem.value}`;
 });
 </script>
 
@@ -277,7 +270,7 @@ const formattedTotal = computed(() => {
       :headers="cxHeaders"
       :items="orders"
       item-value="PO_order"
-      :filter-keys="['PO_number','customer_id', 'part_number', 'status', 'created', 'due_date', 'value', 'qty', 'is_outbound', 'supplier_id']"
+      :filter-keys="['PO_number','customer_id', 'part_number','created', 'due_date', 'value', 'qty', 'is_outbound', 'supplier_id']"
     >
 
       <template v-slot:item.status="{ value }">
@@ -348,12 +341,12 @@ const formattedTotal = computed(() => {
                         v-model="editedItem.customer_id"
                         label="Customer ID*"
                         required
-
                       ></v-text-field>
                     </v-col>
 
                     <v-col cols="12" md="6">
                       <v-text-field
+                        type="number"
                         v-model="editedItem.part_number"
                         label="Part Number*"
                         required
@@ -361,31 +354,13 @@ const formattedTotal = computed(() => {
                     </v-col>
 
                     <v-text-field
+                      type="number"
                       v-model="editedItem.qty"
                       label="Quantity*"
                       :rules="[v => v > 0 || 'Quantity must be greater than 0']"
                       required
                     ></v-text-field>
 
-
-                    <v-col cols="12" md="6">
-                      <v-text-field
-                        v-model="editedItem.supplier_id"
-                        label="Supplier"
-                        disabled
-                      ></v-text-field>
-                    </v-col>
-
-
-                    <v-col cols="12" md="6">
-                      <v-text-field
-                        v-model="editedItem.value"
-                        label="Total"
-                        disabled
-                        prepend-inner-icon="$"
-
-                      ></v-text-field>
-                    </v-col>
 
                     <v-col cols="12" md="6">
                       <v-checkbox
@@ -426,50 +401,50 @@ const formattedTotal = computed(() => {
 
 
         <!--edit dialog-->
-<!--        <v-dialog v-model="dialogEdit" max-width="600px">-->
-<!--          <v-card>-->
-<!--            <v-card-title>-->
-<!--              Edit Status-->
-<!--            </v-card-title>-->
-<!--            <v-card-text>-->
-<!--              <v-row dense>-->
-<!--                <v-col cols="3">-->
-<!--                  <v-text-field-->
-<!--                    v-model="editedItem.PO_number"-->
-<!--                    label="Order ID"-->
-<!--                    disabled-->
-<!--                  ></v-text-field>-->
-<!--                </v-col>-->
-<!--                <v-col cols="3">-->
-<!--                  <v-text-field-->
-<!--                    v-model="editedItem.customer_id"-->
-<!--                    label="Customer"-->
-<!--                    disabled-->
-<!--                  ></v-text-field>-->
-<!--                </v-col>-->
-<!--                <v-col cols="3">-->
-<!--                  <v-text-field-->
-<!--                    v-model="editedItem.part_number"-->
-<!--                    label="Part Number"-->
-<!--                    disabled-->
-<!--                  ></v-text-field>-->
-<!--                </v-col>-->
-<!--                <v-col cols="3">-->
-<!--                  <v-select-->
-<!--                    v-model="editedItem.status"-->
-<!--                    :items="['Pending', 'Shipped', 'Delivered']"-->
-<!--                    label="Status"-->
-<!--                  ></v-select>-->
-<!--                </v-col>-->
-<!--              </v-row>-->
-<!--            </v-card-text>-->
-<!--            <v-card-actions>-->
-<!--              <v-spacer></v-spacer>-->
-<!--              <v-btn text="Cancel" @click="dialogEdit = false">Cancel</v-btn>-->
-<!--              <v-btn color="primary" @click="saveStatus">{{ buttonTitle }}</v-btn>-->
-<!--            </v-card-actions>-->
-<!--          </v-card>-->
-<!--        </v-dialog>-->
+        <v-dialog v-model="dialogEdit" max-width="600px">
+          <v-card>
+            <v-card-title>
+              Edit Status
+            </v-card-title>
+            <v-card-text>
+              <v-row dense>
+                <v-col cols="3">
+                  <v-text-field
+                    v-model="editedItem.PO_number"
+                    label="Order ID"
+                    disabled
+                  ></v-text-field>
+                </v-col>
+                <v-col cols="3">
+                  <v-text-field
+                    v-model="editedItem.customer_id"
+                    label="Customer"
+                    disabled
+                  ></v-text-field>
+                </v-col>
+                <v-col cols="3">
+                  <v-text-field
+                    v-model="editedItem.part_number"
+                    label="Part Number"
+                    disabled
+                  ></v-text-field>
+                </v-col>
+                <v-col cols="3">
+                  <v-select
+                    v-model="editedItem.status"
+                    :items="['Pending', 'Shipped', 'Delivered']"
+                    label="Status"
+                  ></v-select>
+                </v-col>
+              </v-row>
+            </v-card-text>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn text="Cancel" @click="dialogEdit = false">Cancel</v-btn>
+              <v-btn color="primary" @click="saveStatus">{{ buttonTitle }}</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
 
       </template>
 
@@ -511,5 +486,3 @@ const formattedTotal = computed(() => {
   text-transform: uppercase;
 }
 </style>
-
-

@@ -4,7 +4,13 @@ import { getStatusColor, showSnackbar, snackbar } from '@/utils/utils'
 
 import { auth } from '@/firebase'
 
-import { createUserRequest, deleteUserRequest, editUserRequest, fetchUserByUid } from '@/server/services/UserHandler'
+import {
+  createUserRequest,
+  deleteUserRequest,
+  editUserRequest,
+  fetchAllUsers,
+  fetchUserByUid
+} from '@/server/services/UserHandler'
 
 interface UserItem {
   username: string;
@@ -48,7 +54,7 @@ async function initialize() {
   try{
     const token = await auth.currentUser.getIdToken();
 
-    const userList = await fetchUserByUid(token);
+    const userList = await fetchAllUsers(token);
     users.value = Array.isArray(userList) ? userList : [];
     showSnackbar(`Loaded all users!`, 'success');
 
@@ -115,7 +121,7 @@ async function save() {
         ...editedItem.value,
       }
 
-      const response = await editUserRequest(updatedItem, token);
+      const response = await editUserRequest(updatedItem, auth.currentUser.uid, token);
 
       if(response === 'Success'){
         showSnackbar(`User updated: ${updatedItem.username}`, 'success');

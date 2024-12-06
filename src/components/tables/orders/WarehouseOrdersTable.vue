@@ -37,20 +37,14 @@ async function initialize() {
     const token = await auth.currentUser.getIdToken();
 
     //set user role
-    let users = await fetchUserByUid(token);
+    let user = await fetchUserByUid(auth.currentUser.uid, token);
 
-    if (!users || users.length === 0) {
+    if (!user) {
+      showSnackbar('No user found.', 'info');
       return;
     }
 
-
-    const currUser = users.find((u: any) => u.email === auth?.currentUser?.email);
-    if(!currUser){
-      showSnackbar('User role not found', 'info')
-      return;
-    }
-
-    role.value = currUser.role;
+    role.value = user.role;
 
 
     const allOrders = await fetchOrderRequest(token);

@@ -45,11 +45,6 @@
 </template>
 
 
-<style scoped>
-.v-list-item {
-  justify-content: flex-start;
-}
-</style>
 
 
 <script setup lang="ts">
@@ -73,23 +68,15 @@ async function initialize(){
     const token = await auth.currentUser.getIdToken();
 
     //set user role
-    let users = await fetchUserByUid(token);
+    let user = await fetchUserByUid(auth.currentUser.uid, token);
 
-    if (!users || users.length === 0) {
-      showSnackbar('No users found.', 'info');
+    if (!user) {
+      showSnackbar('No user found.', 'info');
       return;
     }
 
+    role.value = user.role;
 
-    const currUser = users.find((u: any) => u.email === auth?.currentUser?.email);
-    if(!currUser){
-      showSnackbar('User role not found', 'error')
-      return;
-
-    }
-
-    role.value = currUser.role;
-    console.log('role', currUser)
 
   }catch(error: any){
     showSnackbar(`Error: ${error.message}`, 'error');

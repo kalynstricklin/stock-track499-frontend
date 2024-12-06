@@ -64,23 +64,14 @@ async function initialize() {
     const token = await auth.currentUser.getIdToken();
 
     //set user role
-    let users = await fetchUserByUid(token);
+    let user = await fetchUserByUid(auth.currentUser.uid, token);
 
-    if (!users || users.length === 0) {
-      showSnackbar('No users found.', 'info');
+    if (!user) {
+      showSnackbar('No user found.', 'info');
       return;
     }
 
-
-    const currUser = users.find((u: any) => u.email === auth?.currentUser?.email);
-    if(!currUser){
-      showSnackbar('User role not found', 'info')
-      return;
-
-    }
-
-    role.value = currUser.role;
-    console.log('role', currUser)
+    role.value = user.role;
 
     const supplierList = await fetchSuppliersRequest(token);
     console.log('suppliers', supplierList)

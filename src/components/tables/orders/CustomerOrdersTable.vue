@@ -82,20 +82,14 @@ async function initialize() {
     const token = await auth.currentUser.getIdToken();
 
     //set user role
-    let users = await fetchUserByUid(token);
-    if (!users || users.length === 0) {
-      showSnackbar('No users found.', 'info');
+    let user = await fetchUserByUid(auth.currentUser.uid, token);
+
+    if (!user) {
+      showSnackbar('No user found.', 'info');
       return;
     }
 
-    const currUser = users.find((u: any) => u.email === auth?.currentUser?.email);
-    if(!currUser){
-      showSnackbar('User role not found', 'info')
-      return;
-
-    }
-
-    role.value = currUser.role;
+    role.value = user.role;
 
     const allOrders = await fetchOrderRequest(token);
 
@@ -208,25 +202,23 @@ async function openDialog(){
     return;
   }
 
-  try {
-    const token = await auth.currentUser.getIdToken();
-    let customerName = ''
 
-    //set user role
-    let users = await fetchUserByUid(token);
+  //add customer name automatically to form
 
-    const currUser = users.find((u:any)=> u.email === auth?.currentUser?.email);
-
-
-    if(currUser.role === 'customer') {
-      customerName = currUser.username || currUser.email;
-      editedItem.value.customer_id = customerName
-    }else{
-      editedItem.value.customer_id = '';
-    }
-  }catch(error: any){
-    showSnackbar(`Failed to assign customer ID: ${error.message}`, 'error')
-  }
+  // try {
+  //   const token = await auth.currentUser.getIdToken();
+  //   let customerName = ''
+  //
+  //
+  //   if(role.value === 'customer') {
+  //     customerName = auth.currentUser.uid || auth.currentUser.email;
+  //     editedItem.value.customer_id = customerName
+  //   }else{
+  //     editedItem.value.customer_id = '';
+  //   }
+  // }catch(error: any){
+  //   showSnackbar(`Failed to assign customer ID: ${error.message}`, 'error')
+  // }
 
 
   dialog.value = true;

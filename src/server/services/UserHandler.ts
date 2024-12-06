@@ -70,8 +70,8 @@ export async function fetchAllUsers(firebase_id_token: string) {
   }
 }
 
-export async function fetchUserByUid(firebase_id_token: string) {
-  const url = `${userURL}/users/`;
+export async function fetchUserByUid(uid: string, firebase_id_token: string) {
+  const url = `${userURL}/users/${uid}/`;
 
   try{
     const response = await fetch(url, {
@@ -88,8 +88,8 @@ export async function fetchUserByUid(firebase_id_token: string) {
       return `Error fetching user with id: ${response.text()}`
     }
 
-    const users = await response.json()
-    return users;
+    const user = await response.json()
+    return user;
 
   }catch(error: any){
     return `Error fetching user: ${error.message}`

@@ -64,7 +64,7 @@ const search = ref('')
 //user roles
 const role = ref('')
 
-const leadTimeForOrders = 2; //2 days
+
 
 async function initialize() {
   if(!auth.currentUser){
@@ -76,22 +76,15 @@ async function initialize() {
     const token = await auth.currentUser.getIdToken();
 
     //set user role
-    let users = await fetchUserByUid(token);
+    let user = await fetchUserByUid(auth.currentUser.uid, token);
 
-    if (!users || users.length === 0) {
-      showSnackbar('No users found.', 'info');
+    if (!user) {
+      showSnackbar('No user found.', 'info');
       return;
     }
 
+    role.value = user.role;
 
-    const currUser = users.find((u: any) => u.email === auth?.currentUser?.email);
-    if(!currUser){
-      showSnackbar('User role not found', 'info')
-      return;
-    }
-
-    role.value = currUser.role;
-    console.log('role', currUser)
 
     //now fetch inventory items
     const inventoryItems = await fetchInventoryRequest(token);

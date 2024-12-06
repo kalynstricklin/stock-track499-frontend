@@ -35,6 +35,12 @@ const userDetails = ref<User>({
 const editProfileDialog = ref(false);
 
 onAuthStateChanged(auth, async (currentUser) => {
+
+  if(!auth.currentUser){
+    showSnackbar('No authenticated user found.', 'error');
+    return;
+  }
+
   user.value = currentUser;
 
   if (currentUser) {
@@ -42,9 +48,9 @@ onAuthStateChanged(auth, async (currentUser) => {
 
     try{
       const token = await currentUser.getIdToken();
-      const userData = await fetchUserByUid(token);
+      const specificUser =await fetchUserByUid(auth.currentUser.uid, token);
 
-      const specificUser = userData.find((u: any) => u.email === currentUser.email);
+      // const specificUser = userData.find((u: any) => u.email === currentUser.email);
 
       if(specificUser){
         form.value.username = specificUser.username || '',

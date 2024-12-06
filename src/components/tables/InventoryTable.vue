@@ -32,7 +32,7 @@ const headers = computed(() => {
       { title: 'Reorder Threshold', key: 'reorder_point',  sortable: true, },
       // { title: 'Reserved', key: 'reserved', align: 'start', sortable: true, },
       { title: 'Inbound Price', key: 'inbound_price', sortable: true, },
-      { title: 'Lead Time', key: 'lead_time', sortable: true, },
+      { title: 'Lead Time (Days)', key: 'lead_time', sortable: true, },
 
     );
 

@@ -45,7 +45,7 @@ async function register() {
       email: email.value,
       // password: password.value,
       role: 'customer',
-      uid: token
+      uid: userCred.user.uid
     };
 
     const response = await createUserRequest(newUser, token)

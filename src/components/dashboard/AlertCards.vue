@@ -1,8 +1,66 @@
 <script setup lang="ts">
-const customerCount = 245;
-const revenueTotal = '39,433';
-const orderCount = 344;
-const lowStockCount = 12;
+
+import { getStatusColor, showSnackbar, snackbar } from '@/utils/utils'
+import { auth } from '@/firebase'
+import {
+  fetchStatRequest,
+  deleteStatRequest,
+  createStatRequest
+} from '@/server/services/StatsHandler'
+import { fetchUserByUid } from '@/server/services/UserHandler'
+import { ref, computed, nextTick, onMounted } from 'vue'
+
+//user roles
+const role = ref('')
+// Reactive variables for dashboard stats
+const customerCount = ref(0); // Updated to ref for reactivity
+const revenueTotal = ref('0');
+const orderCount = ref(0);
+const lowStockCount = ref(0);
+
+async function initialize() {
+  if(!auth.currentUser){
+    showSnackbar('No authenticated user found.', 'error');
+    return;
+  }
+
+  try{
+    const token = await auth.currentUser.getIdToken();
+
+    //set user role
+    let user = await fetchUserByUid(auth.currentUser.uid, token);
+
+    if (!user) {
+      showSnackbar('No user found.', 'info');
+      return;
+    }
+
+    role.value = user.role;
+
+    //now fetch stat items
+    const today = new Date();
+    const formattedDate = `${today.getMonth() + 1}-${today.getDate()}-${today.getFullYear()}`;
+    const statItems = await fetchStatRequest(token, formattedDate);
+
+    console.log('stat items', statItems)
+    // Update reactive variables
+    if (statItems) {
+      customerCount.value = statItems.num_customers || 0; // Dynamically set customer count
+      revenueTotal.value = statItems.revenue.toLocaleString(); // Format revenue as string
+      orderCount.value = statItems.num_orders || 0; // Update order count
+      lowStockCount.value = statItems.num_low_stock_items || 0; // Update low stock count
+    }
+
+    showSnackbar(`Loaded Statistics!`, 'success');
+
+  }catch(error: any){
+    showSnackbar(`Error loading dashboard: ${error.message}`, 'error');
+  }
+}
+//when component is mounted data will load
+onMounted(() => {
+  initialize();
+});
 </script>
 <template>
   <v-container id="dashboard" fluid tag="section">

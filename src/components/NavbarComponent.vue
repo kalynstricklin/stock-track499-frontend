@@ -75,6 +75,7 @@ const drawer = ref(false);
 async function initialize(){
   if(!auth.currentUser){
     showSnackbar('No authenticated user found.', 'error');
+    role.value = '';
     return;
   }
 
@@ -82,7 +83,7 @@ async function initialize(){
     const token = await auth.currentUser.getIdToken();
 
     //set user role
-    let user = await fetchUserByUid(auth.currentUser.uid, token);
+    const user = await fetchUserByUid(auth.currentUser.uid, token);
 
     if (!user) {
       showSnackbar('No user found.', 'info');
@@ -97,8 +98,13 @@ async function initialize(){
   }
 }
 
+
+auth.onAuthStateChanged(() => {
+  initialize();
+});
+
 onMounted(() => {
   initialize();
 });
-initialize();
+
 </script>

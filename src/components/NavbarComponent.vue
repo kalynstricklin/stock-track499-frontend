@@ -12,7 +12,7 @@
     <v-navigation-drawer v-model="drawer" app width="300" >
       <v-list>
         <!-- Employee and Admin section-->
-        <v-list-group v-if="role !== 'customer'">
+        <v-list-group v-if="role === 'admin' || role ==='manager' || role === 'employee'">
 
           <v-list-item prepend-icon="mdi-view-dashboard" title="Dashboard" :to="{ path: '/dashboard' }"></v-list-item>
           <v-list-item prepend-icon="mdi-clipboard-list-outline" title="Inventory" :to="{ path: '/inventory' }"></v-list-item>
@@ -86,5 +86,5 @@ async function initialize(){
 onMounted(() => {
   initialize();
 });
-
+// initialize();
 </script>

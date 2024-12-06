@@ -16,6 +16,7 @@ interface UserItem {
   username: string;
   email: string;
   role: string;
+  // uid: string;
 }
 
 
@@ -52,6 +53,7 @@ async function initialize() {
     const token = await auth.currentUser.getIdToken();
 
     const userList = await fetchAllUsers(token);
+    console.log('user list', userList)
     users.value = Array.isArray(userList) ? userList : [];
     showSnackbar(`Loaded all users!`, 'success');
 
@@ -87,13 +89,14 @@ async function save() {
   try{
     const token = await auth.currentUser.getIdToken();
 
-
+    //creating new user
     if(editedIndex.value === -1){
 
       const newUser = {
         username: editedItem.value.username,
         email: editedItem.value.email,
         role: editedItem.value.role,
+
       };
 
 
@@ -112,11 +115,15 @@ async function save() {
       }
 
     }else{
+      //updating exisiting user
       const updatedItem = {
         ...editedItem.value,
+
       }
 
-      const response = await editUserRequest(updatedItem, auth.currentUser.uid, token);
+      console.log(updatedItem)
+
+      const response = await editUserRequest(updatedItem, updatedItem.uid, token);
 
       if(response === 'Success'){
         showSnackbar(`User updated: ${updatedItem.username}`, 'success');

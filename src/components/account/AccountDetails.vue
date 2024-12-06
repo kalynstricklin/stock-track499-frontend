@@ -1,9 +1,13 @@
 <script setup lang="ts">
 
 import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth'
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
 import router from '@/router'
-import { createUserRequest, editUserRequest, fetchUserRequest } from '@/server/services/UserHandler'
+import {
+  createUserRequest,
+  editUserRequest,
+  fetchUserByUid
+} from '@/server/services/UserHandler'
 import { showSnackbar } from '@/utils/utils'
 
 
@@ -38,7 +42,7 @@ onAuthStateChanged(auth, async (currentUser) => {
 
     try{
       const token = await currentUser.getIdToken();
-      const userData = await fetchUserRequest(token);
+      const userData = await fetchUserByUid(token);
 
       const specificUser = userData.find((u: any) => u.email === currentUser.email);
 
@@ -85,7 +89,7 @@ const form = ref({
 
 const resetForm = () => {
   form.value = {
-    username: user.value?.displayName,
+    username: user.value?.username,
     email: user.value?.email || '',
     role: user.value?.role || '',
   };
@@ -104,27 +108,37 @@ async function saveChanges() {
   try {
     const token = await auth.currentUser.getIdToken();
 
-    const response = await editUserRequest(form.value, token);
+
+    const updatedDetails = {
+      username: form.value.username,
+      email: userDetails.value.email,
+      role: userDetails.value.role,
+    }
+    const response = await editUserRequest(updatedDetails, auth.currentUser.uid, token);
+
+
     console.log(`Response: ${response}`)
     if (response === 'Success') {
       showSnackbar('Profile updated successfully!', 'success');
-      editProfileDialog.value = false;
+      close();
     } else {
       showSnackbar(response, 'error');
     }
   } catch (error) {
     showSnackbar('An unexpected error occurred. Please try again.', 'error');
-  }finally {
-    isLoading.value = false;
   }
 }
 
-
-//opens edit profile dialog form
-const editProfile = () =>{
+function openDialog(){
   editProfileDialog.value = true;
+
 }
 
+
+function close() {
+  editProfileDialog.value = false;
+
+}
 
 
 </script>
@@ -169,7 +183,7 @@ const editProfile = () =>{
             variant="tonal"
             color="blue lighten-3"
             class="mx-2"
-            @click="editProfile"
+            @click="openDialog"
           >
             Edit Profile
           </v-btn>

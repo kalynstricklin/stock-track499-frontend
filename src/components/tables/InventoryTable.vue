@@ -8,13 +8,14 @@ import {
   editInventoryRequest, fetchInventoryRequest, type InventoryItem
 } from '@/server/services/InventoryHandler'
 import { createOrderRequest } from '@/server/services/OrdersHandler'
-import { fetchUserRequest } from '@/server/services/UserHandler'
+import { fetchUserByUid } from '@/server/services/UserHandler'
 
 
 
 
 const headers = computed(() => {
   const base= [
+    { title: 'Part Name', key: 'part_name',  sortable: true, },
     { title: 'Part Number', key: 'part_number',  sortable: true, },
     { title: 'Supplier', key: 'supplier_id', sortable: true, },
     // { title: 'On Hand', key: 'on_hand', align: 'start', sortable: true, },
@@ -32,6 +33,7 @@ const headers = computed(() => {
 
       // { title: 'Reserved', key: 'reserved', align: 'start', sortable: true, },
       { title: 'Inbound Price', key: 'inbound_price', sortable: true, },
+      { title: 'Lead Time', key: 'lead_time', sortable: true, },
       { title: 'Reorder', key: 'reorder',  sortable: false },
     );
 
@@ -49,8 +51,8 @@ const headers = computed(() => {
 
 const dialog = ref(false)
 const dialogDelete = ref(false)
-const editedItem = ref({ part_number: 0, supplier_id: 0, reorder_point: 0, stock_level: 0, inbound_price: 0.0, outbound_price: 0.0, });
-const defaultItem = ref({ part_number: 0, supplier_id: 0,reorder_point: 0, stock_level: 0, inbound_price: 0.0, outbound_price: 0.0, });
+const editedItem = ref({  part_name: '',  lead_time: 0, part_number: 0, supplier_id: 0, reorder_point: 0, stock_level: 0, inbound_price: 0.0, outbound_price: 0.0, });
+const defaultItem = ref({ part_name: '',  lead_time: 0, part_number: 0, supplier_id: 0,reorder_point: 0, stock_level: 0, inbound_price: 0.0, outbound_price: 0.0, });
 const editedIndex = ref(-1);
 
 const buttonTitle = computed(()=>{return editedIndex.value === -1 ? 'Add' : 'Update'})
@@ -74,7 +76,7 @@ async function initialize() {
     const token = await auth.currentUser.getIdToken();
 
     //set user role
-    let users = await fetchUserRequest(token);
+    let users = await fetchUserByUid(token);
 
     if (!users || users.length === 0) {
       showSnackbar('No users found.', 'info');
@@ -133,12 +135,14 @@ async function save() {
     if (editedIndex.value === -1) {
 
       const newItem: InventoryItem = {
+        part_name: editedItem.value.part_name,
         part_number: editedItem.value.part_number,
         supplier_id: editedItem.value.supplier_id,
         inbound_price: editedItem.value.inbound_price,
         outbound_price: editedItem.value.outbound_price,
         stock_level: editedItem.value.stock_level,
         reorder_point: editedItem.value.reorder_point,
+        lead_time: editedItem.value.lead_time,
 
       };
 
@@ -167,12 +171,12 @@ async function save() {
       const response = await editInventoryRequest(updatedItem, token);
 
       if (response === 'Success') {
-        showSnackbar(`Supplier updated: ${updatedItem.part_number}`, 'success');
+        showSnackbar(`Inventory Item updated: ${updatedItem.part_number}`, 'success');
             inventory.value[editedIndex.value] = {...editedItem.value}
         // inventory.value.splice(editedIndex.value, 1, updatedItem);
         close();
       } else {
-        showSnackbar(`Failed to update Supplier: ${updatedItem.part_number}`, 'error');
+        showSnackbar(`Failed to update inventory item: ${updatedItem.part_number}`, 'error');
       }
     }
   }catch(error: any){
@@ -214,6 +218,7 @@ async function deleteItemConfirm() {
 
     if(response === 'Success'){
       showSnackbar(`Successfully deleted inventory item: ${editedItem.value.part_number}`, 'success');
+
       inventory.value.splice(editedIndex.value, 1);
     }else{
       showSnackbar(`Failed to delete inventory item: ${editedItem.value.part_number}`, 'error');
@@ -246,7 +251,7 @@ async function reorder(item: InventoryItem){
   const dueDate = new Date();
   const createDate = new Date();
 
-  dueDate.setDate(dueDate.getDate() + 2)
+  dueDate.setDate(dueDate.getDate() + editedItem.value.lead_time)
 
   var create =  createDate.getFullYear() + '-' +  (createDate.getMonth() + 1) + '-' + createDate.getDate();
 
@@ -257,7 +262,8 @@ async function reorder(item: InventoryItem){
     // const qtyToReorder = item.reorder_point - item.on_hand + item.reserved;
 
     const purchaseOrder = {
-      PO_number: 233,
+      po_number: 233,
+      part_name: item.part_name,
       part_number: item.part_number,
       supplier_id: item.supplier_id,
       qty: item.stock_level, //this should be replaced automatically with the value associated with the restock value
@@ -266,7 +272,7 @@ async function reorder(item: InventoryItem){
       value: item.inbound_price * qtyToReorder,
       customer_id: '',
       is_outbound:  false,
-      // status: 'Pending'
+      status: 'Pending'
     };
 
     //send po to backend
@@ -298,7 +304,7 @@ onMounted(() => {
     :headers="headers"
     :items="Array.isArray(inventory) ? inventory : []"
     item-value="part_number"
-    :filter-keys="['product_name','supplier_id', 'part_number', 'inbound_price', 'outbound_price']"
+    :filter-keys="['product_name', 'part_name','supplier_id', 'part_number', 'inbound_price', 'outbound_price']"
   >
 
     <template v-slot:item.inbound_price="{ value }">
@@ -363,9 +369,18 @@ onMounted(() => {
 
                   <v-col cols="12" md="4" sm="6">
                     <v-text-field
+                      v-model="editedItem.part_name"
+                      label="Part Name*"
+                      required
+                    ></v-text-field>
+                  </v-col>
+
+                  <v-col cols="12" md="4" sm="6">
+                    <v-text-field
                       v-model="editedItem.part_number"
                       label="Part Number*"
                       required
+                      type="number"
                     ></v-text-field>
                   </v-col>
 
@@ -374,6 +389,7 @@ onMounted(() => {
                       v-model="editedItem.supplier_id"
                       label="Supplier*"
                       required
+                      type="number"
                     ></v-text-field>
                   </v-col>
 
@@ -382,6 +398,7 @@ onMounted(() => {
                       v-model="editedItem.stock_level"
                       label="Stock Level*"
                       required
+                      type="number"
                     ></v-text-field>
                   </v-col>
 
@@ -406,6 +423,16 @@ onMounted(() => {
                       v-model="editedItem.reorder_point"
                       label="Reorder Threshold*"
                       required
+                      type="number"
+                    ></v-text-field>
+                  </v-col>
+
+                  <v-col cols="12" md="4" sm="6">
+                    <v-text-field
+                      v-model="editedItem.lead_time"
+                      label="Lead Time*"
+                      required
+                      type="number"
                     ></v-text-field>
                   </v-col>
 

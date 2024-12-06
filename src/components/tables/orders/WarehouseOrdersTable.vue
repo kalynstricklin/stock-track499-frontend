@@ -3,11 +3,12 @@ import { ref, computed, onMounted } from 'vue'
 import { getStatusColor, showSnackbar } from '@/utils/utils'
 import { auth } from '@/firebase'
 import { fetchOrderRequest, type Order } from '@/server/services/OrdersHandler'
-import { fetchUserRequest } from '@/server/services/UserHandler'
+import { fetchUserByUid } from '@/server/services/UserHandler'
 
 
 const headers = [
-  { title: 'Order ID', key: 'PO_number' },
+  { title: 'Order ID', key: 'po_number' },
+  { title: 'Part Name', key: 'part_name' },
   { title: 'Part Number', key: 'part_number' },
   { title: 'Supplier ID', key: 'supplier_id' },
   { title: 'Order Date', key: 'created' },
@@ -15,7 +16,7 @@ const headers = [
   { title: 'Quantity', key: 'qty' },
   // { title: 'Inbound Price', key: 'inbound_price' },
   { title: 'Total', key: 'value' },
-  // { title: 'Status', key: 'status' },
+  { title: 'Status', key: 'status' },
 ];
 
 const order = ref<Order[]>([])
@@ -36,7 +37,7 @@ async function initialize() {
     const token = await auth.currentUser.getIdToken();
 
     //set user role
-    let users = await fetchUserRequest(token);
+    let users = await fetchUserByUid(token);
 
     if (!users || users.length === 0) {
       return;
@@ -87,18 +88,18 @@ onMounted(() => {
       v-model:search="search"
       :headers="headers"
       :items="order"
-      item-value="PO_number"
-      :filter-keys="['supplier_id', 'part_number', 'PO_number', 'status', 'created', 'due_date', 'received_date']"
+      item-value="po_number"
+      :filter-keys="['supplier_id', 'part_name','part_number', 'po_number', 'status', 'created', 'due_date', 'received_date']"
     >
-      <template v-slot:item.PO_number="{ value }">
+      <template v-slot:item.po_number="{ value }">
         {{ '#' + value }}
       </template>
 
-<!--      <template v-slot:item.status="{ value }">-->
-<!--        <v-chip :color="getStatusColor(value)">-->
-<!--          {{ value }}-->
-<!--        </v-chip>-->
-<!--      </template>-->
+      <template v-slot:item.status="{ value }">
+        <v-chip :color="getStatusColor(value)">
+          {{ value }}
+        </v-chip>
+      </template>
 
       <template v-slot:item.value="{ value }">
           {{'$' + value }}

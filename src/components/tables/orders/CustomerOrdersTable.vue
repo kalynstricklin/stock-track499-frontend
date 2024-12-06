@@ -7,13 +7,14 @@ import {
   fetchOrderRequest,
   type Order
 } from '@/server/services/OrdersHandler'
-import { fetchUserRequest } from '@/server/services/UserHandler'
+import { fetchUserByUid } from '@/server/services/UserHandler'
 import { fetchInventoryRequest } from '@/server/services/InventoryHandler'
 
 
 
 const defaultOrder = {
-  PO_number: 0,
+  po_number: 0,
+  part_name: '',
   part_number: 0,
   supplier_id: 0,
   qty: 0,
@@ -48,8 +49,9 @@ const role = ref('')
 
 const cxHeaders = computed(() =>{
   const base = [
-    { title: 'Order ID', key: 'PO_number', align: 'start', sortable: true, class: 'styled-header' },
+    { title: 'Order ID', key: 'po_number', align: 'start', sortable: true, class: 'styled-header' },
     { title: 'Customer', key: 'customer_id', align: 'start', sortable: true, class: 'styled-header'},
+    { title: 'Part Name', key: 'part_name', align: 'start', sortable: true, class: 'styled-header' },
     { title: 'Part Number', key: 'part_number', align: 'start', sortable: true, class: 'styled-header' },
     { title: 'Supplier ID', key: 'supplier_id', align: 'start', sortable: true, class: 'styled-header' },
     { title: 'Order Date', key: 'created', align: 'start', sortable: true, class: 'styled-header' },
@@ -80,7 +82,7 @@ async function initialize() {
     const token = await auth.currentUser.getIdToken();
 
     //set user role
-    let users = await fetchUserRequest(token);
+    let users = await fetchUserByUid(token);
     if (!users || users.length === 0) {
       showSnackbar('No users found.', 'info');
       return;
@@ -130,7 +132,7 @@ async function save() {
     return;
   }
 
-  const index = orders.value.findIndex(o => o.PO_number === editedItem.value.PO_number)
+  const index = orders.value.findIndex(o => o.po_number === editedItem.value.po_number)
 
   editedItem.value.part_number = Number(editedItem.value.part_number);
   editedItem.value.qty = Number(editedItem.value.qty);
@@ -150,12 +152,7 @@ async function save() {
       return;
     }
 
-    console.log('item details', itemDetails)
-    console.log('edited item', editedItem.value)
-
     const invItem = itemDetails.filter((u: any) => u.part_number === editedItem.value.part_number);
-
-    console.log('item', itemDetails.filter((u: any) =>  u.part_number === editedItem.value.part_number))
 
 
     if (!invItem) {
@@ -166,14 +163,15 @@ async function save() {
     const dueDate = new Date();
     const createDate = new Date();
 
-    dueDate.setDate(dueDate.getDate() + 2)
+    dueDate.setDate(dueDate.getDate() + invItem[0].lead_time)
 
     var create =  createDate.getFullYear() + '-' +  (createDate.getMonth() + 1) + '-' + createDate.getDate();
 
 
     const newOrder = {
-      PO_number: orders.value.length + 1,
+      po_number: orders.value.length + 1,
       customer_id: editedItem.value.customer_id,
+      part_name: invItem[0].part_name,
       part_number: editedItem.value.part_number,
       supplier_id: invItem[0].supplier_id,
       due_date: dueDate.toISOString().split('T')[0],
@@ -191,7 +189,7 @@ async function save() {
 
 
     if (response === 'Success') {
-      showSnackbar(`Order #${newOrder.PO_number} created successfully!`, 'success');
+      showSnackbar(`Order #${newOrder.po_number} created successfully!`, 'success');
       orders.value = [newOrder, ...orders.value];
       close();
     } else {
@@ -215,7 +213,7 @@ async function openDialog(){
     let customerName = ''
 
     //set user role
-    let users = await fetchUserRequest(token);
+    let users = await fetchUserByUid(token);
 
     const currUser = users.find((u:any)=> u.email === auth?.currentUser?.email);
 
@@ -248,7 +246,7 @@ function editItem(item: any){
 const saveStatus = () => {
   if(editedIndex.value !== -1){
     orders.value[editedIndex.value].status = editedItem.value.status;
-    showSnackbar(`PO #${editedItem.value.PO_number} Order Status Updated to ${editedItem.value.status}`, 'info');
+    showSnackbar(`PO #${editedItem.value.po_number} Order Status Updated to ${editedItem.value.status}`, 'info');
   }
   dialogEdit.value = false;
 
@@ -275,7 +273,7 @@ onMounted(() => {
       :headers="cxHeaders"
       :items="orders"
       item-value="PO_order"
-      :filter-keys="['PO_number','customer_id', 'part_number','created', 'due_date', 'value', 'qty', 'is_outbound', 'supplier_id']"
+      :filter-keys="['po_number', 'part_name', 'customer_id', 'part_number','created', 'due_date', 'value', 'qty', 'is_outbound', 'supplier_id']"
     >
 
       <template v-slot:item.status="{ value }">
@@ -351,10 +349,10 @@ onMounted(() => {
 
                     <v-col cols="12" md="6">
                       <v-text-field
-                        type="number"
                         v-model="editedItem.part_number"
                         label="Part Number*"
                         required
+                        type="number"
                       ></v-text-field>
                     </v-col>
 
@@ -415,7 +413,7 @@ onMounted(() => {
 <!--              <v-row dense>-->
 <!--                <v-col cols="3">-->
 <!--                  <v-text-field-->
-<!--                    v-model="editedItem.PO_number"-->
+<!--                    v-model="editedItem.po_number"-->
 <!--                    label="Order ID"-->
 <!--                    disabled-->
 <!--                  ></v-text-field>-->

@@ -4,13 +4,15 @@ import { supplierURL } from '@/server/services/SupplierHandler'
 
 export const userURL: string = "http://localhost:8000";
 
-export async function editUserRequest(user: any, firebase_id_token: string){
-  const url = `${userURL}/users/${user.uid}/`;
+export async function editUserRequest(user: any, uid: string, firebase_id_token: string){
+
 
   //check if authorized user
   if(!auth.currentUser){
     return 'Unauthorized';
   }
+  const url = `${userURL}/users/${uid}/`;
+
 
   const token = await auth.currentUser.getIdToken();
   if(token !== firebase_id_token){
@@ -22,14 +24,13 @@ export async function editUserRequest(user: any, firebase_id_token: string){
       method: 'PUT',
       mode: 'cors',
       headers: {
-        // Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(user)
     });
 
     if(!response.ok){
-      console.log('Response: ', response.text())
       return `Error updating user information: ${response.text()}`
     }else{
       return 'Success'
@@ -43,7 +44,7 @@ export async function editUserRequest(user: any, firebase_id_token: string){
 
 
 //method to fetch users from the database
-export async function fetchUserRequest(firebase_id_token: string) {
+export async function fetchAllUsers(firebase_id_token: string) {
   const url = `${userURL}/users/`;
 
   try{
@@ -61,14 +62,39 @@ export async function fetchUserRequest(firebase_id_token: string) {
       return `Error fetching user: ${response.text()}`
     }
 
-    const user = await response.json()
-    return user;
+    const users = await response.json()
+    return users;
 
   }catch(error: any){
     return `Error fetching user: ${error.message}`
   }
 }
 
+export async function fetchUserByUid(firebase_id_token: string) {
+  const url = `${userURL}/users/`;
+
+  try{
+    const response = await fetch(url, {
+      method: 'GET',
+      mode: 'cors',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${firebase_id_token}`
+      },
+
+    });
+
+    if(!response.ok){
+      return `Error fetching user with id: ${response.text()}`
+    }
+
+    const users = await response.json()
+    return users;
+
+  }catch(error: any){
+    return `Error fetching user: ${error.message}`
+  }
+}
 
 
 export async function deleteUserRequest(uid: string, firebase_id_token: string) {

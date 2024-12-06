@@ -8,7 +8,7 @@ import {
   type Supplier
 } from '@/server/services/SupplierHandler'
 import { auth } from '@/firebase'
-import { fetchUserRequest } from '@/server/services/UserHandler'
+import { fetchUserByUid } from '@/server/services/UserHandler'
 
 
 
@@ -64,7 +64,7 @@ async function initialize() {
     const token = await auth.currentUser.getIdToken();
 
     //set user role
-    let users = await fetchUserRequest(token);
+    let users = await fetchUserByUid(token);
 
     if (!users || users.length === 0) {
       showSnackbar('No users found.', 'info');

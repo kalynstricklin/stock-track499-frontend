@@ -4,7 +4,7 @@ import { getStatusColor, showSnackbar, snackbar } from '@/utils/utils'
 
 import { auth } from '@/firebase'
 
-import { createUserRequest, deleteUserRequest, editUserRequest, fetchUserRequest } from '@/server/services/UserHandler'
+import { createUserRequest, deleteUserRequest, editUserRequest, fetchUserByUid } from '@/server/services/UserHandler'
 
 interface UserItem {
   username: string;
@@ -48,7 +48,7 @@ async function initialize() {
   try{
     const token = await auth.currentUser.getIdToken();
 
-    const userList = await fetchUserRequest(token);
+    const userList = await fetchUserByUid(token);
     users.value = Array.isArray(userList) ? userList : [];
     showSnackbar(`Loaded all users!`, 'success');
 
@@ -270,8 +270,6 @@ const roles = ['admin', 'manager', 'customer', 'employee'];
                         <v-text-field
                           v-model="editedItem.email"
                           label="Email*"
-                          readonly
-
                         ></v-text-field>
                       </v-col>
 

@@ -6,6 +6,8 @@ import { userURL } from '@/server/services/UserHandler'
 export const inventoryURL: string = 'http://localhost:8000';
 
 export interface InventoryItem {
+  part_name: string,
+  lead_time: number;
   part_number: number;
   supplier_id: number;
   inbound_price: number;

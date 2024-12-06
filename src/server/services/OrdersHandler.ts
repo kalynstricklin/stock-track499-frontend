@@ -4,7 +4,7 @@ import { auth } from '../../firebase'
 export const orderUrl: string = 'http://localhost:8000';
 
 export interface Order {
-  PO_number: number;
+  po_number: number;
   part_number: number;
   supplier_id: number;
   qty: number;
@@ -17,7 +17,7 @@ export interface Order {
 }
 
 export async function editOrderRequest(order: any, firebase_id_token: string){
-  const url = `${orderUrl}/orders/${order.PO_number}/`
+  const url = `${orderUrl}/orders/${order.po_number}/`
   //check if authorized inventory
   if(!auth.currentUser){
     return 'Unauthorized';
@@ -113,7 +113,7 @@ export async function fetchOrderRequest(firebase_id_token: string){
 
 export async function deleteOrderRequest(order: any, firebase_id_token: string) {
 
-  const url = `${orderUrl}/orders/${order.PO_number}/`
+  const url = `${orderUrl}/orders/${order.po_number}/`
   //check if authorized inventory
   if(!auth.currentUser){
     return 'Unauthorized';
@@ -135,13 +135,13 @@ export async function deleteOrderRequest(order: any, firebase_id_token: string) 
     });
 
     if(!response.ok){
-      return `Error deleting order ${order.PO_number} : ${response.text()}`
+      return `Error deleting order ${order.po_number} : ${response.text()}`
     }
 
     return 'Success'
 
   }catch(error: any){
-    return `Error deleting order${order.PO_number}: ${error.message}`
+    return `Error deleting order${order.po_number}: ${error.message}`
   }
 }
 

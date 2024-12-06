@@ -56,7 +56,7 @@
 
 import { showSnackbar } from '@/utils/utils.js'
 import { auth } from '@/firebase.js'
-import { fetchUserRequest } from '@/server/services/UserHandler.js'
+import { fetchUserByUid } from '@/server/services/UserHandler.js'
 import { onMounted, ref } from 'vue'
 
 //user roles
@@ -73,7 +73,7 @@ async function initialize(){
     const token = await auth.currentUser.getIdToken();
 
     //set user role
-    let users = await fetchUserRequest(token);
+    let users = await fetchUserByUid(token);
 
     if (!users || users.length === 0) {
       showSnackbar('No users found.', 'info');

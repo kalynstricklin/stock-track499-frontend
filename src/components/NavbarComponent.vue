@@ -96,9 +96,8 @@ async function initialize(){
   }
 }
 
-// onMounted(() => {
-//   initialize();
-// });
+onMounted(() => {
+  initialize();
+});
 
-initialize();
 </script>

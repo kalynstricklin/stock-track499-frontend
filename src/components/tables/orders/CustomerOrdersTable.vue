@@ -57,7 +57,7 @@ const cxHeaders = computed(() =>{
     { title: 'Quantity', key: 'qty', align: 'start', sortable: true,class: 'styled-header' },
     // { title: 'Unit Price', key: 'outbound_price', align: 'start', sortable: true, class: 'styled-header' },
     { title: 'Total Cost', key: 'value', align: 'start', sortable: true, class: 'styled-header' },
-    // { title: 'Status', key: 'status', align: 'start', sortable: true, class: 'styled-header' },
+    { title: 'Status', key: 'status', align: 'start', sortable: true, class: 'styled-header' },
   ];
 
   // if(role.value === 'employee' || role.value==='manager' || role.value ==='admin'){
@@ -95,10 +95,17 @@ async function initialize() {
 
     role.value = currUser.role;
 
-    const customerOrders = await fetchOrderRequest(token);
+    const allOrders = await fetchOrderRequest(token);
 
+    if (!allOrders || allOrders.length === 0) {
+      showSnackbar('No orders found.', 'info');
+      return;
+    }
 
-    orders.value = Array.isArray(customerOrders) ? customerOrders : [];
+    console.log('all orders', allOrders.message)
+
+    const outbound_orders = allOrders.message.filter((order: any) => {return order.is_outbound});
+    orders.value = Array.isArray(outbound_orders) ? outbound_orders : [];
     showSnackbar(`Loaded all customer orders!`, 'success');
 
   }catch(error: any){
@@ -176,7 +183,7 @@ async function save() {
       qty: editedItem.value.qty,
       value: editedItem.value.qty * invItem[0].outbound_price,
       is_outbound: editedItem.value.is_outbound,
-      // status: 'Pending'
+      status: 'Pending'
     };
 
     console.log('new order', newOrder)
@@ -258,9 +265,7 @@ onMounted(() => {
   initialize();
 });
 
-const formattedTotal = computed(() => {
-  return `$${editedItem.value}`;
-});
+
 </script>
 
 
@@ -284,7 +289,7 @@ const formattedTotal = computed(() => {
       </template>
 
       <template v-slot:item.outbound_price="{ value }">
-        {{'$'+ value }}
+       {{`$${Number(value).toFixed(2)}`}}
       </template>
 
 
@@ -400,51 +405,60 @@ const formattedTotal = computed(() => {
         </v-row>
 
 
-        <!--edit dialog-->
-        <v-dialog v-model="dialogEdit" max-width="600px">
-          <v-card>
-            <v-card-title>
-              Edit Status
-            </v-card-title>
-            <v-card-text>
-              <v-row dense>
-                <v-col cols="3">
-                  <v-text-field
-                    v-model="editedItem.PO_number"
-                    label="Order ID"
-                    disabled
-                  ></v-text-field>
-                </v-col>
-                <v-col cols="3">
-                  <v-text-field
-                    v-model="editedItem.customer_id"
-                    label="Customer"
-                    disabled
-                  ></v-text-field>
-                </v-col>
-                <v-col cols="3">
-                  <v-text-field
-                    v-model="editedItem.part_number"
-                    label="Part Number"
-                    disabled
-                  ></v-text-field>
-                </v-col>
-                <v-col cols="3">
-                  <v-select
-                    v-model="editedItem.status"
-                    :items="['Pending', 'Shipped', 'Delivered']"
-                    label="Status"
-                  ></v-select>
-                </v-col>
-              </v-row>
-            </v-card-text>
-            <v-card-actions>
-              <v-spacer></v-spacer>
-              <v-btn text="Cancel" @click="dialogEdit = false">Cancel</v-btn>
-              <v-btn color="primary" @click="saveStatus">{{ buttonTitle }}</v-btn>
-            </v-card-actions>
-          </v-card>
-        </v-dialog>
+<!--        &lt;!&ndash;edit dialog&ndash;&gt;-->
+<!--        <v-dialog v-model="dialogEdit" max-width="600px">-->
+<!--          <v-card>-->
+<!--            <v-card-title>-->
+<!--              Edit Status-->
+<!--            </v-card-title>-->
+<!--            <v-card-text>-->
+<!--              <v-row dense>-->
+<!--                <v-col cols="3">-->
+<!--                  <v-text-field-->
+<!--                    v-model="editedItem.PO_number"-->
+<!--                    label="Order ID"-->
+<!--                    disabled-->
+<!--                  ></v-text-field>-->
+<!--                </v-col>-->
+<!--                <v-col cols="3">-->
+<!--                  <v-text-field-->
+<!--                    v-model="editedItem.customer_id"-->
+<!--                    label="Customer"-->
+<!--                    disabled-->
+<!--                  ></v-text-field>-->
+<!--                </v-col>-->
+<!--                <v-col cols="3">-->
+<!--                  <v-text-field-->
+<!--                    v-model="editedItem.part_number"-->
+<!--                    label="Part Number"-->
+<!--                    type="number"-->
+<!--                  ></v-text-field>-->
+<!--                </v-col>-->
+
+<!--                <v-col cols="3">-->
+<!--                  <v-text-field-->
+<!--                    v-model="editedItem.qty"-->
+<!--                    label="Part Number"-->
+<!--                    type="number"-->
+<!--                  ></v-text-field>-->
+<!--                </v-col>-->
+
+<!--                <v-col cols="3">-->
+<!--                  <v-select-->
+<!--                    v-model="editedItem.status"-->
+<!--                    :items="['Pending', 'Shipped', 'Delivered']"-->
+<!--                    label="Status"-->
+<!--                  ></v-select>-->
+<!--                </v-col>-->
+<!--              </v-row>-->
+<!--            </v-card-text>-->
+<!--            <v-card-actions>-->
+<!--              <v-spacer></v-spacer>-->
+<!--              <v-btn text="Cancel" @click="dialogEdit = false">Cancel</v-btn>-->
+<!--              <v-btn color="primary" @click="saveStatus">{{ buttonTitle }}</v-btn>-->
+<!--            </v-card-actions>-->
+<!--          </v-card>-->
+<!--        </v-dialog>-->
 
       </template>
 

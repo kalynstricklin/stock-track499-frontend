@@ -5,7 +5,7 @@ import { supplierURL } from '@/server/services/SupplierHandler'
 export const userURL: string = "http://localhost:8000";
 
 export async function editUserRequest(user: any, firebase_id_token: string){
-  const url = `${userURL}/users/`;
+  const url = `${userURL}/users/${user.uid}/`;
 
   //check if authorized user
   if(!auth.currentUser){
@@ -19,7 +19,7 @@ export async function editUserRequest(user: any, firebase_id_token: string){
 
   try{
     const response = await fetch(url, {
-      method: 'PATCH',
+      method: 'PUT',
       mode: 'cors',
       headers: {
         // Authorization: `Bearer ${token}`,
@@ -71,9 +71,9 @@ export async function fetchUserRequest(firebase_id_token: string) {
 
 
 
-export async function deleteUserRequest(email: string, firebase_id_token: string) {
+export async function deleteUserRequest(uid: string, firebase_id_token: string) {
 
-  const url = `${userURL}/users/`;
+  const url = `${userURL}/users/${uid}/`;
 
   //check if authorized user
   if(!auth.currentUser){

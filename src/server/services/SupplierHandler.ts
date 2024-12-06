@@ -13,7 +13,7 @@ export interface Supplier {
 
 export async function editSupplierRequest(supplier: any, firebase_id_token: string){
 
-  const url = `${supplierURL}/suppliers/`;
+  const url = `${supplierURL}/suppliers/${supplier.supplier_id}/`;
 
 
   //check if authorized inventory
@@ -29,7 +29,7 @@ export async function editSupplierRequest(supplier: any, firebase_id_token: stri
 
   try{
     const response = await fetch(url, {
-      method: 'PATCH',
+      method: 'PUT',
       mode: 'cors',
       headers: {
         Authorization: `Bearer ${firebase_id_token}`,
@@ -82,7 +82,7 @@ export async function fetchSuppliersRequest(firebase_id_token: string) {
 
 export async function deleteSupplierRequest(supplier: any, firebase_id_token: string) {
 
-  const url = `${supplierURL}/suppliers/`;
+  const url = `${supplierURL}/suppliers/${supplier.supplier_id}/`;
 
   //check if authorized inventory
   if(!auth.currentUser){

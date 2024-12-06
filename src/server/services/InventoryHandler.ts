@@ -16,7 +16,7 @@ export interface InventoryItem {
 
 export async function editInventoryRequest(inventory: any, firebase_id_token: string){
 
-  const url = `${inventoryURL}/inventory/`;
+  const url = `${inventoryURL}/inventory/${inventory.part_number}/`;
 
   //check if authorized inventory
   if(!auth.currentUser){
@@ -31,7 +31,7 @@ export async function editInventoryRequest(inventory: any, firebase_id_token: st
 
   try{
     const response = await fetch(url, {
-      method: 'PATCH',
+      method: 'PUT',
       mode: 'cors',
       headers: {
         Authorization: `Bearer ${firebase_id_token}`,
@@ -85,7 +85,7 @@ export async function fetchInventoryRequest(firebase_id_token: string) {
 
 export async function deleteInventoryRequest(inventory_item: any, firebase_id_token: string) {
 
-  const url = `${inventoryURL}/inventory/`;
+  const url = `${inventoryURL}/inventory/${inventory_item.part_number}/`;
 
   //check if authorized inventory
   if(!auth.currentUser){

@@ -13,10 +13,11 @@ export interface Order {
   value: number;
   customer_id: string;
   is_outbound: boolean;
+  status: string
 }
 
 export async function editOrderRequest(order: any, firebase_id_token: string){
-  const url = `${orderUrl}/orders/`
+  const url = `${orderUrl}/orders/${order.PO_number}/`
   //check if authorized inventory
   if(!auth.currentUser){
     return 'Unauthorized';
@@ -29,7 +30,7 @@ export async function editOrderRequest(order: any, firebase_id_token: string){
 
   try{
     const response = await fetch(url, {
-      method: 'PATCH',
+      method: 'PUT',
       mode: 'cors',
       headers: {
         Authorization: `Bearer ${firebase_id_token}`,
@@ -112,7 +113,7 @@ export async function fetchOrderRequest(firebase_id_token: string){
 
 export async function deleteOrderRequest(order: any, firebase_id_token: string) {
 
-  const url = `${orderUrl}/orders/`
+  const url = `${orderUrl}/orders/${order.PO_number}/`
   //check if authorized inventory
   if(!auth.currentUser){
     return 'Unauthorized';

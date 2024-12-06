@@ -3,7 +3,7 @@ import { ref, computed, nextTick, onMounted, watch } from 'vue'
 import { getStatusColor, showSnackbar, snackbar } from '@/utils/utils'
 import { auth } from '@/firebase'
 import {
-  createOrderRequest, fetchOrders, fetchOrdersByUid,
+  createOrderRequest, fetchOrders,
   type Order
 } from '@/server/services/OrdersHandler'
 import { fetchUserByUid } from '@/server/services/UserHandler'
@@ -48,17 +48,17 @@ const role = ref('')
 
 const cxHeaders = computed(() =>{
   const base = [
-    { title: 'Order ID', key: 'po_number', align: 'start', sortable: true, class: 'styled-header' },
-    { title: 'Customer', key: 'customer_id', align: 'start', sortable: true, class: 'styled-header'},
-    { title: 'Part Name', key: 'part_name', align: 'start', sortable: true, class: 'styled-header' },
-    { title: 'Part Number', key: 'part_number', align: 'start', sortable: true, class: 'styled-header' },
-    { title: 'Supplier ID', key: 'supplier_id', align: 'start', sortable: true, class: 'styled-header' },
-    { title: 'Order Date', key: 'created', align: 'start', sortable: true, class: 'styled-header' },
-    { title: 'Delivery Date', key: 'due_date', align: 'start', sortable: true, class: 'styled-header' },
-    { title: 'Quantity', key: 'qty', align: 'start', sortable: true,class: 'styled-header' },
-    // { title: 'Unit Price', key: 'outbound_price', align: 'start', sortable: true, class: 'styled-header' },
-    { title: 'Total Cost', key: 'value', align: 'start', sortable: true, class: 'styled-header' },
-    { title: 'Status', key: 'status', align: 'start', sortable: true, class: 'styled-header' },
+    { title: 'Order ID', key: 'po_number', sortable: true, class: 'styled-header' },
+    { title: 'Customer', key: 'customer_id',   sortable: true, class: 'styled-header'},
+    { title: 'Part Name', key: 'part_name',   sortable: true, class: 'styled-header' },
+    { title: 'Part Number', key: 'part_number',   sortable: true, class: 'styled-header' },
+    { title: 'Supplier ID', key: 'supplier_id',   sortable: true, class: 'styled-header' },
+    { title: 'Order Date', key: 'created',   sortable: true, class: 'styled-header' },
+    { title: 'Delivery Date', key: 'due_date',   sortable: true, class: 'styled-header' },
+    { title: 'Quantity', key: 'qty',   sortable: true,class: 'styled-header' },
+    // { title: 'Unit Price', key: 'outbound_price',   sortable: true, class: 'styled-header' },
+    { title: 'Total Cost', key: 'value',   sortable: true, class: 'styled-header' },
+    { title: 'Status', key: 'status',   sortable: true, class: 'styled-header' },
   ];
 
   // if(role.value === 'employee' || role.value==='manager' || role.value ==='admin'){

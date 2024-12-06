@@ -126,7 +126,7 @@ async function save() {
       console.log(updatedItem)
 
 
-      const response = await editUserRequest(updatedItem, updatedItem.uid, token);
+      const response = await editUserRequest(updatedItem, auth.currentUser.uid, token);
 
       if(response === 'Success'){
         showSnackbar(`User updated: ${updatedItem.username}`, 'success');

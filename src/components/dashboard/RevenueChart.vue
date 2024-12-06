@@ -87,7 +87,7 @@ onMounted(() => {
 
 <template>
   <v-container id="salesTrendsChart" fluid tag="section">
-    <div style="width: 100%; height: 100%;">
+    <div style="width: 100%; height: 300px;">
       <canvas id="salesTrends"></canvas>
     </div>
   </v-container>

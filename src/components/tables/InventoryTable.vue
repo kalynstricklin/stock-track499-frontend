@@ -18,20 +18,20 @@ const headers = computed(() => {
     { title: 'Part Name', key: 'part_name',  sortable: true, },
     { title: 'Part Number', key: 'part_number',  sortable: true, },
     { title: 'Supplier', key: 'supplier_id', sortable: true, },
-    // { title: 'On Hand', key: 'on_hand', align: 'start', sortable: true, },
-    // { title: 'Status', key: 'status', align: 'start', sortable: true, },
-
+    // { title: 'On Hand', key: 'on_hand',   sortable: true, },
+    // { title: 'Status', key: 'status',   sortable: true, }
     { title: 'Stock Level', key: 'stock_level',  sortable: true, },
-    { title: 'Unit Price', key: 'outbound_price',  sortable: true, },
+    { title: 'Price', key: 'outbound_price',  sortable: true, },
 
   ];
 
   // Employee and Admin roles should see the full
   if(role.value === 'employee' || role.value === 'admin' || role.value === 'manager'){
     base.push(
-      { title: 'Reorder Threshold', key: 'reorder_point',  sortable: true, },
-      // { title: 'Reserved', key: 'reserved', align: 'start', sortable: true, },
+
+      // { title: 'Reserved', key: 'reserved',   sortable: true, },
       { title: 'Inbound Price', key: 'inbound_price', sortable: true, },
+      { title: 'Reorder Threshold', key: 'reorder_point',  sortable: true, },
       { title: 'Lead Time (Days)', key: 'lead_time', sortable: true, },
 
     );
@@ -71,6 +71,8 @@ async function initialize() {
     showSnackbar('No authenticated user found.', 'error');
     return;
   }
+
+  showSnackbar('User Authenticated', 'success')
 
   try{
     const token = await auth.currentUser.getIdToken();
@@ -139,10 +141,7 @@ async function save() {
 
       };
 
-      console.log('new item', newItem)
       const response = await createInventoryRequest(newItem, token);
-
-      console.log('response', response)
 
       if (response === 'Success') {
         showSnackbar(`New Item created: ${newItem.part_number}`, 'success');
@@ -165,8 +164,9 @@ async function save() {
 
       if (response === 'Success') {
         showSnackbar(`Inventory Item updated: ${updatedItem.part_number}`, 'success');
-            inventory.value[editedIndex.value] = {...editedItem.value}
-        // inventory.value.splice(editedIndex.value, 1, updatedItem);
+
+        // inventory.value[editedIndex.value] = {...editedItem.value}
+        inventory.value.splice(editedIndex.value, 1, updatedItem);
         close();
       } else {
         showSnackbar(`Failed to update inventory item: ${updatedItem.part_number}`, 'error');

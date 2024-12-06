@@ -1,4 +1,4 @@
-<template>
+npm<template>
   <v-app >
     <NavbarComponent />
 

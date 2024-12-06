@@ -255,7 +255,7 @@ async function reorder(item: InventoryItem){
     // const qtyToReorder = item.reorder_point - item.on_hand + item.reserved;
 
     const purchaseOrder = {
-      po_number: 233,
+      // po_number: 233,
       part_name: item.part_name,
       part_number: item.part_number,
       supplier_id: item.supplier_id,

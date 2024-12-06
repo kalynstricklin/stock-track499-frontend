@@ -77,39 +77,6 @@ export async function fetchOrderRequest(firebase_id_token: string){
   }
 }
 
-// export async function fetchItemDetails(firebase_id_token: string){
-//   const url = `${orderUrl}/inventory/`
-//
-//   //check if authorized inventory
-//   if(!auth.currentUser){
-//     return 'Unauthorized';
-//   }
-//
-//   const token = await auth.currentUser.getIdToken();
-//   if(token !== firebase_id_token){
-//     return 'Unauthorized'
-//   }
-//   try{
-//     const response = await fetch(url, {
-//       method: 'GET',
-//       mode: 'cors',
-//       headers: {
-//         Authorization: `Bearer ${firebase_id_token}`,
-//         'Content-Type': 'application/json',
-//       },
-//     });
-//
-//     if(!response.ok){
-//       return `Error fetching item details: ${response.text()}`
-//     }
-//
-//     const itemDetails = await response.json()
-//     return itemDetails;
-//
-//   }catch(error: any){
-//     return `Error fetching item details: ${error.message}`
-//   }
-// }
 
 export async function deleteOrderRequest(order: any, firebase_id_token: string) {
 

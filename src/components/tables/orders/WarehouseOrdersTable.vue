@@ -7,7 +7,7 @@ import { fetchUserByUid } from '@/server/services/UserHandler'
 
 
 const headers = [
-  { title: 'Order ID', key: 'po_number' },
+  // { title: 'Order ID', key: 'po_number' },
   { title: 'Part Name', key: 'part_name' },
   { title: 'Part Number', key: 'part_number' },
   { title: 'Supplier ID', key: 'supplier_id' },
@@ -83,7 +83,7 @@ onMounted(() => {
       :headers="headers"
       :items="order"
       item-value="po_number"
-      :filter-keys="['supplier_id', 'part_name','part_number', 'po_number', 'status', 'created', 'due_date', 'received_date']"
+      :filter-keys="['supplier_id', 'part_name','part_number', 'status', 'created', 'due_date', 'received_date']"
     >
       <template v-slot:item.po_number="{ value }">
         {{ '#' + value }}

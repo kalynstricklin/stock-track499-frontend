@@ -16,19 +16,16 @@ interface UserItem {
   username: string;
   email: string;
   role: string;
-  // profile_img: string;
 }
 
 
 const dialog = ref(false);
 const dialogDelete = ref(false)
 const editedItem = ref({ username: '', email: '', role: ''});
-// const editedItem = ref({ username: '', email: '', role: '', profile_img: ''});
 const defaultItem = ref({ username: '', email: '', role: ''});
-// const defaultItem = ref({ username: '', email: '', role: '', profile_img: ''});
 const editedIndex = ref(-1);
 const selected = ref([])
-//
+
 
 const buttonTitle = computed(()=>{return editedIndex.value === -1 ? 'Add' : 'Update'})
 
@@ -71,7 +68,6 @@ onMounted(() => {
 const close = () => {
   dialog.value = false;
   editedItem.value = { username: '', email: '', role: ''};
-  // editedItem.value = { username: '', email: '', role: '', profile_img: ''};
 };
 
 
@@ -98,7 +94,6 @@ async function save() {
         username: editedItem.value.username,
         email: editedItem.value.email,
         role: editedItem.value.role,
-        // profile_img: editedItem.value.profile_img
       };
 
 
@@ -125,7 +120,7 @@ async function save() {
 
       if(response === 'Success'){
         showSnackbar(`User updated: ${updatedItem.username}`, 'success');
-        users.value.splice(editedIndex.value, 1, updatedItem);
+        users.value =[updatedItem, ...users.value];
         close();
       }else{
         showSnackbar(`Failed to update user: ${updatedItem.username}`, 'error');
@@ -210,15 +205,9 @@ const roles = ['admin', 'manager', 'customer', 'employee'];
       :headers="headers"
       :items="users"
       item-value="username"
-      :filter-keys="['username', 'createdOn', 'status', 'role', 'email']"
+      :filter-keys="['username', 'role', 'email']"
     >
 
-
-<!--      <template v-slot:item.status="{ value }">-->
-<!--        <v-chip :color="getStatusColor(value)">-->
-<!--          {{ value }}-->
-<!--        </v-chip>-->
-<!--      </template>-->
 
       <template v-slot:top>
         <v-toolbar flat>

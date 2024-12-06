@@ -3,7 +3,6 @@
   import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
   import UserLogin from '@/components/account/UserLogin.vue';
   import UserSignup from '@/components/account/UserSignup.vue'
-  import AdminList from '@/components/admin/AdminList.vue'
   import AccountDetails from '@/components/account/AccountDetails.vue'
 
   const user = ref();
@@ -18,38 +17,29 @@
     loading.value = false;
   });
 
-  function toggleSignup(){
-    showSignup.value = true;
-    showLogin.value = false;
-  }
-  function toggleSignIn(){
-    showSignup.value = false;
-    showLogin.value = true;
-  }
 
+  function toggleAuthView(view: 'signup' | 'login') {
+    showSignup.value = view === 'signup';
+  }
 
 </script>
 
 <template>
   <v-container>
 
+
+    <!-- If no user is logged in, show login/signup toggle and form -->
   <v-container v-if="!user" class="container">
-<!--    <h2>StockTrack</h2>-->
     <v-btn-toggle class="toggle-buttons">
-      <v-btn @click="toggleSignIn" >Login</v-btn>
-      <v-btn @click="toggleSignup"  >Sign Up</v-btn>
+      <v-btn @click="toggleAuthView('login')" >Login</v-btn>
+      <v-btn @click="toggleAuthView('signup')">Sign Up</v-btn>
     </v-btn-toggle>
     <UserSignup v-if="showSignup"/>
-    <UserLogin v-if="showLogin" />
+    <UserLogin v-if="!showSignup" />
   </v-container>
 
-<!--    if user is admin show user list else show account details-->
-<!--    <div v-if="admin">-->
-<!--      <AdminList/>-->
-<!--    </div>-->
-<!--   Show account details when user is authenticated-->
+
     <v-container v-else>
-<!--      <AdminList/>-->
       <AccountDetails/>
     </v-container>
 

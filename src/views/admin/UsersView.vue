@@ -1,17 +1,15 @@
 <script setup lang="ts">
-
-import InventoryTable from '@/components/tables/InventoryTable.vue'
+import UsersTables from '@/components/tables/admin/UsersTables.vue'
 </script>
 
 <template>
   <v-container>
-    <InventoryTable/>
+    <UsersTables/>
   </v-container>
 
 </template>
 
 
-
 <style scoped>
-
 </style>
+

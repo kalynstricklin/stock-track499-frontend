@@ -1,4 +1,4 @@
-<!--i dont think i want a sign up just a login page.-->
+
 <template>
   <div class="form-container sign-up-container">
     <h1>Create an account</h1>
@@ -16,24 +16,52 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { createUserWithEmailAndPassword, getAuth, updateProfile } from 'firebase/auth';
+import { createUserRequest } from '@/server/services/UserHandler'
+import { showSnackbar } from '@/utils/utils'
+import { auth } from '@/firebase'
 
 const firstName = ref('');
 const lastName = ref('');
 const email = ref('');
 const password = ref('');
 const loading = ref(false);
-const auth = getAuth();
+const authorize = getAuth();
 
 async function register() {
   loading.value = true;
   try {
+
     const userCred = await createUserWithEmailAndPassword(auth, email.value, password.value);
+
+    if (!userCred) {
+      showSnackbar('Failed to create user', 'error');
+      return
+    }
+
+    const token = await userCred.user.getIdToken();
+
+    const newUser = {
+      username: `${firstName.value} ${lastName.value}`,
+      email: email.value,
+      // password: password.value,
+      role: 'customer',
+      uid: token
+    };
+
+    const response = await createUserRequest(newUser, token)
+    if(response === 'Success'){
+      showSnackbar(`New User created: ${newUser.username}`, 'success');
+    } else{
+      showSnackbar(response, 'error');
+    }
+
+
     await updateProfile(userCred.user, {
       displayName: `${firstName.value} ${lastName.value}`
     });
 
-  } catch (error) {
-    alert(error);
+  } catch (error: any) {
+    showSnackbar(`Error creating users: ${error.message}`, 'error');
   } finally {
     loading.value = false;
   }

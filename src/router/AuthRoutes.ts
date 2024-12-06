@@ -1,13 +1,15 @@
-const AuthRoutes={
-  path: '/',
-  children: [
-    {
-      name: 'Account',
-      path: '/auth/account',
-      component: () => import('@/views/auth/AccountPage.vue')
-    }
-  ]
-
-}
+const AuthRoutes = [
+  {
+    path: '/auth',
+    component: () => import('@/layouts/AuthLayout.vue'),
+    children: [
+      {
+        name: 'Account',
+        path: 'account',
+        component: () => import('@/views/auth/AccountPage.vue'),
+      },
+    ],
+  },
+];
 
 export default AuthRoutes;

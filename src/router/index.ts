@@ -1,29 +1,37 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import { getAuth } from 'firebase/auth'
 import AuthRoutes from '@/router/AuthRoutes'
-import MainRoutes from '@/router/MainRoutes'
+import Routes from '@/router/Routes'
+
+
+const routes = [
+  ...AuthRoutes,
+  ...Routes
+];
+
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
-  routes: [
-    AuthRoutes,
-    MainRoutes
-  ],
+  routes: routes
 });
 
 router.beforeEach(async (to, from, next) =>{
   const auth = getAuth();
-  const user = auth.currentUser;
+  const user = auth?.currentUser;
+
+
 
   const publicPage = ['/auth/account']
   const authReq = !publicPage.includes(to.path);
 
-  if(authReq && !user){
+  const userRole = 'employee';
 
+  if(authReq && !user){
     next({path: "/auth/account"});
     // next({path: "/auth/account", query: {redirect: to.fullPath}});
-  }else{
+  } else {
     next();
   }
+
 })
 export default router;

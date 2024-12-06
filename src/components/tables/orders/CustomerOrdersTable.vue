@@ -3,8 +3,7 @@ import { ref, computed, nextTick, onMounted, watch } from 'vue'
 import { getStatusColor, showSnackbar, snackbar } from '@/utils/utils'
 import { auth } from '@/firebase'
 import {
-  createOrderRequest,
-  fetchOrderRequest,
+  createOrderRequest, fetchOrders, fetchOrdersByUid,
   type Order
 } from '@/server/services/OrdersHandler'
 import { fetchUserByUid } from '@/server/services/UserHandler'
@@ -91,18 +90,16 @@ async function initialize() {
 
     role.value = user.role;
 
-    const allOrders = await fetchOrderRequest(token);
+    const allOrders = await fetchOrders(token);
+    console.log(allOrders.message)
 
-    if (!allOrders || allOrders.length === 0) {
-      showSnackbar('No orders found.', 'info');
+    if (!allOrders || !allOrders.message || allOrders.message.length === 0) {
+      showSnackbar('No outbound orders found.', 'info');
       return;
     }
 
-    console.log('all orders', allOrders.message)
-
-    const outbound_orders = allOrders.message.filter((order: any) => {return order.is_outbound});
-    orders.value = Array.isArray(outbound_orders) ? outbound_orders : [];
-    showSnackbar(`Loaded all customer orders!`, 'success');
+    orders.value = Array.isArray(allOrders.message) ? allOrders.message : [];
+    showSnackbar(`Loaded all outbound orders!`, 'success');
 
   }catch(error: any){
     showSnackbar(`Error loading customer orders: ${error.message}`, 'error');
@@ -205,20 +202,20 @@ async function openDialog(){
 
   //add customer name automatically to form
 
-  // try {
-  //   const token = await auth.currentUser.getIdToken();
-  //   let customerName = ''
-  //
-  //
-  //   if(role.value === 'customer') {
-  //     customerName = auth.currentUser.uid || auth.currentUser.email;
-  //     editedItem.value.customer_id = customerName
-  //   }else{
-  //     editedItem.value.customer_id = '';
-  //   }
-  // }catch(error: any){
-  //   showSnackbar(`Failed to assign customer ID: ${error.message}`, 'error')
-  // }
+  try {
+    const token = await auth.currentUser.getIdToken();
+    let customerName = ''
+
+
+    if(role.value === 'customer') {
+      customerName = auth.currentUser.uid;
+      editedItem.value.customer_id = customerName
+    }else{
+      editedItem.value.customer_id = '';
+    }
+  }catch(error: any){
+    showSnackbar(`Failed to assign customer ID: ${error.message}`, 'error')
+  }
 
 
   dialog.value = true;
@@ -313,6 +310,7 @@ onMounted(() => {
                 <!--new order button-->
                 <template v-slot:activator="{ props }">
                   <v-btn
+                    v-if="role === 'customer'"
                     class="text-none font-weight-regular"
                     prepend-icon= "mdi-cart"
                     text="New Order"
@@ -394,81 +392,7 @@ onMounted(() => {
           </v-col>
         </v-row>
 
-
-<!--        &lt;!&ndash;edit dialog&ndash;&gt;-->
-<!--        <v-dialog v-model="dialogEdit" max-width="600px">-->
-<!--          <v-card>-->
-<!--            <v-card-title>-->
-<!--              Edit Status-->
-<!--            </v-card-title>-->
-<!--            <v-card-text>-->
-<!--              <v-row dense>-->
-<!--                <v-col cols="3">-->
-<!--                  <v-text-field-->
-<!--                    v-model="editedItem.po_number"-->
-<!--                    label="Order ID"-->
-<!--                    disabled-->
-<!--                  ></v-text-field>-->
-<!--                </v-col>-->
-<!--                <v-col cols="3">-->
-<!--                  <v-text-field-->
-<!--                    v-model="editedItem.customer_id"-->
-<!--                    label="Customer"-->
-<!--                    disabled-->
-<!--                  ></v-text-field>-->
-<!--                </v-col>-->
-<!--                <v-col cols="3">-->
-<!--                  <v-text-field-->
-<!--                    v-model="editedItem.part_number"-->
-<!--                    label="Part Number"-->
-<!--                    type="number"-->
-<!--                  ></v-text-field>-->
-<!--                </v-col>-->
-
-<!--                <v-col cols="3">-->
-<!--                  <v-text-field-->
-<!--                    v-model="editedItem.qty"-->
-<!--                    label="Part Number"-->
-<!--                    type="number"-->
-<!--                  ></v-text-field>-->
-<!--                </v-col>-->
-
-<!--                <v-col cols="3">-->
-<!--                  <v-select-->
-<!--                    v-model="editedItem.status"-->
-<!--                    :items="['Pending', 'Shipped', 'Delivered']"-->
-<!--                    label="Status"-->
-<!--                  ></v-select>-->
-<!--                </v-col>-->
-<!--              </v-row>-->
-<!--            </v-card-text>-->
-<!--            <v-card-actions>-->
-<!--              <v-spacer></v-spacer>-->
-<!--              <v-btn text="Cancel" @click="dialogEdit = false">Cancel</v-btn>-->
-<!--              <v-btn color="primary" @click="saveStatus">{{ buttonTitle }}</v-btn>-->
-<!--            </v-card-actions>-->
-<!--          </v-card>-->
-<!--        </v-dialog>-->
-
       </template>
-
-
-<!--edit order status using this button. i feel like we shouldnt change the persons order only the status -->
-<!--      <template v-slot:item.edit="{ item }">-->
-<!--          <v-icon-->
-<!--            dark-->
-<!--            elevation="0"-->
-<!--            size="small"-->
-<!--            class="me-2"-->
-<!--            color="green"-->
-<!--            @click="canEdit(item.status) && editItem(item)"-->
-<!--            :disabled="!canEdit(item.status)"-->
-<!--          >-->
-<!--            mdi-pencil-->
-<!--          </v-icon>-->
-<!--      </template>-->
-
-
 
     </v-data-table>
 
@@ -484,9 +408,5 @@ onMounted(() => {
   width: 500px;
 }
 
-.styled-header{
-  font-weight: bold;
-  color: #4a4a4a;
-  text-transform: uppercase;
-}
+
 </style>

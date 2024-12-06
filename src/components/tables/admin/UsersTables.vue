@@ -118,10 +118,13 @@ async function save() {
       //updating exisiting user
       const updatedItem = {
         ...editedItem.value,
-
+        email: editedItem.value.email,
+        username: editedItem.value.username,
+        role: editedItem.value.role
       }
 
       console.log(updatedItem)
+
 
       const response = await editUserRequest(updatedItem, updatedItem.uid, token);
 

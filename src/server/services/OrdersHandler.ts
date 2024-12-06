@@ -51,9 +51,8 @@ export async function editOrderRequest(order: any, firebase_id_token: string){
 }
 
 
-export async function fetchOrderRequest(firebase_id_token: string){
+export async function fetchOrders(firebase_id_token: string){
   const url = `${BASE_URL}/orders/`
-
 
   try{
     const response = await fetch(url, {

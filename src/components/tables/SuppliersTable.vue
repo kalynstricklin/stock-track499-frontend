@@ -263,6 +263,7 @@ onUnmounted(()=> {
 
             <template v-slot:activator="{ props }">
               <v-btn
+                v-if="role === 'admin' || role==='manager'"
                 class="text-none font-weight-regular"
                 prepend-icon= "mdi-account-multiple"
                 text="New Supplier"

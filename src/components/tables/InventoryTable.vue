@@ -22,23 +22,23 @@ const headers = computed(() => {
     // { title: 'Status', key: 'status', align: 'start', sortable: true, },
 
     { title: 'Stock Level', key: 'stock_level',  sortable: true, },
-    { title: 'Reorder Threshold', key: 'reorder_point',  sortable: true, },
-    { title: 'Outbound Price', key: 'outbound_price',  sortable: true, },
+    { title: 'Unit Price', key: 'outbound_price',  sortable: true, },
 
   ];
 
   // Employee and Admin roles should see the full
   if(role.value === 'employee' || role.value === 'admin' || role.value === 'manager'){
     base.push(
-
+      { title: 'Reorder Threshold', key: 'reorder_point',  sortable: true, },
       // { title: 'Reserved', key: 'reserved', align: 'start', sortable: true, },
       { title: 'Inbound Price', key: 'inbound_price', sortable: true, },
       { title: 'Lead Time', key: 'lead_time', sortable: true, },
-      { title: 'Reorder', key: 'reorder',  sortable: false },
+
     );
 
     if(role.value === 'admin' || role.value === 'manager'){
       base.push(
+        { title: 'Reorder', key: 'reorder',  sortable: false },
         { title: 'Edit', key: 'edit',  sortable: false },
         { title: 'Delete', key: 'delete', sortable: false },
       );

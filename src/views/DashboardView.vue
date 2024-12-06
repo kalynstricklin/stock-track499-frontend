@@ -41,6 +41,6 @@ import TopSellingTable from '@/components/dashboard/TopSellingTable.vue'
 
 <style scoped>
 .chart-card {
-  height: 300px;
+  height: 500px;
 }
 </style>

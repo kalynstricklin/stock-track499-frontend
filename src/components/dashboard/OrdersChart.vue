@@ -37,17 +37,17 @@ onMounted(() => {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          // title: {
-          //   display: true,
-          //   text: 'Customer Orders',
-          //   color: 'rgb(0,0,0)',
-          //
-          //   font: {
-          //     size: 18,
-          //     weight: 'bold',
-          //
-          //   },
-          // },
+          title: {
+            display: true,
+            text: 'Customer Orders',
+            // color: 'rgb(33,150,243)',
+
+            font: {
+              size: 18,
+              weight: 'bold',
+
+            },
+          },
           legend: {
             position: 'bottom',
             display: false,
@@ -88,7 +88,7 @@ onMounted(() => {
 
 <template>
   <v-container id="ordersTrendsChart" fluid tag="section">
-    <div style="width: 100%; height: 300px;">
+    <div style="width: 100%; height: 450px;">
       <canvas id="ordersChart"></canvas>
     </div>
   </v-container>

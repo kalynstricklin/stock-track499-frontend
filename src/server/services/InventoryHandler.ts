@@ -1,9 +1,5 @@
-import { showSnackbar } from '@/utils/utils'
+import { BASE_URL, showSnackbar } from '@/utils/utils'
 import { auth } from '../../firebase'
-import { supplierURL } from '@/server/services/SupplierHandler'
-import { userURL } from '@/server/services/UserHandler'
-
-export const inventoryURL: string = 'http://localhost:8000';
 
 export interface InventoryItem {
   part_name: string,
@@ -18,7 +14,7 @@ export interface InventoryItem {
 
 export async function editInventoryRequest(inventory: any, firebase_id_token: string){
 
-  const url = `${inventoryURL}/inventory/${inventory.part_number}/`;
+  const url = `${BASE_URL}/inventory/${inventory.part_number}/`;
 
   //check if authorized inventory
   if(!auth.currentUser){
@@ -58,7 +54,7 @@ export async function editInventoryRequest(inventory: any, firebase_id_token: st
 //method to fetch inventory from the database
 export async function fetchInventoryRequest(firebase_id_token: string) {
 
-  const url = `${inventoryURL}/inventory/`;
+  const url = `${BASE_URL}/inventory/`;
 
   try{
     const response = await fetch(url, {
@@ -87,7 +83,7 @@ export async function fetchInventoryRequest(firebase_id_token: string) {
 
 export async function deleteInventoryRequest(inventory_item: any, firebase_id_token: string) {
 
-  const url = `${inventoryURL}/inventory/${inventory_item.part_number}/`;
+  const url = `${BASE_URL}/inventory/${inventory_item.part_number}/`;
 
   //check if authorized inventory
   if(!auth.currentUser){
@@ -124,7 +120,7 @@ export async function deleteInventoryRequest(inventory_item: any, firebase_id_to
 //function to create a new inventory
 export async function createInventoryRequest(inventory_item: any, firebase_id_token: string){
 
-  const url = `${inventoryURL}/inventory/`;
+  const url = `${BASE_URL}/inventory/`;
 
   //check if authorized user
   if(!auth.currentUser){

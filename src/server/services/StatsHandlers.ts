@@ -1,52 +1,12 @@
-import { showSnackbar } from '@/utils/utils'
+import { BASE_URL, showSnackbar } from '@/utils/utils'
 import { auth } from '../../firebase'
-import { supplierURL } from '@/server/services/SupplierHandler'
-import { userURL } from '@/server/services/UserHandler'
-
-export const baseURL: string = 'http://localhost:8000';
-
-// export async function editStatRequest(stats: any, firebase_id_token: string){
-//
-//   const url = `${baseURL}/stats/`;
-//
-//   //check if authorized inventory
-//   if(!auth.currentUser){
-//     return 'Unauthorized';
-//   }
-//
-//   const token = await auth.currentUser.getIdToken();
-//
-//   if(token !== firebase_id_token){
-//     return 'Unauthorized'
-//   }
-//
-//   try{
-//     const response = await fetch(url, {
-//       method: 'PATCH',
-//       headers: {
-//         Authorization: `Bearer ${firebase_id_token}`,
-//         'Content-Type': 'application/json',
-//       },
-//       body: JSON.stringify(stats)
-//     });
-//
-//     if(!response.ok){
-//       return `Error updating stats: ${response.text()}`
-//     }
-//
-//     return 'Success'
-//
-//   }catch(error: any){
-//     return `Error updating stats: ${error.message}`
-//   }
-// }
 
 
 
-//method to fetch inventory from the database
+
 export async function fetchStatRequest(firebase_id_token: string) {
 
-  const url = `${baseURL}/stats/`;
+  const url = `${BASE_URL}/stats/`;
   try{
     const response = await fetch(url, {
       method: 'GET',
@@ -72,7 +32,7 @@ export async function fetchStatRequest(firebase_id_token: string) {
 
 export async function deleteStatRequest(stat: any, firebase_id_token: string) {
 
-  const url = `${baseURL}/stats/`;
+  const url = `${BASE_URL}/stats/`;
 
   //check if authorized inventory
   if(!auth.currentUser){
@@ -109,7 +69,7 @@ export async function deleteStatRequest(stat: any, firebase_id_token: string) {
 //function to create a new inventory
 export async function createStatRequest(stat: any, firebase_id_token: string){
 
-  const url = `${baseURL}/stats/`;
+  const url = `${BASE_URL}/stats/`;
 
   //check if authorized user
   if(!auth.currentUser){

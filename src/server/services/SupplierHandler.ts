@@ -1,7 +1,6 @@
-import { showSnackbar } from '@/utils/utils'
+import { BASE_URL, showSnackbar } from '@/utils/utils'
 import { auth } from '../../firebase'
 
-export const supplierURL: string = 'http://localhost:8000';
 
 export interface Supplier {
   supplier_name: string;
@@ -13,7 +12,7 @@ export interface Supplier {
 
 export async function editSupplierRequest(supplier: any, firebase_id_token: string){
 
-  const url = `${supplierURL}/suppliers/${supplier.supplier_id}/`;
+  const url = `${BASE_URL}/suppliers/${supplier.supplier_id}/`;
 
 
   //check if authorized inventory
@@ -54,7 +53,7 @@ export async function editSupplierRequest(supplier: any, firebase_id_token: stri
 //method to fetch supplier from the database
 export async function fetchSuppliersRequest(firebase_id_token: string) {
 
-  const url = `${supplierURL}/suppliers/`;
+  const url = `${BASE_URL}/suppliers/`;
 
   try{
     const response = await fetch(url, {
@@ -82,7 +81,7 @@ export async function fetchSuppliersRequest(firebase_id_token: string) {
 
 export async function deleteSupplierRequest(supplier: any, firebase_id_token: string) {
 
-  const url = `${supplierURL}/suppliers/${supplier.supplier_id}/`;
+  const url = `${BASE_URL}/suppliers/${supplier.supplier_id}/`;
 
   //check if authorized inventory
   if(!auth.currentUser){
@@ -121,7 +120,7 @@ export async function deleteSupplierRequest(supplier: any, firebase_id_token: st
 //function to create a new supplier
 export async function createSupplierRequest(supplier: any, firebase_id_token: string){
 
-  const url = `${supplierURL}/suppliers/`;
+  const url = `${BASE_URL}/suppliers/`;
 
   //check if authorized inventory
   if(!auth.currentUser){

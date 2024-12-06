@@ -1,7 +1,7 @@
-import { showSnackbar } from '@/utils/utils'
+import { BASE_URL, showSnackbar } from '@/utils/utils'
 import { auth } from '../../firebase'
 
-export const orderUrl: string = 'http://localhost:8000';
+
 
 export interface Order {
   po_number: number;
@@ -17,7 +17,7 @@ export interface Order {
 }
 
 export async function editOrderRequest(order: any, firebase_id_token: string){
-  const url = `${orderUrl}/orders/${order.po_number}/`
+  const url = `${BASE_URL}/orders/${order.po_number}/`
   //check if authorized inventory
   if(!auth.currentUser){
     return 'Unauthorized';
@@ -52,7 +52,7 @@ export async function editOrderRequest(order: any, firebase_id_token: string){
 
 
 export async function fetchOrderRequest(firebase_id_token: string){
-  const url = `${orderUrl}/orders/`
+  const url = `${BASE_URL}/orders/`
 
 
   try{
@@ -80,7 +80,7 @@ export async function fetchOrderRequest(firebase_id_token: string){
 
 export async function deleteOrderRequest(order: any, firebase_id_token: string) {
 
-  const url = `${orderUrl}/orders/${order.po_number}/`
+  const url = `${BASE_URL}/orders/${order.po_number}/`
   //check if authorized inventory
   if(!auth.currentUser){
     return 'Unauthorized';
@@ -116,7 +116,7 @@ export async function deleteOrderRequest(order: any, firebase_id_token: string) 
 //function to create a new order
 export async function createOrderRequest(order: any, firebase_id_token: string){
 
-  const url = `${orderUrl}/orders/`
+  const url = `${BASE_URL}/orders/`
   //check if authorized inventory
   if(!auth.currentUser){
     return 'Unauthorized';

@@ -1,8 +1,5 @@
-import { showSnackbar } from '@/utils/utils'
+import { BASE_URL, showSnackbar } from '@/utils/utils'
 import { auth } from '../../firebase'
-import { supplierURL } from '@/server/services/SupplierHandler'
-
-export const userURL: string = "http://localhost:8000";
 
 export async function editUserRequest(user: any, uid: string, firebase_id_token: string){
 
@@ -11,7 +8,7 @@ export async function editUserRequest(user: any, uid: string, firebase_id_token:
   if(!auth.currentUser){
     return 'Unauthorized';
   }
-  const url = `${userURL}/users/${uid}/`;
+  const url = `${BASE_URL}/users/${uid}/`;
 
 
   const token = await auth.currentUser.getIdToken();
@@ -45,7 +42,7 @@ export async function editUserRequest(user: any, uid: string, firebase_id_token:
 
 //method to fetch users from the database
 export async function fetchAllUsers(firebase_id_token: string) {
-  const url = `${userURL}/users/`;
+  const url = `${BASE_URL}/users/`;
 
   try{
     const response = await fetch(url, {
@@ -71,7 +68,7 @@ export async function fetchAllUsers(firebase_id_token: string) {
 }
 
 export async function fetchUserByUid(uid: string, firebase_id_token: string) {
-  const url = `${userURL}/users/${uid}/`;
+  const url = `${BASE_URL}/users/${uid}/`;
 
   try{
     const response = await fetch(url, {
@@ -99,7 +96,7 @@ export async function fetchUserByUid(uid: string, firebase_id_token: string) {
 
 export async function deleteUserRequest(uid: string, firebase_id_token: string) {
 
-  const url = `${userURL}/users/${uid}/`;
+  const url = `${BASE_URL}/users/${uid}/`;
 
   //check if authorized user
   if(!auth.currentUser){
@@ -136,7 +133,7 @@ export async function deleteUserRequest(uid: string, firebase_id_token: string) 
 //function to create a new user
 export async function createUserRequest(user: any, firebase_id_token: string){
 
-  const url = `${userURL}/users/`;
+  const url = `${BASE_URL}/users/`;
 
   //check if authorized user
   if(!auth.currentUser){

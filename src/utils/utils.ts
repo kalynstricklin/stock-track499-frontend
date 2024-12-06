@@ -35,3 +35,6 @@ export const getStatusColor = (status: string): string => {
       return 'grey';
   }
 };
+
+
+export const  BASE_URL = 'http://localhost:8000'

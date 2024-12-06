@@ -77,6 +77,7 @@ async function initialize() {
     return;
   }
 
+  showSnackbar('User Authenticated', 'success')
   try{
     const token = await auth.currentUser.getIdToken();
 

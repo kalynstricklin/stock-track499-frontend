@@ -72,6 +72,8 @@ async function initialize() {
     return;
   }
 
+  showSnackbar('User Authenticated', 'success')
+
   try{
     const token = await auth.currentUser.getIdToken();
 
@@ -139,10 +141,7 @@ async function save() {
 
       };
 
-      console.log('new item', newItem)
       const response = await createInventoryRequest(newItem, token);
-
-      console.log('response', response)
 
       if (response === 'Success') {
         showSnackbar(`New Item created: ${newItem.part_number}`, 'success');
@@ -165,8 +164,9 @@ async function save() {
 
       if (response === 'Success') {
         showSnackbar(`Inventory Item updated: ${updatedItem.part_number}`, 'success');
-            inventory.value[editedIndex.value] = {...editedItem.value}
-        // inventory.value.splice(editedIndex.value, 1, updatedItem);
+
+        // inventory.value[editedIndex.value] = {...editedItem.value}
+        inventory.value.splice(editedIndex.value, 1, updatedItem);
         close();
       } else {
         showSnackbar(`Failed to update inventory item: ${updatedItem.part_number}`, 'error');

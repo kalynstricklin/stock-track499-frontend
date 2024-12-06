@@ -106,9 +106,11 @@ async function save() {
 
   //check if authorized user
   if(!auth.currentUser){
+    showSnackbar('No authenticated user found.', 'error');
     return;
   }
 
+  showSnackbar('User Authenticated', 'success')
   try{
 
     const token = await auth.currentUser.getIdToken();
@@ -179,13 +181,16 @@ function editItem(item: any){
 async function deleteItemConfirm() {
 
   if(!auth.currentUser){
+    showSnackbar('No authenticated user found.', 'error');
     return;
   }
+  showSnackbar('User Authenticated', 'success')
 
-  const token = (await (auth.currentUser.getIdTokenResult())).token;
 
   try{
-    const response = await deleteSupplierRequest(editedItem.value.supplier_id.toString(), token);
+    const token = await auth.currentUser.getIdToken();
+
+    const response = await deleteSupplierRequest(editedItem.value, token);
 
     if(response === 'Success'){
       showSnackbar(`Successfully deleted supplier: ${editedItem.value.supplier_name}`, 'success');

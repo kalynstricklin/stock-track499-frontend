@@ -43,7 +43,7 @@ async function register() {
     const newUser = {
       username: `${firstName.value} ${lastName.value}`,
       email: email.value,
-      // password: password.value,
+      password: password.value,
       role: 'customer',
       // uid: userCred.user.uid
     };

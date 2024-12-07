@@ -255,15 +255,6 @@ function editItem(item: any){
   dialogEdit.value= true
 }
 
-// const saveStatus = () => {
-//   if(editedIndex.value !== -1){
-//     orders.value[editedIndex.value].status = editedItem.value.status;
-//     showSnackbar(`PO #${editedItem.value.po_number} Order Status Updated to ${editedItem.value.status}`, 'info');
-//   }
-//   dialogEdit.value = false;
-//
-// }
-
 
 //when component is mounted data will load
 onMounted(() => {
@@ -345,6 +336,16 @@ onMounted(() => {
 
                 <v-card-text>
                   <v-row dense>
+
+                    <v-col cols="12" md="6">
+                      <v-text-field
+                        v-model="editedItem.po_number"
+                        label="Order ID*"
+                        disabled
+                      ></v-text-field>
+                    </v-col>
+
+
                     <v-col cols="12" md="6">
                       <v-text-field
                         v-model="editedItem.customer_id"

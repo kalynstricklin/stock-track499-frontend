@@ -3,7 +3,7 @@ import { ref, computed, nextTick, onMounted, watch } from 'vue'
 import { getStatusColor, showSnackbar, snackbar } from '@/utils/utils'
 import { auth } from '@/firebase'
 import {
-  createOrderRequest, fetchOrders, fetchOrdersByUid,
+  createOrderRequest, editOrderRequest, fetchOrders,
   type Order
 } from '@/server/services/OrdersHandler'
 import { fetchUserByUid } from '@/server/services/UserHandler'
@@ -48,24 +48,24 @@ const role = ref('')
 
 const cxHeaders = computed(() =>{
   const base = [
-    { title: 'Order ID', key: 'po_number', align: 'start', sortable: true, class: 'styled-header' },
-    { title: 'Customer', key: 'customer_id', align: 'start', sortable: true, class: 'styled-header'},
-    { title: 'Part Name', key: 'part_name', align: 'start', sortable: true, class: 'styled-header' },
-    { title: 'Part Number', key: 'part_number', align: 'start', sortable: true, class: 'styled-header' },
-    { title: 'Supplier ID', key: 'supplier_id', align: 'start', sortable: true, class: 'styled-header' },
-    { title: 'Order Date', key: 'created', align: 'start', sortable: true, class: 'styled-header' },
-    { title: 'Delivery Date', key: 'due_date', align: 'start', sortable: true, class: 'styled-header' },
-    { title: 'Quantity', key: 'qty', align: 'start', sortable: true,class: 'styled-header' },
-    // { title: 'Unit Price', key: 'outbound_price', align: 'start', sortable: true, class: 'styled-header' },
-    { title: 'Total Cost', key: 'value', align: 'start', sortable: true, class: 'styled-header' },
-    { title: 'Status', key: 'status', align: 'start', sortable: true, class: 'styled-header' },
+    { title: 'Order ID', key: 'po_number', sortable: true, class: 'styled-header' },
+    { title: 'Customer', key: 'customer_id',   sortable: true, class: 'styled-header'},
+    { title: 'Part Name', key: 'part_name',   sortable: true, class: 'styled-header' },
+    { title: 'Part Number', key: 'part_number',   sortable: true, class: 'styled-header' },
+    { title: 'Supplier ID', key: 'supplier_id',   sortable: true, class: 'styled-header' },
+    { title: 'Order Date', key: 'created',   sortable: true, class: 'styled-header' },
+    { title: 'Delivery Date', key: 'due_date',   sortable: true, class: 'styled-header' },
+    { title: 'Quantity', key: 'qty',   sortable: true,class: 'styled-header' },
+    // { title: 'Unit Price', key: 'outbound_price',   sortable: true, class: 'styled-header' },
+    { title: 'Total Cost', key: 'value',   sortable: true, class: 'styled-header' },
+    { title: 'Status', key: 'status',   sortable: true, class: 'styled-header' },
   ];
 
-  // if(role.value === 'employee' || role.value==='manager' || role.value ==='admin'){
-  //   base.push(
-  //     { title: 'Edit', key: 'edit', align: 'center', sortable: false, class: 'styled-header' },
-  //   )
-  // }
+  if(role.value === 'employee' || role.value==='manager' || role.value ==='admin'){
+    base.push(
+      { title: 'Edit', key: 'edit', sortable: false, class: 'styled-header' },
+    )
+  }
 
   return base;
 });
@@ -76,6 +76,8 @@ async function initialize() {
     showSnackbar('No authenticated user found.', 'error');
     return;
   }
+
+  showSnackbar('User Authenticated', 'success')
 
   try{
     const token = await auth.currentUser.getIdToken();
@@ -130,62 +132,87 @@ async function save() {
 
   //check if authorized user
   if(!auth.currentUser){
+    showSnackbar('No authenticated user found.', 'error');
     return;
   }
 
+  showSnackbar('User Authenticated', 'success')
+
   try{
     const token = await auth.currentUser.getIdToken();
-    //fetch inv item details based on that part number
-    const itemDetails = await fetchInventoryRequest(token);
 
-    if (!itemDetails || itemDetails.length === 0) {
-      showSnackbar('No inventory items found.', 'info');
-      return;
-    }
+    if(editedIndex.value === -1 ){
 
-    const invItem = itemDetails.filter((u: any) => u.part_number === editedItem.value.part_number);
+      //fetch inv item details based on that part number
+      const itemDetails = await fetchInventoryRequest(token);
 
+      if (!itemDetails || itemDetails.length === 0) {
+        showSnackbar('No inventory items found.', 'info');
+        return;
+      }
 
-    if (!invItem) {
-      showSnackbar(`No inventory item found with part number ${editedItem.value.part_number}.`, 'info');
-      return;
-    }
-
-    const dueDate = new Date();
-    const createDate = new Date();
-
-    dueDate.setDate(dueDate.getDate() + invItem[0].lead_time)
-
-    var create =  createDate.getFullYear() + '-' +  (createDate.getMonth() + 1) + '-' + createDate.getDate();
+      const invItem = itemDetails.filter((u: any) => u.part_number === editedItem.value.part_number);
 
 
-    const newOrder = {
-      po_number: orders.value.length + 1,
-      customer_id: editedItem.value.customer_id,
-      part_name: invItem[0].part_name,
-      part_number: editedItem.value.part_number,
-      supplier_id: invItem[0].supplier_id,
-      due_date: dueDate.toISOString().split('T')[0],
-      created:  create,
-      // due_date: due,
-      // created:  create,
-      qty: editedItem.value.qty,
-      value: editedItem.value.qty * invItem[0].outbound_price,
-      is_outbound: editedItem.value.is_outbound,
-      status: 'Pending'
-    };
+      if (!invItem) {
+        showSnackbar(`No inventory item found with part number ${editedItem.value.part_number}.`, 'info');
+        return;
+      }
 
-    console.log('new order', newOrder)
-    const response = await createOrderRequest(newOrder, token);
+      const dueDate = new Date();
+      const createDate = new Date();
+
+      dueDate.setDate(dueDate.getDate() + invItem[0].lead_time)
+
+      var create =  createDate.getFullYear() + '-' +  (createDate.getMonth() + 1) + '-' + createDate.getDate();
 
 
-    if (response === 'Success') {
-      showSnackbar(`Order #${newOrder.po_number} created successfully!`, 'success');
-      orders.value = [newOrder, ...orders.value];
+      const newOrder = {
+        po_number: orders.value.length + 1,
+        customer_id: editedItem.value.customer_id,
+        part_name: invItem[0].part_name,
+        part_number: editedItem.value.part_number,
+        supplier_id: invItem[0].supplier_id,
+        due_date: dueDate.toISOString().split('T')[0],
+        created:  create,
+        // due_date: due,
+        // created:  create,
+        qty: editedItem.value.qty,
+        value: editedItem.value.qty * invItem[0].outbound_price,
+        is_outbound: editedItem.value.is_outbound,
+        status: 'Pending'
+      };
+
+      console.log('new order', newOrder)
+      const response = await createOrderRequest(newOrder, token);
+
+
+      if (response === 'Success') {
+        showSnackbar(`Order #${newOrder.po_number} created successfully!`, 'success');
+        orders.value = [newOrder, ...orders.value];
+        close();
+      } else {
+        showSnackbar(`Failed to create order: ${response}`, 'error');
+      }
+    }else{
+      const updatedItem = {
+        ...editedItem.value,
+      }
+
+      const response = await editOrderRequest(updatedItem, token);
+      console.log('response', response)
+
+      if(response === 'Success'){
+        showSnackbar(`Order Status updated: ${updatedItem.po_number}`, 'success');
+        orders.value[index] = {...editedItem.value}
+        close();
+      }else{
+        showSnackbar(`Failed to update order status: ${updatedItem.po_number}`, 'error');
+      }
       close();
-    } else {
-      showSnackbar(`Failed to create order: ${response}`, 'error');
+
     }
+
   } catch (error: any) {
     showSnackbar(`Error saving order: ${error.message}`, 'error');
   }
@@ -223,28 +250,10 @@ async function openDialog(){
 };
 
 function editItem(item: any){
-  if(!canEdit(item.status)){
-    showSnackbar('Cannot edit an order that is in Shipped or Delivered status.', 'error');
-    return;
-  }
   editedIndex.value = orders.value.indexOf(item)
-  editedItem.value = Object.assign({}, item)
+  editedItem.value = {...item }
   dialogEdit.value= true
 }
-
-const saveStatus = () => {
-  if(editedIndex.value !== -1){
-    orders.value[editedIndex.value].status = editedItem.value.status;
-    showSnackbar(`PO #${editedItem.value.po_number} Order Status Updated to ${editedItem.value.status}`, 'info');
-  }
-  dialogEdit.value = false;
-
-}
-
-const  canEdit = (status: string): boolean => {
-  return status === 'Pending';
-};
-
 
 
 //when component is mounted data will load
@@ -262,7 +271,7 @@ onMounted(() => {
       :headers="cxHeaders"
       :items="orders"
       item-value="PO_order"
-      :filter-keys="['po_number', 'part_name', 'customer_id', 'part_number','created', 'due_date', 'value', 'qty', 'is_outbound', 'supplier_id']"
+      :filter-keys="['po_number', 'status', 'part_name', 'customer_id', 'part_number','created', 'due_date', 'value', 'qty', 'is_outbound', 'supplier_id']"
     >
 
       <template v-slot:item.status="{ value }">
@@ -289,7 +298,6 @@ onMounted(() => {
         <v-row dense justify="space-between" align="center">
           <!-- Search Orders -->
           <v-col cols="8">
-
             <v-text-field
               v-model="search"
               density="compact"
@@ -300,7 +308,6 @@ onMounted(() => {
               hide-details
               single-line
             ></v-text-field>
-
           </v-col>
 
         <!--Create a new customer order-->
@@ -329,6 +336,16 @@ onMounted(() => {
 
                 <v-card-text>
                   <v-row dense>
+
+                    <v-col cols="12" md="6">
+                      <v-text-field
+                        v-model="editedItem.po_number"
+                        label="Order ID*"
+                        disabled
+                      ></v-text-field>
+                    </v-col>
+
+
                     <v-col cols="12" md="6">
                       <v-text-field
                         v-model="editedItem.customer_id"
@@ -392,8 +409,71 @@ onMounted(() => {
           </v-col>
         </v-row>
 
+
+
+        <!--edit dialog-->
+        <v-dialog v-model="dialogEdit" max-width="600px">
+          <v-card>
+            <v-card-title>
+              Edit Status
+            </v-card-title>
+            <v-card-text>
+              <v-row dense>
+                <v-col cols="3">
+                  <v-text-field
+                    v-model="editedItem.po_number"
+                    label="Order ID"
+                    disabled
+                  ></v-text-field>
+                </v-col>
+                <v-col cols="3">
+                  <v-text-field
+                    v-model="editedItem.customer_id"
+                    label="Customer"
+                    disabled
+                  ></v-text-field>
+                </v-col>
+                <v-col cols="3">
+                  <v-text-field
+                    v-model="editedItem.part_number"
+                    label="Part Number"
+                    disabled
+                  ></v-text-field>
+                </v-col>
+                <v-col cols="3">
+                  <v-select
+                    v-model="editedItem.status"
+                    :items="['Pending', 'Shipped', 'Delivered']"
+                    label="Status"
+                  ></v-select>
+                </v-col>
+              </v-row>
+            </v-card-text>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn text="Cancel" @click="dialogEdit = false">Cancel</v-btn>
+              <v-btn color="primary" @click="save">Save</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+
       </template>
 
+
+
+      <!--edit order status using this button. i feel like we shouldnt change the persons order only the status -->
+      <template v-slot:item.edit="{ item }">
+        <v-icon
+          dark
+          elevation="0"
+          size="small"
+          class="me-2"
+          color="green"
+          @click="editItem(item)"
+        >
+          mdi-pencil
+        </v-icon>
+      </template>
     </v-data-table>
 
   <v-snackbar v-model="snackbar.visible" :timeout="snackbar.timeout" location="top" :color="snackbar.color" >

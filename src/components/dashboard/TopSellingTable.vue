@@ -10,19 +10,14 @@ import {
 import { createOrderRequest } from '@/server/services/OrdersHandler'
 
 
-const headers = computed(() => {
-  const base= [
-    { title: 'Product Name', key: 'product_name', align: 'start', sortable: true, },
-    { title: 'Part Number', key: 'part_number', align: 'start', sortable: true, },
-    { title: 'Item Sold', key: 'item_sold', align: 'start', sortable: true, },
-    { title: 'Status', key: 'status', align: 'start', sortable: true, },
-    { title: 'Price', key: 'outbound_price', align: 'start', sortable: true, },
-    { title: 'Action', key: 'action', align: 'center', sortable: false },
+const headers =[
+    { title: 'Product Name', key: 'product_name',   sortable: true, },
+    { title: 'Part Number', key: 'part_number',   sortable: true, },
+    { title: 'Item Sold', key: 'count',   sortable: true, },
+    { title: 'Status', key: 'status',   sortable: true, },
+    { title: 'Price', key: 'outbound_price',   sortable: true, },
+    { title: 'Action', key: 'action', sortable: false },
   ];
-
-
-  return base;
-});
 
 
 
@@ -33,12 +28,6 @@ const topSelling = ref([])
 const role = ref('admin')
 
 async function initialize() {
-  topSelling.value = [
-    {product_name: 'Shirt', part_number: 5, item_sold: 134, status: 'In Stock', outbound_price: 13},
-    {product_name: 'Pencil', part_number: 5, item_sold: 134, status: 'In Stock', outbound_price: 13},
-    {product_name: 'Hammer', part_number: 5, item_sold: 134, status: 'In Stock', outbound_price: 13},
-    {product_name: 'Short', part_number: 5, item_sold: 134, status: 'In Stock', outbound_price: 13},
-  ];
 
   // if(!auth.currentUser){
   //   return;

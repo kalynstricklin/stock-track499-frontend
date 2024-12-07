@@ -1,6 +1,6 @@
 import AdminManagerLayout from '@/layouts/AdminManagerLayout.vue'
-import CustomerLayout from '@/layouts/CustomerLayout.vue'
 import EmployeeLayout from '@/layouts/EmployeeLayout.vue'
+import CustomerLayout from '@/layouts/CustomerLayout.vue'
 
 
 const SharedRoutes=[

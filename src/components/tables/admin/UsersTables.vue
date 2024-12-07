@@ -16,14 +16,14 @@ interface UserItem {
   username: string;
   email: string;
   role: string;
-  // uid: string;
+  uid: string;
 }
 
 
 const dialog = ref(false);
 const dialogDelete = ref(false)
-const editedItem = ref({ username: '', email: '', role: ''});
-const defaultItem = ref({ username: '', email: '', role: ''});
+const editedItem = ref({ username: '', email: '', role: '', uid: ''});
+const defaultItem = ref({ username: '', email: '', role: '', uid: ''});
 const editedIndex = ref(-1);
 const selected = ref([])
 
@@ -34,7 +34,6 @@ const headers = [
   { title: 'User Name', key: 'username' },
   { title: 'Email', key: 'email' },
   { title: 'Role', key: 'role' },
-
   { title: 'Edit', key: 'edit', sortable: false },
   { title: 'Delete', key: 'delete', sortable: false },
 ];
@@ -69,7 +68,7 @@ onMounted(() => {
 
 const close = () => {
   dialog.value = false;
-  editedItem.value = { username: '', email: '', role: ''};
+  editedItem.value = { username: '', email: '', role: '', uid: ''};
 };
 
 
@@ -80,6 +79,7 @@ async function save() {
     return;
   }
 
+  const index = users.value.findIndex(o => o.uid === editedItem.value.uid)
   //check if authorized user
   if(!auth.currentUser){
     return;
@@ -96,7 +96,7 @@ async function save() {
         username: editedItem.value.username,
         email: editedItem.value.email,
         role: editedItem.value.role,
-
+        uid: editedItem.value.uid
       };
 
 
@@ -120,7 +120,7 @@ async function save() {
         ...editedItem.value,
         email: editedItem.value.email,
         username: editedItem.value.username,
-        role: editedItem.value.role
+        role: editedItem.value.role,
       }
 
       console.log(updatedItem)
@@ -130,7 +130,7 @@ async function save() {
 
       if(response === 'Success'){
         showSnackbar(`User updated: ${updatedItem.username}`, 'success');
-        users.value =[updatedItem, ...users.value];
+        users.value[index] = {...editedItem.value}
         close();
       }else{
         showSnackbar(`Failed to update user: ${updatedItem.username}`, 'error');
@@ -154,12 +154,14 @@ const search = ref('')
 async function deleteItemConfirm() {
 
   if(!auth.currentUser){
+    showSnackbar('No authenticated user found.', 'error');
     return;
   }
 
-  const token = await auth.currentUser.getIdToken();
+  showSnackbar('User Authenticated', 'success')
 
   try{
+    const token = await auth.currentUser.getIdToken();
     if (editedIndex.value !== -1) {
       const response = await deleteUserRequest(editedItem.value.username.toString(), token);
 

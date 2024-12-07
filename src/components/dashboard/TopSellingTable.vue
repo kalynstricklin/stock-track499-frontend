@@ -3,25 +3,22 @@ import { ref, computed, nextTick, onMounted } from 'vue'
 import { getStatusColor, showSnackbar, snackbar } from '@/utils/utils'
 import { auth } from '@/firebase'
 import {
-  createInventoryRequest,
-  deleteInventoryRequest,
-  editInventoryRequest, fetchInventoryRequest, type InventoryItem
+  fetchInventoryRequest, type InventoryItem
 } from '@/server/services/InventoryHandler'
-import { createOrderRequest } from '@/server/services/OrdersHandler'
-
-
-const headers =[
-    { title: 'Product Name', key: 'product_name',   sortable: true, },
-    { title: 'Part Number', key: 'part_number',   sortable: true, },
-    { title: 'Item Sold', key: 'count',   sortable: true, },
-    { title: 'Status', key: 'status',   sortable: true, },
-    { title: 'Price', key: 'outbound_price',   sortable: true, },
-    { title: 'Action', key: 'action', sortable: false },
-  ];
+//import { createOrderRequest } from '@/server/services/OrdersHandler'
 
 
 
-const topSelling = ref([])
+const headers = [
+  { title: 'Product Name', key: 'product_name', sortable: true },
+  { title: 'Part Number', key: 'part_number', sortable: true },
+  { title: 'Current Stock', key: 'stock_quantity', sortable: true },
+  { title: 'Reorder Level', key: 'reorder_level', sortable: true },
+  { title: 'Price', key: 'outbound_price', sortable: true },
+  { title: 'Action', key: 'action', sortable: false }
+];
+
+const lowStockItems = ref<InventoryItem[]>([])
 
 
 //user roles
@@ -43,13 +40,20 @@ async function initialize() {
   // }catch(error: any){
   //   showSnackbar(`Error loading inventory: ${error.message}`, 'error');
   // }
+
+  try {
+    const inventoryItems = await fetchInventoryRequest(); 
+    lowStockItems.value = inventoryItems.filter((item) => item.stock_quantity <= item.reorder_level);
+    showSnackbar('Loaded low stock items!', 'success');
+  } catch (error: any) {
+    showSnackbar(`Error loading inventory: ${error.message}`, 'error');
+  }
 }
 
-const actionItem = (item: any) =>{
-  console.log('item')
+const actionItem = (item: InventoryItem) => {
+  console.log('Reorder action for:', item.part_number);
 }
 
-//when component is mounted data will load
 onMounted(() => {
   initialize();
 });
@@ -57,56 +61,52 @@ onMounted(() => {
 
 
 <template>
+  <v-data-table
+    :headers="headers"
+    :items="lowStockItems"
+    item-value="part_number"
+  >
 
-    <v-data-table
-      :headers="headers"
-      :items="topSelling"
-      item-value="part_number"
-    >
+    <template v-slot:item.outbound_price="{ value }">
+      {{ '$' + value }}
+    </template>
 
-      <template v-slot:item.outbound_price="{ value }">
-        {{'$' + value}}
-      </template>
+    <!--  Display current stock quantity and reorder level -->
+    <template v-slot:item.stock_quantity="{ value }">
+      <v-chip>{{ value }}</v-chip>
+    </template>
 
-      <!--  status styling -->
-      <template v-slot:item.status="{ value }">
-        <v-chip :color="getStatusColor(value)">
-          {{ value }}
-        </v-chip>
-      </template>
+    <template v-slot:item.reorder_level="{ value }">
+      <v-chip>{{ value }}</v-chip>
+    </template>
 
-      <!--    title of table-->
-      <template v-slot:top>
-        <v-toolbar flat>
-          <v-card-title class="d-flex align-center pe-2">Top Selling Product</v-card-title>
-        </v-toolbar>
-      </template>
+    <!--    title of table-->
+    <template v-slot:top>
+      <v-toolbar flat>
+        <v-card-title class="d-flex align-center pe-2">Low Stock Items</v-card-title>
+      </v-toolbar>
+    </template>
 
+    <!-- Action buttons -->
+    <template v-slot:item.action="{ item }">
+      <v-icon
+        v-if="role === 'manager' || role === 'admin'"
+        dark
+        elevation="0"
+        size="small"
+        class="me-2"
+        icon="mdi-alert"
+        @click="actionItem(item)"
+      ></v-icon>
+    </template>
+  </v-data-table>
 
-
-      <template v-slot:item.action="{ item }">
-        <v-icon
-          v-if="role === 'manager' || role === 'admin'"
-          dark
-          elevation="0"
-          size="small"
-          class="me-2"
-          icon="mdi-dots-horizontal"
-          @click="actionItem(item)"
-        ></v-icon>
-      </template>
-
-
-
-    </v-data-table>
-
-
-
-<!--  Re Order button snackbar-->
+  <!-- Reorder snackbar -->
   <v-snackbar v-model="snackbar.visible" :timeout="snackbar.timeout" location="top" :color="snackbar.color">
-    {{snackbar.message}}
+    {{ snackbar.message }}
   </v-snackbar>
 </template>
+
 
 <style scoped>
 .search-bar {

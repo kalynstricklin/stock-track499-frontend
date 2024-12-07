@@ -47,7 +47,6 @@ async function initialize() {
 
     role.value = user.role;
 
-
     const inbound_orders = await fetchOrders(token);
 
     if (!inbound_orders || inbound_orders.length === 0) {
@@ -61,11 +60,34 @@ async function initialize() {
     order.value = Array.isArray(inbound_orders.message) ? inbound_orders.message : [];
     showSnackbar(`Loaded all warehouse orders!`, 'success');
 
+    order.value.forEach((ord) => {
+      if (ord.status === 'Pending') {
+        updateOrderStatus(ord);
+      }
+    });
+
 
   }catch(error: any){
     showSnackbar(`Error loading warehouse orders: ${error.message}`, 'error');
   }
 }
+
+// timer for order status
+const updateOrderStatus = (order: Order) => {
+  if (order.status === 'Pending') {
+    setTimeout(() => {
+      order.status = 'Shipped';
+      showSnackbar(`Order #${order.po_number} status updated to Shipped.`, 'info');
+    }, 5000); // 5 seconds for testing
+
+    setTimeout(() => {
+      order.status = 'Delivered';
+      showSnackbar(`Order #${order.po_number} status updated to Delivered.`, 'info');
+    }, 10000); // 10 seconds for testing
+  }
+};
+
+
 
 // search bar
 const search = ref('')

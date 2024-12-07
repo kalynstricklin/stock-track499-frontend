@@ -70,6 +70,21 @@ const cxHeaders = computed(() =>{
   return base;
 });
 
+//timer function
+const updateCustomerOrderStatus = (order: Order) => {
+  if (order.status === 'Pending') {
+    setTimeout(() => {
+      order.status = 'Shipped';
+      showSnackbar(`Customer Order #${order.po_number} status updated to Shipped.`, 'info');
+    }, 5000); // 5 seconds for testing
+
+    setTimeout(() => {
+      order.status = 'Delivered';
+      showSnackbar(`Customer Order #${order.po_number} status updated to Delivered.`, 'info');
+    }, 10000); // 10 seconds for testing
+  }
+};
+
 
 async function initialize() {
   if(!auth.currentUser){
@@ -94,6 +109,14 @@ async function initialize() {
     const allOrders = await fetchOrders(token);
     console.log(allOrders.message)
 
+    const outbound_orders = allOrders.message.filter((order: any) => order.is_outbound);
+    orders.value = Array.isArray(outbound_orders) ? outbound_orders : [];
+
+    orders.value.forEach((o) => {
+      updateCustomerOrderStatus(o);
+    });
+
+
     if (!allOrders || !allOrders.message || allOrders.message.length === 0) {
       showSnackbar('No outbound orders found.', 'info');
       return;
@@ -106,7 +129,6 @@ async function initialize() {
     showSnackbar(`Error loading customer orders: ${error.message}`, 'error');
   }
 }
-
 
 const close = () => {
   dialog.value = false;

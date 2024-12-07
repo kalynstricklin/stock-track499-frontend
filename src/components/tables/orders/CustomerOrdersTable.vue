@@ -100,8 +100,16 @@ async function initialize() {
       return;
     }
 
-    orders.value = Array.isArray(allOrders.message) ? allOrders.message : [];
-    showSnackbar(`Loaded all outbound orders!`, 'success');
+    const outbound_orders = allOrders.message.filter((order: any) => {return order.is_outbound});
+    const my_orders = outbound_orders.filter((order: any) => user.uid === order.customer_id)
+
+    if(role.value === 'customer'){
+      orders.value = Array.isArray(my_orders) ? my_orders : [];
+      showSnackbar(`Successfully loaded all my orders!`, 'success');
+    }else {
+      orders.value = Array.isArray(outbound_orders) ? outbound_orders : [];
+      showSnackbar(`Successfully loaded all outbound orders!`, 'success');
+    }
 
   }catch(error: any){
     showSnackbar(`Error loading customer orders: ${error.message}`, 'error');
@@ -111,6 +119,7 @@ async function initialize() {
 
 const close = () => {
   dialog.value = false;
+  dialogEdit.value = false;
   nextTick(() => {
     editedItem.value = Object.assign({}, defaultItem.value);
     editedIndex.value = -1;
@@ -443,7 +452,7 @@ onMounted(() => {
                 <v-col cols="3">
                   <v-select
                     v-model="editedItem.status"
-                    :items="['Pending', 'Shipped', 'Delivered']"
+                    :items="['Pending', 'Received', 'Shipped', 'Delivered', 'Cancelled']"
                     label="Status"
                   ></v-select>
                 </v-col>

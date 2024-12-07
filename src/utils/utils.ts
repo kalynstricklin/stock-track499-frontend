@@ -18,11 +18,20 @@ export const snackbar = ref({
 export const getStatusColor = (status: string): string => {
   switch (status) {
     case 'Pending':
+      return 'amber';
+
     case 'Inactive':
     case 'Out of Stock':
+    case 'Cancelled':
       return 'red';
 
+    case 'Received':
+      return 'blue';
+
+
     case 'Shipped':
+      return '';
+
     case 'Low Stock':
       return 'orange';
 

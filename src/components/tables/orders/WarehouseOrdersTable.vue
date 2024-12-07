@@ -55,10 +55,8 @@ async function initialize() {
       return;
     }
 
-    console.log('all orders', inbound_orders.message)
-
-    // const inbound_orders = allOrders.message.filter((order: any) => {return !order.is_outbound});
-    order.value = Array.isArray(inbound_orders.message) ? inbound_orders.message : [];
+    const inbound = inbound_orders.message.filter((order: any) => {return !order.is_outbound});
+    order.value = Array.isArray(inbound) ? inbound : [];
     showSnackbar(`Loaded all warehouse orders!`, 'success');
 
 

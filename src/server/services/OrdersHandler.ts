@@ -17,7 +17,9 @@ export interface Order {
 }
 
 export async function editOrderRequest(order: any, firebase_id_token: string){
+
   const url = `${BASE_URL}/orders/${order.po_number}/`
+
   //check if authorized inventory
   if(!auth.currentUser){
     return 'Unauthorized';

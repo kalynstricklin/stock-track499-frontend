@@ -10,6 +10,17 @@ import {
 import { fetchUserByUid } from '@/server/services/UserHandler'
 import { ref, computed, nextTick, onMounted } from 'vue'
 
+// Define the structure of statItems
+interface StatItems {
+  revenue: number;
+  num_customers: number;
+  num_orders: number;
+  num_low_stock_items: number;
+}
+
+// statItems with a type
+const statItems = ref<StatItems | null>(null);
+
 //user roles
 const role = ref('')
 // Reactive variables for dashboard stats
@@ -19,16 +30,16 @@ const orderCount = ref(0);
 const lowStockCount = ref(0);
 
 async function initialize() {
-  if(!auth.currentUser){
+  if (!auth.currentUser) {
     showSnackbar('No authenticated user found.', 'error');
     return;
   }
 
-  try{
+  try {
     const token = await auth.currentUser.getIdToken();
 
-    //set user role
-    let user = await fetchUserByUid(auth.currentUser.uid, token);
+    // Set user role
+    const user = await fetchUserByUid(auth.currentUser.uid, token);
 
     if (!user) {
       showSnackbar('No user found.', 'info');
@@ -37,33 +48,72 @@ async function initialize() {
 
     role.value = user.role;
 
-    //now fetch stat items
+    // Fetch stat items
     const today = new Date();
     const formattedDate = `${today.getMonth() + 1}-${today.getDate()}-${today.getFullYear()}`;
-    const statItems = await fetchStatRequest(token, formattedDate);
+    statItems.value = await fetchStatRequest(token, formattedDate); // Update value property
 
-    console.log('stat items', statItems)
+    console.log('stat items', statItems.value);
+
     // Update reactive variables
-    if (statItems) {
-      customerCount.value = statItems.num_customers || 0; // Dynamically set customer count
-      revenueTotal.value = statItems.revenue.toLocaleString(); // Format revenue as string
-      orderCount.value = statItems.num_orders || 0; // Update order count
-      lowStockCount.value = statItems.num_low_stock_items || 0; // Update low stock count
+    if (statItems.value) {
+      customerCount.value = statItems.value.num_customers || 0; // Dynamically set customer count
+      revenueTotal.value = statItems.value.revenue.toLocaleString(); // Format revenue as string
+      orderCount.value = statItems.value.num_orders || 0; // Update order count
+      lowStockCount.value = statItems.value.num_low_stock_items || 0; // Update low stock count
     }
 
     showSnackbar(`Loaded Statistics!`, 'success');
-
-  }catch(error: any){
+  } catch (error: any) {
     showSnackbar(`Error loading dashboard: ${error.message}`, 'error');
   }
 }
+
 //when component is mounted data will load
 onMounted(() => {
   initialize();
 });
+
+function exportJSON() {
+  console.log('stat items', statItems.value)
+  if (!statItems.value) {
+    showSnackbar('No data available to export.', 'error');
+    return;
+  }
+
+  const dataStr = JSON.stringify(statItems.value, null, 2); // Pretty-print JSON
+  const blob = new Blob([dataStr], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+
+  // Create a temporary link element to trigger the download
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `stats-${new Date().toISOString().slice(0, 10)}.json`; // File name with today's date
+  document.body.appendChild(link);
+  link.click();
+
+  // Clean up
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+
+  showSnackbar('Exported JSON data successfully!', 'success');
+}
 </script>
 <template>
   <v-container id="dashboard" fluid tag="section">
+    
+    <v-row 
+      justify="end" 
+      class="mb-8">
+      <v-btn 
+        append-icon="mdi-download" 
+        color="primary"
+        rounded="xl"
+        @click="exportJSON">
+        Export Data
+      </v-btn>
+    </v-row>
+
     <v-row>
       <v-col
         cols="12"

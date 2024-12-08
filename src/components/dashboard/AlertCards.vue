@@ -25,7 +25,7 @@ const statItems = ref<StatItems | null>(null);
 const role = ref('')
 // Reactive variables for dashboard stats
 const customerCount = ref(0); // Updated to ref for reactivity
-const revenueTotal = ref('0');
+const revenueTotal = ref(0);
 const orderCount = ref(0);
 const lowStockCount = ref(0);
 
@@ -58,7 +58,7 @@ async function initialize() {
     // Update reactive variables
     if (statItems.value) {
       customerCount.value = statItems.value.num_customers || 0; // Dynamically set customer count
-      revenueTotal.value = statItems.value.revenue.toLocaleString(); // Format revenue as string
+      revenueTotal.value = statItems.value.revenue;// Format revenue as string
       orderCount.value = statItems.value.num_orders || 0; // Update order count
       lowStockCount.value = statItems.value.num_low_stock_items || 0; // Update low stock count
     }
@@ -183,7 +183,7 @@ function exportJSON() {
         </v-card>
 
         <v-card class="pa-2">
-          <v-card-subtitle class="text-right">Orders</v-card-subtitle>
+          <v-card-subtitle class="text-right">Customer Orders</v-card-subtitle>
 
           <v-card-title class="text-right" style="font-size: 2rem;">{{ orderCount }}</v-card-title>
 

@@ -114,7 +114,7 @@ export async function deleteUserRequest(uid: string, firebase_id_token: string) 
       mode: 'cors',
       headers: {
         'Content-Type': 'application/json',
-        // Authorization: `Bearer ${firebase_id_token}`
+        Authorization: `Bearer ${firebase_id_token}`
       },
     });
 

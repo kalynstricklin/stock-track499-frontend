@@ -162,16 +162,15 @@ async function deleteItemConfirm() {
 
   try{
     const token = await auth.currentUser.getIdToken();
-    if (editedIndex.value !== -1) {
-      const response = await deleteUserRequest(editedItem.value.username.toString(), token);
+    const response = await deleteUserRequest(editedItem.value.uid, token);
 
-      if(response === 'Success'){
-        showSnackbar(`Successfully deleted user: ${editedItem.value.username}`, 'success');
-        users.value.splice(editedIndex.value, 1);
-      }else{
-        showSnackbar(`Failed to delete user: ${editedItem.value.username}`, 'error');
-      }
+    if(response === 'Success'){
+      showSnackbar(`Successfully deleted user: ${editedItem.value.username}`, 'success');
+      users.value.splice(editedIndex.value, 1);
+    }else{
+      showSnackbar(`Failed to delete user: ${editedItem.value.username}`, 'error');
     }
+
 
   }catch(error: any){
     showSnackbar(`Error: ${error.message}`, 'error');

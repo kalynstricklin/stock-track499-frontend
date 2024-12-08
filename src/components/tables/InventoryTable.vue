@@ -7,7 +7,7 @@ import {
   deleteInventoryRequest,
   editInventoryRequest, fetchInventoryRequest, type InventoryItem
 } from '@/server/services/InventoryHandler'
-import { createOrderRequest } from '@/server/services/OrdersHandler'
+import { createOrderRequest, fetchOrders } from '@/server/services/OrdersHandler'
 import { fetchUserByUid } from '@/server/services/UserHandler'
 
 
@@ -18,8 +18,6 @@ const headers = computed(() => {
     { title: 'Part Name', key: 'part_name',  sortable: true, },
     { title: 'Part Number', key: 'part_number',  sortable: true, },
     { title: 'Supplier', key: 'supplier_id', sortable: true, },
-    // { title: 'On Hand', key: 'on_hand',   sortable: true, },
-    // { title: 'Status', key: 'status',   sortable: true, }
     { title: 'Stock Level', key: 'stock_level',  sortable: true, },
     { title: 'Price', key: 'outbound_price',  sortable: true, },
 
@@ -29,7 +27,7 @@ const headers = computed(() => {
   if(role.value === 'employee' || role.value === 'admin' || role.value === 'manager'){
     base.push(
 
-      // { title: 'Reserved', key: 'reserved',   sortable: true, },
+      { title: 'Reserved', key: 'reserved',   sortable: true, },
       { title: 'Inbound Price', key: 'inbound_price', sortable: true, },
       { title: 'Reorder Threshold', key: 'reorder_point',  sortable: true, },
       { title: 'Lead Time (Days)', key: 'lead_time', sortable: true, },
@@ -52,7 +50,7 @@ const headers = computed(() => {
 const dialog = ref(false)
 const dialogDelete = ref(false)
 const editedItem = ref({  part_name: '',  lead_time: 0, part_number: 0, supplier_id: 0, reorder_point: 0, stock_level: 0, inbound_price: 0.0, outbound_price: 0.0, });
-const defaultItem = ref({ part_name: '',  lead_time: 0, part_number: 0, supplier_id: 0,reorder_point: 0, stock_level: 0, inbound_price: 0.0, outbound_price: 0.0, });
+const defaultItem = ref({ part_name: '',  lead_time: 0, part_number: 0, supplier_id: 0, reorder_point: 0, stock_level: 0, inbound_price: 0.0, outbound_price: 0.0, });
 const editedIndex = ref(-1);
 
 const buttonTitle = computed(()=>{return editedIndex.value === -1 ? 'Add' : 'Update'})
@@ -239,31 +237,56 @@ async function reorder(item: InventoryItem){
     return;
   }
 
-
-
   const dueDate = new Date();
   const createDate = new Date();
 
-  dueDate.setDate(dueDate.getDate() + editedItem.value.lead_time)
+  dueDate.setDate(dueDate.getDate() + item.lead_time)
 
   var create =  createDate.getFullYear() + '-' +  (createDate.getMonth() + 1) + '-' + createDate.getDate();
+
+
+  if(item.stock_level >= item.reorder_point){
+    showSnackbar(`Stock does not need to be reordered`, 'info');
+    return;
+  }
 
   try{
     const token = await auth.currentUser.getIdToken();
 
-    const qtyToReorder = item.stock_level
-    // const qtyToReorder = item.reorder_point - item.on_hand + item.reserved;
+    let reserved = 0;
+
+    //get all orders then filter orders by pending orders to see what the reserved quantity is
+    const ordersPlaced = await fetchOrders(token);
+
+    console.log('Orders', ordersPlaced)
+    if(ordersPlaced){
+      const pendingItemsInOrders = ordersPlaced.message.filter((order: any) => order.is_outbound && order.status === "Pending" && (item.part_number === order.part_number));
+
+      console.log(pendingItemsInOrders);
+
+      reserved = pendingItemsInOrders.reduce((total: number, order: any) => total + order.qty, 0);
+      console.log('reserved', reserved)
+
+    }
+
+    const qtyToReorder = item.reorder_point - (item.stock_level + reserved);
+
+    console.log('qty to reorder', qtyToReorder)
+
+    if(qtyToReorder <= 0){
+      showSnackbar('Invalid quantity to reorder. ', 'error');
+      return;
+    }
 
     const purchaseOrder = {
-      // po_number: 233,
       part_name: item.part_name,
       part_number: item.part_number,
       supplier_id: item.supplier_id,
-      qty: item.stock_level, //this should be replaced automatically with the value associated with the restock value
-      due_date: dueDate.toISOString().split('T')[0],
+      qty: qtyToReorder,
+      due_date: dueDate,
       created:  create,
       value: item.inbound_price * qtyToReorder,
-      customer_id: '',
+      customer_id: auth.currentUser.uid,
       is_outbound:  false,
       status: 'Pending'
     };

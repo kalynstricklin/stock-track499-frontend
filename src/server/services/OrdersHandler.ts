@@ -4,7 +4,7 @@ import { auth } from '../../firebase'
 
 
 export interface Order {
-  po_number: number;
+  id: number;
   part_number: number;
   supplier_id: number;
   qty: number;
@@ -18,7 +18,7 @@ export interface Order {
 
 export async function editOrderRequest(order: any, firebase_id_token: string){
 
-  const url = `${BASE_URL}/orders/${order.po_number}/`
+  const url = `${BASE_URL}/orders/${order.id}/`
 
   //check if authorized inventory
   if(!auth.currentUser){
@@ -42,13 +42,13 @@ export async function editOrderRequest(order: any, firebase_id_token: string){
     });
 
     if(!response.ok){
-      return `Error updating order ${order.order_id} : ${response.text()}`
+      return `Error updating order ${order.id} : ${response.text()}`
     }
 
     return 'Success'
 
   }catch(error: any){
-    return `Error updating order ${order.order_id} : ${error.message}`
+    return `Error updating order ${order.id} : ${error.message}`
   }
 }
 
@@ -81,7 +81,7 @@ export async function fetchOrders(firebase_id_token: string){
 
 export async function deleteOrderRequest(order: any, firebase_id_token: string) {
 
-  const url = `${BASE_URL}/orders/${order.po_number}/`
+  const url = `${BASE_URL}/orders/${order.id}/`
   //check if authorized inventory
   if(!auth.currentUser){
     return 'Unauthorized';
@@ -103,13 +103,13 @@ export async function deleteOrderRequest(order: any, firebase_id_token: string) 
     });
 
     if(!response.ok){
-      return `Error deleting order ${order.po_number} : ${response.text()}`
+      return `Error deleting order ${order.id} : ${response.text()}`
     }
 
     return 'Success'
 
   }catch(error: any){
-    return `Error deleting order${order.po_number}: ${error.message}`
+    return `Error deleting order${order.id}: ${error.message}`
   }
 }
 
@@ -140,7 +140,7 @@ export async function createOrderRequest(order: any, firebase_id_token: string){
     });
 
     if(!response.ok){
-      return `Error creating order ${order.order_id} : ${response.text()}`
+      return `Error creating order ${order.id} : ${response.text()}`
     }
 
     return 'Success'

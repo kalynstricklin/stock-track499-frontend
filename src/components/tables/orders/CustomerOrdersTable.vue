@@ -12,7 +12,7 @@ import { fetchInventoryRequest } from '@/server/services/InventoryHandler'
 
 
 const defaultOrder = {
-  po_number: 0,
+  id: 0,
   part_name: '',
   part_number: 0,
   supplier_id: 0,
@@ -48,7 +48,7 @@ const role = ref('')
 
 const cxHeaders = computed(() =>{
   const base = [
-    { title: 'Order ID', key: 'po_number', sortable: true, class: 'styled-header' },
+    { title: 'Order ID', key: 'id', sortable: true, class: 'styled-header' },
     { title: 'Customer', key: 'customer_id',   sortable: true, class: 'styled-header'},
     { title: 'Part Name', key: 'part_name',   sortable: true, class: 'styled-header' },
     { title: 'Part Number', key: 'part_number',   sortable: true, class: 'styled-header' },
@@ -58,7 +58,7 @@ const cxHeaders = computed(() =>{
     { title: 'Quantity', key: 'qty',   sortable: true,class: 'styled-header' },
     // { title: 'Unit Price', key: 'outbound_price',   sortable: true, class: 'styled-header' },
     { title: 'Total Cost', key: 'value',   sortable: true, class: 'styled-header' },
-    { title: 'Status', key: 'status',   sortable: true, class: 'styled-header' },
+    { title: 'Status', key: 'status',  class: 'styled-header' },
   ];
 
   if(role.value === 'employee' || role.value==='manager' || role.value ==='admin'){
@@ -101,13 +101,26 @@ async function initialize() {
     }
 
     const outbound_orders = allOrders.message.filter((order: any) => {return order.is_outbound});
-    const my_orders = outbound_orders.filter((order: any) => user.uid === order.customer_id)
+
+
+    //update customer id from uid to username
+    const updatedOrderWithUser = await Promise.all(outbound_orders.map(async (order: any) =>{
+
+        const customer = await fetchUserByUid(order.customer_id, token);
+        return {
+          ...order,
+          customer_id: customer ? customer.username : 'Unknown'
+        }
+      })
+    );
+
+    const my_orders = updatedOrderWithUser.filter((order: any) => user.uid === order.customer_id);
 
     if(role.value === 'customer'){
       orders.value = Array.isArray(my_orders) ? my_orders : [];
       showSnackbar(`Successfully loaded all my orders!`, 'success');
     }else {
-      orders.value = Array.isArray(outbound_orders) ? outbound_orders : [];
+      orders.value = Array.isArray(updatedOrderWithUser) ? updatedOrderWithUser : [];
       showSnackbar(`Successfully loaded all outbound orders!`, 'success');
     }
 
@@ -134,7 +147,7 @@ async function save() {
     return;
   }
 
-  const index = orders.value.findIndex(o => o.po_number === editedItem.value.po_number)
+  const index = orders.value.findIndex(o => o.id === editedItem.value.id)
 
   editedItem.value.part_number = Number(editedItem.value.part_number);
   editedItem.value.qty = Number(editedItem.value.qty);
@@ -177,7 +190,8 @@ async function save() {
 
 
       const newOrder = {
-        po_number: orders.value.length + 1,
+        // po_number: orders.value.length + 1,
+        id: orders.value.length +1,
         customer_id: editedItem.value.customer_id,
         part_name: invItem[0].part_name,
         part_number: editedItem.value.part_number,
@@ -197,7 +211,7 @@ async function save() {
 
 
       if (response === 'Success') {
-        showSnackbar(`Order #${newOrder.po_number} created successfully!`, 'success');
+        showSnackbar(`Order #${newOrder.id} created successfully!`, 'success');
         orders.value = [newOrder, ...orders.value];
         close();
       } else {
@@ -212,11 +226,11 @@ async function save() {
       console.log('response', response)
 
       if(response === 'Success'){
-        showSnackbar(`Order Status updated: ${updatedItem.po_number}`, 'success');
+        showSnackbar(`Order Status updated: ${updatedItem.id}`, 'success');
         orders.value[index] = {...editedItem.value}
         close();
       }else{
-        showSnackbar(`Failed to update order status: ${updatedItem.po_number}`, 'error');
+        showSnackbar(`Failed to update order status: ${updatedItem.id}`, 'error');
       }
       close();
 
@@ -235,13 +249,10 @@ async function openDialog(){
     return;
   }
 
-
   //add customer name automatically to form
-
   try {
     const token = await auth.currentUser.getIdToken();
     let customerName = ''
-
 
     if(role.value === 'customer') {
       customerName = auth.currentUser.uid;
@@ -279,8 +290,8 @@ onMounted(() => {
       v-model:search="search"
       :headers="cxHeaders"
       :items="orders"
-      item-value="PO_order"
-      :filter-keys="['po_number', 'status', 'part_name', 'customer_id', 'part_number','created', 'due_date', 'value', 'qty', 'is_outbound', 'supplier_id']"
+      item-value="customer_id"
+      :filter-keys="['status', 'part_name', 'customer_id', 'part_number','created', 'due_date', 'value', 'qty', 'is_outbound', 'supplier_id']"
     >
 
       <template v-slot:item.status="{ value }">
@@ -348,7 +359,7 @@ onMounted(() => {
 
                     <v-col cols="12" md="6">
                       <v-text-field
-                        v-model="editedItem.po_number"
+                        v-model="editedItem.id"
                         label="Order ID*"
                         disabled
                       ></v-text-field>
@@ -430,7 +441,7 @@ onMounted(() => {
               <v-row dense>
                 <v-col cols="3">
                   <v-text-field
-                    v-model="editedItem.po_number"
+                    v-model="editedItem.id"
                     label="Order ID"
                     disabled
                   ></v-text-field>
@@ -452,7 +463,7 @@ onMounted(() => {
                 <v-col cols="3">
                   <v-select
                     v-model="editedItem.status"
-                    :items="['Pending', 'Received', 'Shipped', 'Delivered', 'Cancelled']"
+                    :items="['Pending', 'Shipped']"
                     label="Status"
                   ></v-select>
                 </v-col>
@@ -470,7 +481,7 @@ onMounted(() => {
 
 
 
-      <!--edit order status using this button. i feel like we shouldnt change the persons order only the status -->
+      <!--edit order status using this button. -->
       <template v-slot:item.edit="{ item }">
         <v-icon
           dark

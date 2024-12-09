@@ -10,7 +10,6 @@ import InBoundOrder from '@/components/tables/orders/WarehouseOrdersTable.vue'
 
 </template>
 
-
 <style scoped>
 </style>
 

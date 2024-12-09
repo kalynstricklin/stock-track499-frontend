@@ -60,7 +60,7 @@ const Routes = [
     component: CustomerLayout,
     meta: {
       requiresAuth: true,
-      role: '/customer'
+      role: 'customer'
     },
     children: [
       ...SharedRoutes,

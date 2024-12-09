@@ -3,19 +3,13 @@ import Order from '@/components/tables/orders/CustomerOrdersTable.vue'
 </script>
 
 <template>
-  <v-container class="table-container">
+  <v-container>
       <Order/>
   </v-container>
-
-
-
-
 </template>
 
 
 <style scoped>
-.table-container {
-  height: 100%;
-}
+
 </style>
 

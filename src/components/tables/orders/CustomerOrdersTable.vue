@@ -114,7 +114,7 @@ async function initialize() {
       })
     );
 
-    const my_orders = updatedOrderWithUser.filter((order: any) => user.uid === order.customer_id);
+    const my_orders = outbound_orders.filter((order: any) => user.uid === order.customer_id);
 
     if(role.value === 'customer'){
       orders.value = Array.isArray(my_orders) ? my_orders : [];
@@ -392,12 +392,12 @@ onMounted(() => {
                     ></v-text-field>
 
 
-                    <v-col cols="12" md="6">
-                      <v-checkbox
-                        v-model="editedItem.is_outbound"
-                        label="Is Outbound"
-                      ></v-checkbox>
-                    </v-col>
+<!--                    <v-col cols="12" md="6">-->
+<!--                      <v-checkbox-->
+<!--                        v-model="editedItem.is_outbound"-->
+<!--                        label="Is Outbound"-->
+<!--                      ></v-checkbox>-->
+<!--                    </v-col>-->
 
 
                   </v-row>

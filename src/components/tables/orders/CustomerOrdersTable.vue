@@ -104,15 +104,15 @@ async function initialize() {
 
 
     //update customer id from uid to username
-    const updatedOrderWithUser = await Promise.all(outbound_orders.map(async (order: any) =>{
-
-        const customer = await fetchUserByUid(order.customer_id, token);
-        return {
-          ...order,
-          customer_id: customer ? customer.username : 'Unknown'
-        }
-      })
-    );
+    // const updatedOrderWithUser = await Promise.all(outbound_orders.map(async (order: any) =>{
+    //
+    //     const customer = await fetchUserByUid(order.customer_id, token);
+    //     return {
+    //       ...order,
+    //       customer_id: customer ? customer.username : order.customer_id
+    //     }
+    //   })
+    // );
 
     const my_orders = outbound_orders.filter((order: any) => user.uid === order.customer_id);
 
@@ -120,7 +120,7 @@ async function initialize() {
       orders.value = Array.isArray(my_orders) ? my_orders : [];
       showSnackbar(`Successfully loaded all my orders!`, 'success');
     }else {
-      orders.value = Array.isArray(updatedOrderWithUser) ? updatedOrderWithUser : [];
+      orders.value = Array.isArray(outbound_orders) ? outbound_orders : [];
       showSnackbar(`Successfully loaded all outbound orders!`, 'success');
     }
 

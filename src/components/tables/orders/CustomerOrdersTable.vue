@@ -260,9 +260,9 @@ async function openDialog(){
   //   }else{
   //     editedItem.value.customer_id = '';
   //   }
-  }catch(error: any){
-    showSnackbar(`Failed to assign customer ID: ${error.message}`, 'error')
-  }
+  // }catch(error: any){
+  //   showSnackbar(`Failed to assign customer ID: ${error.message}`, 'error')
+  // }
 
 
   dialog.value = true;

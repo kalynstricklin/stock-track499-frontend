@@ -10,6 +10,7 @@ export interface InventoryItem {
   outbound_price: number;
   reorder_point: number;
   stock_level: number;
+  status: string;
 }
 
 export async function editInventoryRequest(inventory: any, firebase_id_token: string){

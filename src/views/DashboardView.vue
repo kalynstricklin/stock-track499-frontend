@@ -3,7 +3,7 @@
 import AlertCards from '@/components/dashboard/AlertCards.vue'
 import SalesChart from '@/components/dashboard/RevenueChart.vue'
 import OrdersChart from '@/components/dashboard/OrdersChart.vue'
-import TopSellingTable from '@/components/dashboard/TopSellingTable.vue'
+import TopSellingTable from '@/components/dashboard/LowStockTable.vue'
 
 </script>
 

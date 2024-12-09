@@ -20,11 +20,9 @@ router.beforeEach(async (to, from, next) =>{
   const user = auth?.currentUser;
 
 
-
   const publicPage = ['/auth/account']
   const authReq = !publicPage.includes(to.path);
 
-  const userRole = 'employee';
 
   if(authReq && !user){
     next({path: "/auth/account"});

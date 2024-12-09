@@ -249,17 +249,17 @@ async function openDialog(){
     return;
   }
 
-  //add customer name automatically to form
-  try {
-    const token = await auth.currentUser.getIdToken();
-    let customerName = ''
-
-    if(role.value === 'customer') {
-      customerName = auth.currentUser.uid;
-      editedItem.value.customer_id = customerName
-    }else{
-      editedItem.value.customer_id = '';
-    }
+  // //add customer name automatically to form
+  // try {
+  //   const token = await auth.currentUser.getIdToken();
+  //   let customerName = ''
+  //
+  //   if(role.value === 'customer') {
+  //     customerName = auth.currentUser.uid;
+  //     editedItem.value.customer_id = customerName
+  //   }else{
+  //     editedItem.value.customer_id = '';
+  //   }
   }catch(error: any){
     showSnackbar(`Failed to assign customer ID: ${error.message}`, 'error')
   }

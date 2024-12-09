@@ -84,7 +84,7 @@ async function initialize() {
     //fetch all orders
     const inbound_orders = await fetchOrders(token);
 
-    if (!inbound_orders || inbound_orders.length === 0) {
+    if (!inbound_orders.message || !inbound_orders || inbound_orders.message.length === 0) {
       showSnackbar('No orders found.', 'info');
       return;
     }
@@ -92,18 +92,18 @@ async function initialize() {
     const inbound = inbound_orders.message.filter((order: any) => {return !order.is_outbound});
 
     //update customer id from uid to username
-    const updatedOrderWithUser = await Promise.all(inbound.map(async (order: any) =>{
+    // const updatedOrderWithUser = await Promise.all(inbound.map(async (order: any) =>{
+    //
+    //   const customer = await fetchUserByUid(order.customer_id, token);
+    //   return {
+    //     ...order,
+    //     customer_id: customer ? customer.username : 'Unknown Employee'
+    //   }
+    // })
+    // );
 
-      const customer = await fetchUserByUid(order.customer_id, token);
-      return {
-        ...order,
-        customer_id: customer ? customer.username : 'Unknown Employee'
-      }
-    })
-    );
-
-    console.log('updated order', updatedOrderWithUser)
-    order.value = Array.isArray(updatedOrderWithUser) ? updatedOrderWithUser : [];
+    console.log('updated order', inbound)
+    order.value = Array.isArray(inbound) ? inbound : [];
     showSnackbar(`Loaded all warehouse orders!`, 'success');
 
 

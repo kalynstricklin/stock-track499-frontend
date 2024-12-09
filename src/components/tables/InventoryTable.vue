@@ -20,6 +20,7 @@ const headers = computed(() => {
     { title: 'Supplier', key: 'supplier_id', sortable: true, },
     { title: 'Stock Level', key: 'stock_level',  sortable: true, },
     { title: 'Price', key: 'outbound_price',  sortable: true, },
+    { title: 'Status', key: 'status',  sortable: true, },
 
   ];
 
@@ -27,9 +28,8 @@ const headers = computed(() => {
   if(role.value === 'employee' || role.value === 'admin' || role.value === 'manager'){
     base.push(
 
-      { title: 'Reserved', key: 'reserved',   sortable: true, },
       { title: 'Inbound Price', key: 'inbound_price', sortable: true, },
-      { title: 'Reorder Threshold', key: 'reorder_point',  sortable: true, },
+      { title: 'Reorder Point', key: 'reorder_point',  sortable: true, },
       { title: 'Lead Time (Days)', key: 'lead_time', sortable: true, },
 
     );
@@ -49,8 +49,8 @@ const headers = computed(() => {
 
 const dialog = ref(false)
 const dialogDelete = ref(false)
-const editedItem = ref({  part_name: '',  lead_time: 0, part_number: 0, supplier_id: 0, reorder_point: 0, stock_level: 0, inbound_price: 0.0, outbound_price: 0.0, });
-const defaultItem = ref({ part_name: '',  lead_time: 0, part_number: 0, supplier_id: 0, reorder_point: 0, stock_level: 0, inbound_price: 0.0, outbound_price: 0.0, });
+const editedItem = ref({  part_name: '',  lead_time: 0, part_number: 0, supplier_id: 0, reorder_point: 0, stock_level: 0, inbound_price: 0.0, outbound_price: 0.0, status:'In Stock'});
+const defaultItem = ref({ part_name: '',  lead_time: 0, part_number: 0, supplier_id: 0, reorder_point: 0, stock_level: 0, inbound_price: 0.0, outbound_price: 0.0, status:'In Stock'});
 const editedIndex = ref(-1);
 
 const buttonTitle = computed(()=>{return editedIndex.value === -1 ? 'Add' : 'Update'})
@@ -122,6 +122,7 @@ async function save() {
   }
 
 
+
   try {
     const token = await auth.currentUser.getIdToken();
 
@@ -129,16 +130,18 @@ async function save() {
 
       const newItem: InventoryItem = {
         part_name: editedItem.value.part_name,
-        part_number: editedItem.value.part_number,
+        part_number: Number(editedItem.value.part_number),
         supplier_id: editedItem.value.supplier_id,
-        inbound_price: editedItem.value.inbound_price,
-        outbound_price: editedItem.value.outbound_price,
-        stock_level: editedItem.value.stock_level,
-        reorder_point: editedItem.value.reorder_point,
-        lead_time: editedItem.value.lead_time,
+        inbound_price: Number(editedItem.value.inbound_price),
+        outbound_price: Number(editedItem.value.outbound_price),
+        stock_level: Number(editedItem.value.stock_level),
+        reorder_point: Number(editedItem.value.reorder_point),
+        lead_time: Number(editedItem.value.lead_time),
+        status: editedItem.value.status
 
       };
 
+      console.log(newItem)
       const response = await createInventoryRequest(newItem, token);
 
       if (response === 'Success') {
@@ -270,8 +273,6 @@ async function reorder(item: InventoryItem){
     }
 
     const qtyToReorder = item.reorder_point - (item.stock_level + reserved);
-
-    console.log('qty to reorder', qtyToReorder)
 
     if(qtyToReorder <= 0){
       showSnackbar('Invalid quantity to reorder. ', 'error');
@@ -450,6 +451,15 @@ onMounted(() => {
                       required
                       type="number"
                     ></v-text-field>
+                  </v-col>
+
+                  <v-col cols="3">
+                    <v-select
+                      v-model="editedItem.status"
+                      :items="['Out of Stock', 'Low Stock', 'In Stock']"
+                      label="Status"
+
+                    ></v-select>
                   </v-col>
 
                 </v-row>

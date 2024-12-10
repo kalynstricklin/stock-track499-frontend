@@ -58,7 +58,7 @@ async function initialize() {
     // Update reactive variables
     if (statItems.value) {
       customerCount.value = statItems.value.num_customers || 0; // Dynamically set customer count
-      revenueTotal.value = statItems.value.revenue;// Format revenue as string
+      revenueTotal.value = Number(statItems.value.revenue).toFixed(2) || 0;// Format revenue as string
       orderCount.value = statItems.value.num_orders || 0; // Update order count
       lowStockCount.value = statItems.value.num_low_stock_items || 0; // Update low stock count
     }

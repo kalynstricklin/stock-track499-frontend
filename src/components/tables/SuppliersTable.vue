@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
-import { getStatusColor, showSnackbar, snackbar } from '@/utils/utils'
+import { ref, computed, nextTick, onMounted } from 'vue'
+import { showSnackbar, snackbar } from '@/utils/utils'
 import {
   createSupplierRequest,
   deleteSupplierRequest,
@@ -9,9 +9,6 @@ import {
 } from '@/server/services/SupplierHandler'
 import { auth } from '@/firebase'
 import { fetchUserByUid } from '@/server/services/UserHandler'
-
-
-
 
 const dialog = ref(false)
 const dialogDelete = ref(false)
@@ -34,8 +31,6 @@ const headers = computed(() => {
       key: 'supplier_id',
       sortable: true,
     },
-    // { title: 'Created On', key: 'created' },
-    // { title: 'Status', key: 'status' },
   ];
 
   if (role.value === 'admin' || role.value === 'manager') {
@@ -90,7 +85,7 @@ async function initialize() {
 function close() {
   dialog.value = false;
   nextTick(() => {
-    editedItem.value = Object.assign({}, defaultItem.value);
+    editedItem.value = {...defaultItem.value}
     editedIndex.value = -1;
   });
 }
@@ -168,7 +163,7 @@ function openDialog(){
 
 function deleteItem(item: any){
   editedIndex.value = suppliers.value.indexOf(item)
-  editedItem.value = Object.assign({}, item)
+  editedItem.value = {...item}
   dialogDelete.value = true
 
 }
@@ -210,7 +205,7 @@ async function deleteItemConfirm() {
 function closeDelete () {
   dialogDelete.value = false
   nextTick(() => {
-    editedItem.value = Object.assign({}, defaultItem.value)
+    editedItem.value = {...defaultItem.value}
     editedIndex.value = -1
   })
 }
@@ -221,8 +216,6 @@ onMounted(() => {
 });
 
 
-onUnmounted(()=> {
-})
 </script>
 
 
@@ -233,16 +226,8 @@ onUnmounted(()=> {
     :items="suppliers"
     item-value="supplier_id"
     :filter-keys="['supplier_name', 'supplier_id']"
-  >
+    >
 
-<!--    <template v-slot:item.status="{ value }">-->
-<!--      <v-chip :color="getStatusColor(value)">-->
-<!--        {{ value }}-->
-<!--      </v-chip>-->
-<!--    </template>-->
-
-
-    <!--    title of table-->
     <template v-slot:top>
       <v-toolbar flat>
         <v-toolbar-title>Suppliers</v-toolbar-title>

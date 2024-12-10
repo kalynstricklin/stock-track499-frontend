@@ -1,10 +1,8 @@
 <script setup lang="ts">
 
 import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth'
-import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
-import router from '@/router'
+import { computed,  ref } from 'vue'
 import {
-  createUserRequest,
   editUserRequest,
   fetchUserByUid
 } from '@/server/services/UserHandler'
@@ -50,10 +48,8 @@ onAuthStateChanged(auth, async (currentUser) => {
       const token = await currentUser.getIdToken();
       const specificUser =await fetchUserByUid(auth.currentUser.uid, token);
 
-      // const specificUser = userData.find((u: any) => u.email === currentUser.email);
-
       if(specificUser){
-        form.value.username = specificUser.username || '',
+        form.value.username = specificUser.username || '';
         form.value.email = specificUser.email || '';
         form.value.role = specificUser.role || '';
 

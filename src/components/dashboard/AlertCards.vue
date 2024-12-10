@@ -1,14 +1,12 @@
 <script setup lang="ts">
 
-import { getStatusColor, showSnackbar, snackbar } from '@/utils/utils'
+import { showSnackbar } from '@/utils/utils'
 import { auth } from '@/firebase'
 import {
   fetchStatRequest,
-  deleteStatRequest,
-  createStatRequest
 } from '@/server/services/StatsHandler'
 import { fetchUserByUid } from '@/server/services/UserHandler'
-import { ref, computed, nextTick, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 
 // Define the structure of statItems
 interface StatItems {

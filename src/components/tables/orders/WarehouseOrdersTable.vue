@@ -2,10 +2,8 @@
 import { ref, computed, onMounted, nextTick } from 'vue'
 import { getStatusColor, showSnackbar, snackbar } from '@/utils/utils'
 import { auth } from '@/firebase'
-import { createOrderRequest, editOrderRequest, fetchOrders, type Order } from '@/server/services/OrdersHandler'
+import { editOrderRequest, fetchOrders, type Order } from '@/server/services/OrdersHandler'
 import { fetchUserByUid } from '@/server/services/UserHandler'
-import { fetchInventoryRequest } from '@/server/services/InventoryHandler'
-
 
 
 const defaultOrder = {
@@ -36,7 +34,8 @@ const headers = computed (() => {
       { title: 'Delivery Date', key: 'due_date', sortable: true },
       { title: 'Quantity', key: 'qty', sortable: true },
       { title: 'Total', key: 'value', sortable: true },
-      {title: 'Employee', key: 'customer_id', sortable: true},
+      // {title: 'Employee', key: 'customer_id', sortable: true},
+      {title: 'Employee', key: 'employee', sortable: true},
       { title: 'Status', key: 'status',  sortable: true },
 
   ];
@@ -92,18 +91,18 @@ async function initialize() {
     const inbound = inbound_orders.message.filter((order: any) => {return !order.is_outbound});
 
     //update customer id from uid to username
-    // const updatedOrderWithUser = await Promise.all(inbound.map(async (order: any) =>{
-    //
-    //   const customer = await fetchUserByUid(order.customer_id, token);
-    //   return {
-    //     ...order,
-    //     customer_id: customer ? customer.username : 'Unknown Employee'
-    //   }
-    // })
-    // );
+    const updatedOrderWithUser = await Promise.all(inbound.map(async (order: any) =>{
+
+      const customer = await fetchUserByUid(order.customer_id, token);
+      return {
+        ...order,
+        employee: customer ? customer.username : 'Unknown Employee'
+      }
+    })
+    );
 
     console.log('updated order', inbound)
-    order.value = Array.isArray(inbound) ? inbound : [];
+    order.value = Array.isArray(updatedOrderWithUser) ? updatedOrderWithUser : [];
     showSnackbar(`Loaded all warehouse orders!`, 'success');
 
 
@@ -180,7 +179,7 @@ async function save() {
 const close = () => {
   dialogEdit.value = false;
   nextTick(() => {
-    editedItem.value = Object.assign({}, defaultItem.value);
+    editedItem.value = {...defaultItem.value};
   });
 };
 
@@ -206,7 +205,7 @@ const close = () => {
       </template>
 
       <template v-slot:item.value="{ value }">
-          {{'$' + value }}
+          {{'$' + (value).toFixed(2) }}
       </template>
 
 

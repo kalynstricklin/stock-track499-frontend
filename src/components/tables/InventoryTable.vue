@@ -104,7 +104,7 @@ async function initialize() {
 function close() {
   dialog.value = false;
   nextTick(() => {
-    editedItem.value = Object.assign({}, defaultItem.value);
+    editedItem.value = {...defaultItem.value};
     editedIndex.value = -1;
   });
 }
@@ -190,13 +190,13 @@ function openDialog(){
 
 async function deleteItem(item: any){
   editedIndex.value = inventory.value.indexOf(item)
-  editedItem.value = Object.assign({}, item)
+  editedItem.value = {...item}
   dialogDelete.value = true
 }
 
 function editItem(item: any){
   editedIndex.value = inventory.value.indexOf(item)
-  editedItem.value = Object.assign({}, item)
+  editedItem.value = {...item}
   dialog.value= true
 }
 
@@ -228,7 +228,7 @@ async function deleteItemConfirm() {
 function closeDelete () {
   dialogDelete.value = false
   nextTick(() => {
-    editedItem.value = Object.assign({}, defaultItem.value)
+    editedItem.value = {...defaultItem.value};
     editedIndex.value = -1
   })
 }
@@ -245,7 +245,7 @@ async function reorder(item: InventoryItem){
 
   dueDate.setDate(dueDate.getDate() + item.lead_time)
 
-  var create =  createDate.getFullYear() + '-' +  (createDate.getMonth() + 1) + '-' + createDate.getDate();
+  const create =  createDate.getFullYear() + '-' +  (createDate.getMonth() + 1) + '-' + createDate.getDate();
 
 
   if(item.stock_level >= item.reorder_point){
@@ -284,7 +284,7 @@ async function reorder(item: InventoryItem){
       part_number: item.part_number,
       supplier_id: item.supplier_id,
       qty: qtyToReorder,
-      due_date: dueDate,
+      due_date: dueDate.toISOString().split('T')[0],
       created:  create,
       value: item.inbound_price * qtyToReorder,
       customer_id: auth.currentUser.uid,
@@ -327,6 +327,7 @@ onMounted(() => {
     <template v-slot:item.inbound_price="{ value }">
       {{'$' + value}}
     </template>
+
 
 
     <template v-slot:item.outbound_price="{ value }">

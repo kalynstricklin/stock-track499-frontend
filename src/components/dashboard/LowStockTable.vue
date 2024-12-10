@@ -1,22 +1,18 @@
 <script setup lang="ts">
-import { ref, computed, nextTick, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { getStatusColor, showSnackbar, snackbar } from '@/utils/utils'
 import { auth } from '@/firebase'
 import {
   fetchInventoryRequest, type InventoryItem
 } from '@/server/services/InventoryHandler'
-//import { createOrderRequest } from '@/server/services/OrdersHandler'
-
 
 
 const headers = [
   { title: 'Part Name', key: 'part_name', sortable: true },
   { title: 'Part Number', key: 'part_number', sortable: true },
   { title: 'Current Stock', key: 'stock_level', sortable: true },
-  // { title: 'Reorder Level', key: 'reorder_point', sortable: true },
   { title: 'Price', key: 'outbound_price', sortable: true },
   { title: 'Status', key: 'status', sortable: true },
-  // { title: 'Action', key: 'action', sortable: false }
 ];
 
 const lowStockItems = ref<InventoryItem[]>([])

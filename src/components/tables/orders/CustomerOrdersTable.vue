@@ -49,7 +49,8 @@ const role = ref('')
 const cxHeaders = computed(() =>{
   const base = [
     { title: 'Order ID', key: 'id', sortable: true, class: 'styled-header' },
-    { title: 'Customer', key: 'customer_id',   sortable: true, class: 'styled-header'},
+    // { title: 'Customer', key: 'customer_id',   sortable: true, class: 'styled-header'},
+    { title: 'Customer', key: 'customer',   sortable: true, class: 'styled-header'},
     { title: 'Part Name', key: 'part_name',   sortable: true, class: 'styled-header' },
     { title: 'Part Number', key: 'part_number',   sortable: true, class: 'styled-header' },
     { title: 'Supplier ID', key: 'supplier_id',   sortable: true, class: 'styled-header' },
@@ -104,23 +105,23 @@ async function initialize() {
 
 
     //update customer id from uid to username
-    // const updatedOrderWithUser = await Promise.all(outbound_orders.map(async (order: any) =>{
-    //
-    //     const customer = await fetchUserByUid(order.customer_id, token);
-    //     return {
-    //       ...order,
-    //       customer_id: customer ? customer.username : order.customer_id
-    //     }
-    //   })
-    // );
+    const updatedOrderWithUser = await Promise.all(outbound_orders.map(async (order: any) =>{
 
-    const my_orders = outbound_orders.filter((order: any) => user.uid === order.customer_id);
+        const customer = await fetchUserByUid(order.customer_id, token);
+        return {
+          ...order,
+          customer: customer ? customer.username : order.customer_id
+        }
+      })
+    );
+
+    const my_orders = updatedOrderWithUser.filter((order: any) => user.uid === order.customer_id);
 
     if(role.value === 'customer'){
       orders.value = Array.isArray(my_orders) ? my_orders : [];
       showSnackbar(`Successfully loaded all my orders!`, 'success');
     }else {
-      orders.value = Array.isArray(outbound_orders) ? outbound_orders : [];
+      orders.value = Array.isArray(updatedOrderWithUser) ? updatedOrderWithUser : [];
       showSnackbar(`Successfully loaded all outbound orders!`, 'success');
     }
 
@@ -134,7 +135,7 @@ const close = () => {
   dialog.value = false;
   dialogEdit.value = false;
   nextTick(() => {
-    editedItem.value = Object.assign({}, defaultItem.value);
+    editedItem.value = {...defaultItem.value};
     editedIndex.value = -1;
   });
 };
@@ -186,7 +187,7 @@ async function save() {
 
       dueDate.setDate(dueDate.getDate() + invItem[0].lead_time)
 
-      var create =  createDate.getFullYear() + '-' +  (createDate.getMonth() + 1) + '-' + createDate.getDate();
+      const create =  createDate.getFullYear() + '-' +  (createDate.getMonth() + 1) + '-' + createDate.getDate();
 
 
       const newOrder = {
@@ -357,22 +358,22 @@ onMounted(() => {
                 <v-card-text>
                   <v-row dense>
 
-                    <v-col cols="12" md="6">
-                      <v-text-field
-                        v-model="editedItem.id"
-                        label="Order ID*"
-                        disabled
-                      ></v-text-field>
-                    </v-col>
+<!--                    <v-col cols="12" md="6">-->
+<!--                      <v-text-field-->
+<!--                        v-model="editedItem.id"-->
+<!--                        label="Order ID*"-->
+<!--                        disabled-->
+<!--                      ></v-text-field>-->
+<!--                    </v-col>-->
 
 
-                    <v-col cols="12" md="6">
-                      <v-text-field
-                        v-model="editedItem.customer_id"
-                        label="Customer ID*"
-                        required
-                      ></v-text-field>
-                    </v-col>
+<!--                    <v-col cols="12" md="6">-->
+<!--                      <v-text-field-->
+<!--                        v-model="editedItem.customer_id"-->
+<!--                        label="Customer ID*"-->
+<!--                        required-->
+<!--                      ></v-text-field>-->
+<!--                    </v-col>-->
 
                     <v-col cols="12" md="6">
                       <v-text-field
@@ -390,15 +391,6 @@ onMounted(() => {
                       :rules="[v => v > 0 || 'Quantity must be greater than 0']"
                       required
                     ></v-text-field>
-
-
-<!--                    <v-col cols="12" md="6">-->
-<!--                      <v-checkbox-->
-<!--                        v-model="editedItem.is_outbound"-->
-<!--                        label="Is Outbound"-->
-<!--                      ></v-checkbox>-->
-<!--                    </v-col>-->
-
 
                   </v-row>
                   <small class="text-caption text-medium-emphasis">*indicates required field</small>

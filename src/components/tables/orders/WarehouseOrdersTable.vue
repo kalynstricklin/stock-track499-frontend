@@ -35,16 +35,23 @@ const headers = computed (() => {
       { title: 'Quantity', key: 'qty', sortable: true },
       { title: 'Total', key: 'value', sortable: true },
       // {title: 'Employee', key: 'customer_id', sortable: true},
-      {title: 'Employee', key: 'employee', sortable: true},
+
       { title: 'Status', key: 'status',  sortable: true },
 
   ];
+
+  if(role.value==='manager' || role.value ==='admin'){
+    base.push(
+        {title: 'Employee', key: 'employee', sortable: true},
+    )
+  }
 
   if(role.value === 'employee' || role.value==='manager' || role.value ==='admin'){
     base.push(
       { title: 'Edit', key: 'edit', sortable: false},
     )
   }
+
 
   return base;
 })

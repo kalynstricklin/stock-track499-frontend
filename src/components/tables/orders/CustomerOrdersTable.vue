@@ -301,11 +301,11 @@ onMounted(() => {
       </template>
 
       <template v-slot:item.value="{ value }">
-          {{'$'+ value }}
+          {{'$'+ Number(value).toFixed(2) }}
       </template>
 
       <template v-slot:item.outbound_price="{ value }">
-       {{`$${Number(value).toFixed(2)}`}}
+       {{`$` + Number(value).toFixed(2) }}
       </template>
 
 

@@ -43,10 +43,6 @@ async function initialize() {
   }
 }
 
-const actionItem = (item: InventoryItem) => {
-  console.log('Reorder action for:', item.part_number);
-}
-
 onMounted(() => {
   initialize();
 });
@@ -60,14 +56,17 @@ onMounted(() => {
     item-value="part_number"
   >
 
+    <!--  status styling -->
+    <template v-slot:item.status="{ value }">
+      <v-chip :color="getStatusColor(value)">
+        {{ value }}
+      </v-chip>
+    </template>
+
     <template v-slot:item.outbound_price="{ value }">
       {{ '$' + value }}
     </template>
 
-    <!--  Display current stock quantity and reorder level -->
-    <template v-slot:item.stock_level="{ value }">
-      <v-chip>{{ value }}</v-chip>
-    </template>
 
     <!--    title of table-->
     <template v-slot:top>
@@ -76,18 +75,6 @@ onMounted(() => {
       </v-toolbar>
     </template>
 
-<!--    &lt;!&ndash; Action buttons &ndash;&gt;-->
-<!--    <template v-slot:item.action="{ item }">-->
-<!--      <v-icon-->
-<!--        v-if="role === 'manager' || role === 'admin'"-->
-<!--        dark-->
-<!--        elevation="0"-->
-<!--        size="small"-->
-<!--        class="me-2"-->
-<!--        icon="mdi-alert"-->
-<!--        @click="actionItem(item)"-->
-<!--      ></v-icon>-->
-<!--    </template>-->
   </v-data-table>
 
   <!-- Reorder snackbar -->

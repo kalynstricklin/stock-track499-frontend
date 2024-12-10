@@ -1,37 +1,47 @@
 <script setup lang="ts">
-import { onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import Chart from 'chart.js/auto';
+import { auth } from '@/firebase';
+import { showSnackbar } from '@/utils/utils';
+import { fetchOrders } from '@/server/services/OrdersHandler';
+import { fetchUserByUid } from '@/server/services/UserHandler';
 
-//todo: function to fetch data from backend and then count the customer orders (outbound orders only)
+// Reactive variables
+const role = ref('');
+const orderItems = ref(null);
+let chartInstance = null; // To store the chart instance
 
-onMounted(() => {
-  const data = [
-    { day: 'M', count: 15 },
-    { day: 'T', count: 5 },
-    { day: 'W', count: 40 },
-    { day: 'T', count: 25 },
-    { day: 'F', count: 100 },
-    { day: 'S', count: 7 },
-    { day: 'S', count: 28 },
-  ];
-
+// Function to initialize the chart
+function renderChart(data) {
+  if (!Array.isArray(data)) {
+    console.error('Expected data to be an array, but got:', data);
+    return;
+  }
 
   const ctx = document.getElementById('ordersChart') as HTMLCanvasElement;
 
   if (ctx) {
-    new Chart(ctx, {
+    if (chartInstance) {
+      chartInstance.destroy(); // Destroy the existing chart instance before creating a new one
+    }
+
+    chartInstance = new Chart(ctx, {
       type: 'bar',
       data: {
-        labels: data.map(row => row.day),
+        labels: data.map((item) => item.part_name), // Set labels as part names
         datasets: [
           {
-            label: 'Count',
-            data: data.map(row => row.count),
-            backgroundColor: data.map(row => row.count < 10 ? 'rgb(177,2,34, 0.3)' : 'rgba(2,138,124,0.3)'), // Red if count < 10, otherwise green
-            borderColor: data.map(row => row.count < 10 ? 'rgb(177,2,34)' : 'rgb(2,138,124)'), // Red border if count < 10, otherwise green
+            label: 'Quantity',
+            data: data.map((item) => item.qty), // Set data as quantities
+            backgroundColor: data.map((item) =>
+              item.qty < 10 ? 'rgb(177,2,34, 0.3)' : 'rgba(2,138,124,0.3)'
+            ),
+            borderColor: data.map((item) =>
+              item.qty < 10 ? 'rgb(177,2,34)' : 'rgb(2,138,124)'
+            ),
             borderWidth: 1,
           },
-        ]
+        ],
       },
       options: {
         responsive: true,
@@ -40,12 +50,9 @@ onMounted(() => {
           title: {
             display: true,
             text: 'Customer Orders',
-            // color: 'rgb(33,150,243)',
-
             font: {
               size: 18,
               weight: 'bold',
-
             },
           },
           legend: {
@@ -57,32 +64,73 @@ onMounted(() => {
           x: {
             title: {
               display: true,
-              text: 'Days'
+              text: 'Part Name',
             },
-            // ticks: {
-            //   color: 'rgba(255,255,255,0.51)',
-            // },
-            // grid: {
-            //   color: 'rgba(255,255,255,0.51)',
-            // },
           },
           y: {
             title: {
               display: true,
-              text: 'Orders ',
+              text: 'Quantity',
             },
-            // ticks: {
-            //   color: 'rgba(255,255,255,0.51)',
-            // },
-            // grid: {
-            //   color: 'rgba(255,255,255,0.51)',
-            // },
             beginAtZero: true,
           },
         },
-      }
+      },
     });
   }
+}
+
+
+// Function to fetch data and initialize the dashboard
+async function initialize() {
+  if (!auth.currentUser) {
+    showSnackbar('No authenticated user found.', 'error');
+    return;
+  }
+
+  try {
+    const token = await auth.currentUser.getIdToken();
+
+    // Set user role
+    const user = await fetchUserByUid(auth.currentUser.uid, token);
+
+    if (!user) {
+      showSnackbar('No user found.', 'info');
+      return;
+    }
+
+    role.value = user.role;
+
+    // Fetch orders
+    const response = await fetchOrders(token);
+    console.log('Raw fetched orders:', response);
+
+    if (!response || !Array.isArray(response.message)) {
+      console.error('Invalid orders data structure:', response);
+      showSnackbar('Error: Invalid orders data structure.', 'error');
+      return;
+    }
+
+    // Extract and filter outbound orders
+    const orders = response.message;
+    orderItems.value = orders.filter((item) => item.is_outbound);
+
+    console.log('Filtered order items (is_outbound=true):', orderItems.value);
+
+    // Render chart with extracted data
+    renderChart(orderItems.value);
+
+    showSnackbar(`Loaded Statistics!`, 'success');
+  } catch (error: any) {
+    showSnackbar(`Error loading dashboard: ${error.message}`, 'error');
+    console.error('Error fetching order items:', error);
+  }
+}
+
+
+// Fetch data and initialize the chart on component mount
+onMounted(() => {
+  initialize();
 });
 </script>
 
@@ -94,7 +142,5 @@ onMounted(() => {
   </v-container>
 </template>
 
-
 <style scoped>
-
 </style>

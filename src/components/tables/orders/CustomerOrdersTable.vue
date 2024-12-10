@@ -143,7 +143,7 @@ const close = () => {
 
 async function save() {
 
-  if( !editedItem.value.part_number || !editedItem.value.customer_id || !editedItem.value.qty){
+  if( !editedItem.value.part_number || !editedItem.value.qty){
     showSnackbar("Please fill out all required fields", 'error')
     return;
   }
@@ -207,6 +207,7 @@ async function save() {
         status: 'Pending'
       };
 
+
       console.log('new order', newOrder)
       const response = await createOrderRequest(newOrder, token);
 
@@ -249,23 +250,6 @@ async function openDialog(){
     showSnackbar('No authenticated user found.', 'error');
     return;
   }
-
-  // //add customer name automatically to form
-  // try {
-  //   const token = await auth.currentUser.getIdToken();
-  //   let customerName = ''
-  //
-  //   if(role.value === 'customer') {
-  //     customerName = auth.currentUser.uid;
-  //     editedItem.value.customer_id = customerName
-  //   }else{
-  //     editedItem.value.customer_id = '';
-  //   }
-  // }catch(error: any){
-  //   showSnackbar(`Failed to assign customer ID: ${error.message}`, 'error')
-  // }
-
-
   dialog.value = true;
   editedItem.value = {...defaultOrder};
 };
@@ -357,23 +341,6 @@ onMounted(() => {
 
                 <v-card-text>
                   <v-row dense>
-
-<!--                    <v-col cols="12" md="6">-->
-<!--                      <v-text-field-->
-<!--                        v-model="editedItem.id"-->
-<!--                        label="Order ID*"-->
-<!--                        disabled-->
-<!--                      ></v-text-field>-->
-<!--                    </v-col>-->
-
-
-<!--                    <v-col cols="12" md="6">-->
-<!--                      <v-text-field-->
-<!--                        v-model="editedItem.customer_id"-->
-<!--                        label="Customer ID*"-->
-<!--                        required-->
-<!--                      ></v-text-field>-->
-<!--                    </v-col>-->
 
                     <v-col cols="12" md="6">
                       <v-text-field

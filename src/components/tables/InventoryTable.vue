@@ -362,13 +362,13 @@ onMounted(() => {
   >
 
     <template v-slot:item.inbound_price="{ value }">
-      {{'$' + value}}
+      {{'$' + (value.toFixed(2))}}
     </template>
 
 
 
     <template v-slot:item.outbound_price="{ value }">
-      {{'$' + value}}
+      {{'$' + value.toFixed(2)}}
     </template>
 
     <!--  status styling -->

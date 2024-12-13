@@ -7,7 +7,7 @@
       <v-text-field v-model="firstName" label="First Name" required></v-text-field>
       <v-text-field v-model="lastName" label="Last Name" required></v-text-field>
       <v-text-field v-model="email" label="Email" required></v-text-field>
-<!--      <v-text-field v-model="password" label="Password" type="password" required></v-text-field>-->
+      <v-text-field v-model="password" label="Password" type="password" required></v-text-field>
       <v-btn color="primary" block dark class="login-btn" type="submit">Sign Up</v-btn>
     </v-form>
   </div>
@@ -48,12 +48,17 @@ async function register() {
       // uid: userCred.user.uid
     };
 
-    const response = await createUserRequest(newUser, token)
-    if(response === 'Success'){
-      showSnackbar(`New User created: ${newUser.username}`, 'success');
-    } else{
-      showSnackbar(response, 'error');
-    }
+    await setTimeout(async() =>{
+      const response = await createUserRequest(newUser, token)
+
+
+      if(response === 'Success'){
+        showSnackbar(`New User created: ${newUser.username}`, 'success');
+      } else{
+        showSnackbar(response, 'error');
+      }
+
+    }, 5000);
 
 
     await updateProfile(userCred.user, {

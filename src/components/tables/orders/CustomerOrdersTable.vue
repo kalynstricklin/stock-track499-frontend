@@ -8,6 +8,7 @@ import {
 } from '@/server/services/OrdersHandler'
 import { fetchUserByUid } from '@/server/services/UserHandler'
 import { fetchInventoryRequest } from '@/server/services/InventoryHandler'
+import {fetchSuppliersRequest} from "@/server/services/SupplierHandler";
 
 
 
@@ -47,13 +48,12 @@ const search = ref('')
 const role = ref('')
 
 const cxHeaders = computed(() =>{
-  const base = [
+  let base = [
     { title: 'Order ID', key: 'id', sortable: true, class: 'styled-header' },
-    // { title: 'Customer', key: 'customer_id',   sortable: true, class: 'styled-header'},
-    { title: 'Customer', key: 'customer',   sortable: true, class: 'styled-header'},
+
     { title: 'Part Name', key: 'part_name',   sortable: true, class: 'styled-header' },
     { title: 'Part Number', key: 'part_number',   sortable: true, class: 'styled-header' },
-    { title: 'Supplier ID', key: 'supplier_id',   sortable: true, class: 'styled-header' },
+    { title: 'Supplier ID', key: 'supplier',   sortable: true, class: 'styled-header' },
     { title: 'Order Date', key: 'created',   sortable: true, class: 'styled-header' },
     { title: 'Delivery Date', key: 'due_date',   sortable: true, class: 'styled-header' },
     { title: 'Quantity', key: 'qty',   sortable: true,class: 'styled-header' },
@@ -62,9 +62,12 @@ const cxHeaders = computed(() =>{
     { title: 'Status', key: 'status',  class: 'styled-header' },
   ];
 
+
   if(role.value === 'employee' || role.value==='manager' || role.value ==='admin'){
+    base =[{ title: 'Customer', key: 'customer', sortable: true, class: 'styled-header'}, ...base]
+
     base.push(
-      { title: 'Edit', key: 'edit', sortable: false, class: 'styled-header' },
+        { title: 'Edit', key: 'edit', sortable: false, class: 'styled-header' },
     )
   }
 
@@ -108,8 +111,13 @@ async function initialize() {
     const updatedOrderWithUser = await Promise.all(outbound_orders.map(async (order: any) =>{
 
         const customer = await fetchUserByUid(order.customer_id, token);
+        const supplier = await fetchSuppliersRequest(token);
+
+        console.log('supplier', supplier)
+
         return {
           ...order,
+          // supplier: supplier ? supplier.supplier_name: supplier.supplier_id,
           customer: customer ? customer.username : order.customer_id
         }
       })

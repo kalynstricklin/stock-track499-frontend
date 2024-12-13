@@ -1,7 +1,7 @@
 <script setup lang="ts">
 
 import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth'
-import { computed,  ref } from 'vue'
+import {computed, onMounted, ref} from 'vue'
 import {
   editUserRequest,
   fetchUserByUid
@@ -30,7 +30,49 @@ const userDetails = ref<User>({
 });
 
 
+
 const editProfileDialog = ref(false);
+
+const initialize = async() =>{
+  if(!auth.currentUser){
+    showSnackbar('No authenticated user found.', 'error');
+    return;
+  }
+
+  user.value = auth.currentUser;
+
+  if (user.value) {
+
+
+    try{
+      const token = await user.value.getIdToken();
+      const specificUser =await fetchUserByUid(auth.currentUser.uid, token);
+
+      if(specificUser){
+        form.value.username = specificUser.username || '';
+        form.value.email = specificUser.email || '';
+        form.value.role = specificUser.role || '';
+
+        userDetails.value.username = specificUser.username || '';
+        userDetails.value.email = specificUser.email || '';
+        userDetails.value.role = specificUser.role || '';
+        userDetails.value.created = specificUser.created || new Date();
+        userDetails.value.profile_img = specificUser.profile_img || '';
+
+      }else{
+        showSnackbar(`Failed to fetch user data: ${user.value.email}`, 'error');
+      }
+
+    }catch(error: any){
+      showSnackbar('Error fetching user data.', 'error')
+    }
+  }
+}
+
+//when component is mounted data will load
+onMounted(() => {
+  initialize();
+});
 
 onAuthStateChanged(auth, async (currentUser) => {
 
@@ -69,6 +111,7 @@ onAuthStateChanged(auth, async (currentUser) => {
   }
 
 });
+
 
 
 async function signout() {

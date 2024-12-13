@@ -32,7 +32,7 @@ const headers = computed (() => {
       { title: 'Part Number', key: 'part_number', sortable: true },
       { title: 'Supplier', key: 'supplier', sortable: true },
       { title: 'Order Date', key: 'created', sortable: true },
-      { title: 'Delivery Date', key: 'due_date', sortable: true },
+      { title: 'Due Date', key: 'due_date', sortable: true },
       { title: 'Quantity', key: 'qty', sortable: true },
       { title: 'Total', key: 'value', sortable: true },
       // {title: 'Employee', key: 'customer_id', sortable: true},
@@ -108,11 +108,11 @@ async function initialize() {
     const updatedOrderWithUser = await Promise.all(inbound.map(async (order: any) =>{
 
       const customer = await fetchUserByUid(order.customer_id, token);
-      const supplier = suppliers.value.find(s => s.id === order.supplier_id);
+      const supplier = suppliers.value.find(s => s.supplier_id = order.supplier_id);
 
       return {
         ...order,
-        supplier: supplier ? supplier.supplier_name: supplier.supplier_id,
+        supplier: supplier ? supplier.supplier_name: order.supplier_id,
         employee: customer ? customer.username : 'Unknown Employee'
       }
     })

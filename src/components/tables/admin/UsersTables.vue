@@ -31,9 +31,9 @@ const selected = ref([])
 const buttonTitle = computed(()=>{return editedIndex.value === -1 ? 'Add' : 'Update'})
 
 const headers = [
-  { title: 'User Name', key: 'username' },
-  { title: 'Email', key: 'email' },
-  { title: 'Role', key: 'role' },
+  { title: 'User Name', key: 'username', sortable: true },
+  { title: 'Email', key: 'email' , sortable: true },
+  { title: 'Role', key: 'role' , sortable: true },
   { title: 'Edit', key: 'edit', sortable: false },
   { title: 'Delete', key: 'delete', sortable: false },
 ];

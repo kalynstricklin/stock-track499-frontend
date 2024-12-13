@@ -35,7 +35,6 @@ const headers = computed (() => {
       { title: 'Due Date', key: 'due_date', sortable: true },
       { title: 'Quantity', key: 'qty', sortable: true },
       { title: 'Total', key: 'value', sortable: true },
-      // {title: 'Employee', key: 'customer_id', sortable: true},
 
       { title: 'Status', key: 'status',  sortable: true },
 
@@ -211,9 +210,6 @@ const close = () => {
       item-value="id"
       :filter-keys="['id','supplier', 'part_name','part_number', 'status', 'created', 'due_date']"
     >
-      <template v-slot:item.id="{ value }">
-        {{ '#' + value }}
-      </template>
 
       <template v-slot:item.status="{ value }">
         <v-chip :color="getStatusColor(value)">
@@ -222,7 +218,7 @@ const close = () => {
       </template>
 
       <template v-slot:item.value="{ value }">
-          {{'$' + (value).toFixed(2) }}
+          {{(value).toFixed(2) }}
       </template>
 
 

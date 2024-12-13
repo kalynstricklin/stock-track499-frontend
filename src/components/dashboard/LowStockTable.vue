@@ -60,7 +60,7 @@ onMounted(() => {
     </template>
 
     <template v-slot:item.outbound_price="{ value }">
-      {{ '$' + value }}
+      {{value.toFixed(2) }}
     </template>
 
 

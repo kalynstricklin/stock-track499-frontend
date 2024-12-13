@@ -58,10 +58,9 @@ const cxHeaders = computed(() =>{
     { title: 'Supplier', key: 'supplier',   sortable: true, class: 'styled-header' },
     { title: 'Order Date', key: 'created',   sortable: true, class: 'styled-header' },
     { title: 'Delivery Date', key: 'due_date',   sortable: true, class: 'styled-header' },
-    { title: 'Quantity', key: 'qty',   sortable: true,class: 'styled-header' },
-    // { title: 'Unit Price', key: 'outbound_price',   sortable: true, class: 'styled-header' },
+    { title: 'Quantity', key: 'qty',   sortable: true, class: 'styled-header' },
     { title: 'Total Cost', key: 'value',   sortable: true, class: 'styled-header' },
-    { title: 'Status', key: 'status',  class: 'styled-header' },
+    { title: 'Status', key: 'status',  sortable: true, class: 'styled-header' },
   ];
 
 
@@ -285,13 +284,12 @@ onMounted(() => {
 
 
 <template>
-    <v-data-table
-      v-model:search="search"
+  <v-data-table
       :headers="cxHeaders"
       :items="orders"
       item-value="customer_id"
-      :filter-keys="['status', 'part_name', 'customer_id', 'part_number','created', 'due_date', 'value', 'qty', 'is_outbound', 'supplier']"
-    >
+      :filter-keys="['status', 'part_name', 'customer_id', 'part_number', 'created', 'due_date', 'value', 'qty', 'is_outbound', 'supplier']"
+  >
 
       <template v-slot:item.status="{ value }">
         <v-chip :color="getStatusColor(value)">
@@ -300,11 +298,11 @@ onMounted(() => {
       </template>
 
       <template v-slot:item.value="{ value }">
-          {{'$'+ Number(value).toFixed(2) }}
+          {{Number(value).toFixed(2) }}
       </template>
 
       <template v-slot:item.outbound_price="{ value }">
-       {{`$` + Number(value).toFixed(2) }}
+       {{Number(value).toFixed(2)}}
       </template>
 
 

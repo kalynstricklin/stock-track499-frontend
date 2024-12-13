@@ -109,6 +109,7 @@ async function initialize() {
     const outbound_orders = allOrders.message.filter((order: any) => {return order.is_outbound});
 
     const supplierResponse = await fetchSuppliersRequest(token);
+    console.log('suppliers', supplierResponse)
     if (supplierResponse && Array.isArray(supplierResponse)) {
       suppliers.value = supplierResponse;
     }
@@ -117,13 +118,13 @@ async function initialize() {
     const updatedOrderWithUser = await Promise.all(outbound_orders.map(async (order: any) =>{
 
         const customer = await fetchUserByUid(order.customer_id, token);
-        const supplier = suppliers.value.find(s => s.id === order.supplier_id);
+        const supplier = suppliers.value.find(s => s.supplier_id === order.supplier_id);
 
         console.log('suppliers', supplier)
 
         return {
           ...order,
-          supplier: supplier ? supplier.supplier_name: supplier.supplier_id,
+          supplier: supplier ? supplier.supplier_name : order.supplier_id,
           customer: customer ? customer.username : order.customer_id
         }
       })
@@ -190,6 +191,7 @@ async function save() {
 
       const invItem = itemDetails.filter((u: any) => u.part_number === editedItem.value.part_number);
 
+      console.log('inv item', invItem)
 
       if (!invItem) {
         showSnackbar(`No inventory item found with part number ${editedItem.value.part_number}.`, 'info');
@@ -210,11 +212,9 @@ async function save() {
         customer_id: editedItem.value.customer_id,
         part_name: invItem[0].part_name,
         part_number: editedItem.value.part_number,
-        supplier_name: invItem[0].supplier_name,
+        supplier_id: invItem[0].supplier_id,
         due_date: dueDate.toISOString().split('T')[0],
         created:  create,
-        // due_date: due,
-        // created:  create,
         qty: editedItem.value.qty,
         value: editedItem.value.qty * invItem[0].outbound_price,
         is_outbound: editedItem.value.is_outbound,

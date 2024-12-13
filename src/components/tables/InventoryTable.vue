@@ -104,7 +104,7 @@ async function initialize() {
         supplierMap.set(supplier.supplier_id, supplier.supplier_name);
       });
 
-      inventory.value = inventoryItems.map(item => ({
+      inventory.value = inventoryItems.map((item: any) => ({
         ...item,
         supplier: supplierMap.get(item.supplier_id) || 'Unknown Supplier',
       }));

@@ -115,7 +115,7 @@ async function save() {
       }
 
     }else{
-      //updating exisiting user
+      //updating existing user
       const updatedItem = {
         ...editedItem.value,
         email: editedItem.value.email,

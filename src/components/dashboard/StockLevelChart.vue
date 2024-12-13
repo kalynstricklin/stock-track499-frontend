@@ -25,8 +25,8 @@ onMounted(() => {
           {
             label: 'Count',
             data: data.map(row => row.count),
-            backgroundColor: data.map(row => row.count < 10 ? 'rgb(255,255,255)' : 'rgb(255,255,255)'), // Red if count < 10, otherwise green
-            borderColor: data.map(row => row.count < 10 ? 'rgb(255,255,255)' : 'rgb(255,255,255)'), // Red border if count < 10, otherwise green
+            backgroundColor: 'rgb(255,255,255)', // Red if count < 10, otherwise green
+            borderColor: 'rgb(255,255,255)', // Red border if count < 10, otherwise green
             borderWidth: 1,
           },
         ]

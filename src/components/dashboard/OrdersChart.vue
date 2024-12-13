@@ -32,12 +32,8 @@ function renderChart(data) {
           {
             label: 'Number of Orders',
             data: data.map((item) => item.stats.num_orders), // Set data as number of orders
-            backgroundColor: data.map((item) =>
-                item.stats.num_orders < 10 ? 'rgb(177,2,34, 0.3)' : 'rgba(2,138,124,0.3)'
-            ),
-            borderColor: data.map((item) =>
-                item.stats.num_orders < 10 ? 'rgb(177,2,34)' : 'rgb(2,138,124)'
-            ),
+            backgroundColor: 'rgba(2,138,124,0.3)',
+            borderColor: 'rgb(2,138,124)',
             borderWidth: 1,
           },
         ],

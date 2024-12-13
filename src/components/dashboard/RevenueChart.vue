@@ -32,12 +32,8 @@ function renderChart(data) {
           {
             label: 'Revenue',
             data: data.map((item) => item.stats.revenue), // Set data as revenue
-            backgroundColor: data.map((item) =>
-              item.stats.revenue < 10 ? 'rgb(177,2,34, 0.3)' : 'rgba(2,138,124,0.3)'
-            ),
-            borderColor: data.map((item) =>
-              item.stats.revenue < 10 ? 'rgb(177,2,34)' : 'rgb(2,138,124)'
-            ),
+            backgroundColor: 'rgba(2,138,124,0.3)',
+            borderColor: 'rgb(2,138,124)',
             borderWidth: 1,
           },
         ],

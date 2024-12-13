@@ -8,7 +8,7 @@ import {
 } from '@/server/services/OrdersHandler'
 import { fetchUserByUid } from '@/server/services/UserHandler'
 import { fetchInventoryRequest } from '@/server/services/InventoryHandler'
-import {fetchSuppliersRequest} from "@/server/services/SupplierHandler";
+import {fetchSuppliersRequest, type Supplier} from "@/server/services/SupplierHandler";
 
 
 
@@ -42,6 +42,8 @@ const buttonTitle = computed(() => {
 
 const orders = ref<Order[]>([]);
 
+const suppliers = ref<Supplier[]>([])
+
 // search bar
 const search = ref('')
 //user roles
@@ -53,7 +55,7 @@ const cxHeaders = computed(() =>{
 
     { title: 'Part Name', key: 'part_name',   sortable: true, class: 'styled-header' },
     { title: 'Part Number', key: 'part_number',   sortable: true, class: 'styled-header' },
-    { title: 'Supplier ID', key: 'supplier',   sortable: true, class: 'styled-header' },
+    { title: 'Supplier', key: 'supplier',   sortable: true, class: 'styled-header' },
     { title: 'Order Date', key: 'created',   sortable: true, class: 'styled-header' },
     { title: 'Delivery Date', key: 'due_date',   sortable: true, class: 'styled-header' },
     { title: 'Quantity', key: 'qty',   sortable: true,class: 'styled-header' },
@@ -106,18 +108,22 @@ async function initialize() {
 
     const outbound_orders = allOrders.message.filter((order: any) => {return order.is_outbound});
 
+    const supplierResponse = await fetchSuppliersRequest(token);
+    if (supplierResponse && Array.isArray(supplierResponse)) {
+      suppliers.value = supplierResponse;
+    }
 
     //update customer id from uid to username
     const updatedOrderWithUser = await Promise.all(outbound_orders.map(async (order: any) =>{
 
         const customer = await fetchUserByUid(order.customer_id, token);
-        const supplier = await fetchSuppliersRequest(token);
+        const supplier = suppliers.value.find(s => s.id === order.supplier_id);
 
-        console.log('supplier', supplier)
+        console.log('suppliers', supplier)
 
         return {
           ...order,
-          // supplier: supplier ? supplier.supplier_name: supplier.supplier_id,
+          supplier: supplier ? supplier.supplier_name: supplier.supplier_id,
           customer: customer ? customer.username : order.customer_id
         }
       })
@@ -204,7 +210,7 @@ async function save() {
         customer_id: editedItem.value.customer_id,
         part_name: invItem[0].part_name,
         part_number: editedItem.value.part_number,
-        supplier_id: invItem[0].supplier_id,
+        supplier_name: invItem[0].supplier_name,
         due_date: dueDate.toISOString().split('T')[0],
         created:  create,
         // due_date: due,
@@ -284,7 +290,7 @@ onMounted(() => {
       :headers="cxHeaders"
       :items="orders"
       item-value="customer_id"
-      :filter-keys="['status', 'part_name', 'customer_id', 'part_number','created', 'due_date', 'value', 'qty', 'is_outbound', 'supplier_id']"
+      :filter-keys="['status', 'part_name', 'customer_id', 'part_number','created', 'due_date', 'value', 'qty', 'is_outbound', 'supplier']"
     >
 
       <template v-slot:item.status="{ value }">

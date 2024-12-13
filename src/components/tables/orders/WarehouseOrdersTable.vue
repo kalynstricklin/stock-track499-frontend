@@ -4,6 +4,7 @@ import { getStatusColor, showSnackbar, snackbar } from '@/utils/utils'
 import { auth } from '@/firebase'
 import { editOrderRequest, fetchOrders, type Order } from '@/server/services/OrdersHandler'
 import { fetchUserByUid } from '@/server/services/UserHandler'
+import {fetchSuppliersRequest, type Supplier} from "@/server/services/SupplierHandler";
 
 
 const defaultOrder = {
@@ -29,7 +30,7 @@ const headers = computed (() => {
 
       { title: 'Part Name', key: 'part_name', sortable: true },
       { title: 'Part Number', key: 'part_number', sortable: true },
-      { title: 'Supplier ID', key: 'supplier_id', sortable: true },
+      { title: 'Supplier', key: 'supplier', sortable: true },
       { title: 'Order Date', key: 'created', sortable: true },
       { title: 'Delivery Date', key: 'due_date', sortable: true },
       { title: 'Quantity', key: 'qty', sortable: true },
@@ -57,6 +58,7 @@ const headers = computed (() => {
 })
 
 const order = ref<Order[]>([])
+const suppliers = ref<Supplier[]>([])
 const dialogEdit= ref(false);
 const editedIndex = ref(-1);
 const editedItem = ref({ ...defaultOrder });
@@ -97,12 +99,20 @@ async function initialize() {
 
     const inbound = inbound_orders.message.filter((order: any) => {return !order.is_outbound});
 
+    const supplierResponse = await fetchSuppliersRequest(token);
+    if (supplierResponse && Array.isArray(supplierResponse)) {
+      suppliers.value = supplierResponse;
+    }
+
     //update customer id from uid to username
     const updatedOrderWithUser = await Promise.all(inbound.map(async (order: any) =>{
 
       const customer = await fetchUserByUid(order.customer_id, token);
+      const supplier = suppliers.value.find(s => s.id === order.supplier_id);
+
       return {
         ...order,
+        supplier: supplier ? supplier.supplier_name: supplier.supplier_id,
         employee: customer ? customer.username : 'Unknown Employee'
       }
     })
@@ -199,7 +209,7 @@ const close = () => {
       :headers="headers"
       :items="order"
       item-value="id"
-      :filter-keys="['id','supplier_id', 'part_name','part_number', 'status', 'created', 'due_date']"
+      :filter-keys="['id','supplier', 'part_name','part_number', 'status', 'created', 'due_date']"
     >
       <template v-slot:item.id="{ value }">
         {{ '#' + value }}

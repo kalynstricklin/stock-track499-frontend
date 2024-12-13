@@ -9,15 +9,14 @@ import {
 } from '@/server/services/InventoryHandler'
 import { createOrderRequest, fetchOrders } from '@/server/services/OrdersHandler'
 import { fetchUserByUid } from '@/server/services/UserHandler'
-
-
+import {fetchSuppliersRequest, type Supplier} from "@/server/services/SupplierHandler";
 
 
 const headers = computed(() => {
   const base= [
     { title: 'Part Name', key: 'part_name',  sortable: true, },
     { title: 'Part Number', key: 'part_number',  sortable: true, },
-    { title: 'Supplier', key: 'supplier_id', sortable: true, },
+    { title: 'Supplier', key: 'supplier', sortable: true, },
     { title: 'Stock Level', key: 'stock_level',  sortable: true, },
     { title: 'Price', key: 'outbound_price',  sortable: true, },
     { title: 'Status', key: 'status',  sortable: true, },
@@ -56,6 +55,8 @@ const editedIndex = ref(-1);
 const buttonTitle = computed(()=>{return editedIndex.value === -1 ? 'Add' : 'Update'})
 const inventory = ref<any[]>([])
 
+const suppliers = ref<Supplier[]>([])
+
 // search bar
 const search = ref('')
 
@@ -91,6 +92,25 @@ async function initialize() {
 
     console.log('inv items', inventoryItems)
     inventory.value = Array.isArray(inventoryItems) ? inventoryItems : [];
+
+    // fetch suppliers
+    const supplierMap = new Map<number, string>(); 
+
+    const suppliersData = await fetchSuppliersRequest(token);
+    if (Array.isArray(suppliersData)) {
+      suppliers.value = suppliersData;
+    
+      suppliersData.forEach(supplier => {
+        supplierMap.set(supplier.supplier_id, supplier.supplier_name);
+      });
+
+      inventory.value = inventoryItems.map(item => ({
+        ...item,
+        supplier: supplierMap.get(item.supplier_id) || 'Unknown Supplier',
+      }));
+    }
+
+    showSnackbar('Loaded all items in the inventory and suppliers!', 'success');
 
 
     showSnackbar(`Loaded all items in the inventory!`, 'success');
@@ -321,7 +341,7 @@ onMounted(() => {
     :headers="headers"
     :items="Array.isArray(inventory) ? inventory : []"
     item-value="part_number"
-    :filter-keys="['product_name', 'part_name','supplier_id', 'part_number', 'inbound_price', 'outbound_price']"
+    :filter-keys="['product_name', 'part_name','supplier', 'part_number', 'inbound_price', 'outbound_price']"
   >
 
     <template v-slot:item.inbound_price="{ value }">

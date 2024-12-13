@@ -1,34 +1,44 @@
 <script setup lang="ts">
-import { onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
 import Chart from 'chart.js/auto';
-//todo: function to calc the total revenue so add up all the orders and subtract the inbound order total from running total
-onMounted(() => {
-  const data = [
-    { day: 'M', revenue: 10 },
-    { day: 'T', revenue: 20 },
-    { day: 'W', revenue: 15 },
-    { day: 'T', revenue: 25 },
-    { day: 'F', revenue: 22 },
-    { day: 'S', revenue: 30 },
-    { day: 'S', revenue: 25 },
-  ];
+import { auth } from '@/firebase';
+import { showSnackbar } from '@/utils/utils';
+import { fetchUserByUid } from '@/server/services/UserHandler';
+import { fetchStatRequest } from '@/server/services/StatsHandler';
 
-  const ctx = document.getElementById('salesTrends') as HTMLCanvasElement;
+// Reactive variables
+const role = ref('');
+let chartInstance = null; // To store the chart instance
+
+// Function to render the chart
+function renderChart(data) {
+  if (!Array.isArray(data)) {
+    console.error('Expected data to be an array, but got:', data);
+    return;
+  }
+
+  const ctx = document.getElementById('revenueChart') as HTMLCanvasElement;
 
   if (ctx) {
-    new Chart(ctx, {
+    if (chartInstance) {
+      chartInstance.destroy(); // Destroy the existing chart instance before creating a new one
+    }
+
+    chartInstance = new Chart(ctx, {
       type: 'line',
       data: {
-        labels: data.map(row => row.day),
+        labels: data.map((item) => item.date), // Set labels as dates
         datasets: [
           {
-            label: 'Sales Revenue',
-            data: data.map(row => row.revenue),
-            backgroundColor: 'rgba(2,138,124,0.3)',
-            borderColor: 'rgb(2,138,124)',
-            borderWidth: 2,
-            pointRadius: 4,
-            pointBackgroundColor: 'rgb(255,255,255)',
+            label: 'Revenue',
+            data: data.map((item) => item.stats.revenue), // Set data as revenue
+            backgroundColor: data.map((item) =>
+              item.stats.revenue < 10 ? 'rgb(177,2,34, 0.3)' : 'rgba(2,138,124,0.3)'
+            ),
+            borderColor: data.map((item) =>
+              item.stats.revenue < 10 ? 'rgb(177,2,34)' : 'rgb(2,138,124)'
+            ),
+            borderWidth: 1,
           },
         ],
       },
@@ -38,13 +48,10 @@ onMounted(() => {
         plugins: {
           title: {
             display: true,
-            text: 'Warehouse Sales',
-            // color: 'rgb(0,0,0)',
-
+            text: 'Revenue per Day in the Last 7 Days',
             font: {
               size: 18,
               weight: 'bold',
-
             },
           },
           legend: {
@@ -56,39 +63,79 @@ onMounted(() => {
           x: {
             title: {
               display: true,
-              text: 'Days'
+              text: 'Dates',
             },
-            // ticks: {
-            //   color: 'rgba(255,255,255,0.51)',
-            // },
-            // grid: {
-            //   color: 'rgba(255,255,255,0.51)',
-            // },
           },
           y: {
             title: {
               display: true,
-              text: 'Sales per thousand $',
+              text: 'Revenue $',
             },
-            // ticks: {
-            //   color: 'rgba(255,255,255,0.51)',
-            // },
-            // grid: {
-            //   color: 'rgba(255,255,255,0.51)',
-            // },
             beginAtZero: true,
           },
         },
       },
     });
   }
+}
+
+// Adjust the initialization function to use `revItems` for the chart
+async function initialize() {
+  const revItems = ref([]); // Initialize as an empty array
+  if (!auth.currentUser) {
+    showSnackbar('No authenticated user found.', 'error');
+    return;
+  }
+
+  try {
+    const token = await auth.currentUser.getIdToken();
+
+    // Set user role
+    const user = await fetchUserByUid(auth.currentUser.uid, token);
+
+    if (!user) {
+      showSnackbar('No user found.', 'info');
+      return;
+    }
+
+    role.value = user.role;
+
+    // Fetch stats for the last 7 days
+    const today = new Date();
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() - i); // Subtract i days from today
+
+      const formattedDate = `${date.getMonth() + 1}-${date.getDate()}-${date.getFullYear()}`;
+
+      const dailyRev = await fetchStatRequest(token, formattedDate);
+
+      if (dailyRev) {
+        revItems.value.push({ date: formattedDate, stats: dailyRev });
+      }
+    }
+
+    // Render chart with stats data
+    renderChart(revItems.value);
+
+    showSnackbar(`Loaded Statistics!`, 'success');
+  } catch (error: any) {
+    showSnackbar(`Error loading dashboard: ${error.message}`, 'error');
+    console.error('Error fetching revenue:', error);
+  }
+}
+
+
+// Fetch data and initialize the chart on component mount
+onMounted(() => {
+  initialize();
 });
 </script>
 
 <template>
-  <v-container id="salesTrendsChart" fluid tag="section">
+  <v-container id="revenueTrendsChart" fluid tag="section">
     <div style="width: 100%; height: 450px;">
-      <canvas id="salesTrends"></canvas>
+      <canvas id="revenueChart"></canvas>
     </div>
   </v-container>
 </template>

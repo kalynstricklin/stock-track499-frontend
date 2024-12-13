@@ -2,9 +2,7 @@
 
 import { showSnackbar } from '@/utils/utils'
 import { auth } from '@/firebase'
-import {
-  fetchStatRequest,
-} from '@/server/services/StatsHandler'
+import { fetchStatRequest } from '@/server/services/StatsHandler'
 import { fetchUserByUid } from '@/server/services/UserHandler'
 import { ref, onMounted } from 'vue'
 
@@ -56,7 +54,7 @@ async function initialize() {
     // Update reactive variables
     if (statItems.value) {
       customerCount.value = statItems.value.num_customers || 0; // Dynamically set customer count
-      revenueTotal.value = Number(statItems.value.revenue).toFixed(2) || 0;// Format revenue as string
+      revenueTotal.value = parseFloat(statItems.value.revenue.toFixed(2));// Format revenue as string
       orderCount.value = statItems.value.num_orders || 0; // Update order count
       lowStockCount.value = statItems.value.num_low_stock_items || 0; // Update low stock count
     }
@@ -72,29 +70,57 @@ onMounted(() => {
   initialize();
 });
 
-function exportJSON() {
-  console.log('stat items', statItems.value)
-  if (!statItems.value) {
-    showSnackbar('No data available to export.', 'error');
+async function exportJSON() {
+  if (!auth.currentUser) {
+    showSnackbar('No authenticated user found.', 'error');
     return;
   }
 
-  const dataStr = JSON.stringify(statItems.value, null, 2); // Pretty-print JSON
-  const blob = new Blob([dataStr], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
+  try {
+    const token = await auth.currentUser.getIdToken();
 
-  // Create a temporary link element to trigger the download
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `stats-${new Date().toISOString().slice(0, 10)}.json`; // File name with today's date
-  document.body.appendChild(link);
-  link.click();
+    const statsLast7Days = [];
+    const today = new Date();
 
-  // Clean up
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() - i);
 
-  showSnackbar('Exported JSON data successfully!', 'success');
+      const formattedDate = `${date.getMonth() + 1}-${date.getDate()}-${date.getFullYear()}`;
+      console.log(`Fetching stats for date: ${formattedDate}`);
+
+      const dailyStats = await fetchStatRequest(token, formattedDate);
+      if (dailyStats) {
+        statsLast7Days.push({ date: formattedDate, stats: dailyStats });
+      }
+    }
+
+    if (statsLast7Days.length === 0) {
+      showSnackbar('No data available to export.', 'error');
+      return;
+    }
+
+    // Convert the last 7 days' stats to JSON
+    const dataStr = JSON.stringify(statsLast7Days, null, 2); // Pretty-print JSON
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+
+    // Create a temporary link element to trigger the download
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `stats-last-7-days-${new Date().toISOString().slice(0, 10)}.json`; // File name with today's date
+    document.body.appendChild(link);
+    link.click();
+
+    // Clean up
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    showSnackbar('Exported JSON data for the last 7 days successfully!', 'success');
+  } catch (error: any) {
+    console.error('Error exporting data:', error);
+    showSnackbar(`Error exporting data: ${error.message}`, 'error');
+  }
 }
 </script>
 <template>

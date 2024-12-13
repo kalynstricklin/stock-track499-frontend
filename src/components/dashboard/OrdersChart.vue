@@ -1,17 +1,16 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted } from 'vue';
 import Chart from 'chart.js/auto';
 import { auth } from '@/firebase';
 import { showSnackbar } from '@/utils/utils';
-import { fetchOrders } from '@/server/services/OrdersHandler';
 import { fetchUserByUid } from '@/server/services/UserHandler';
+import { fetchStatRequest } from '@/server/services/StatsHandler';
 
 // Reactive variables
 const role = ref('');
-const orderItems = ref(null);
 let chartInstance = null; // To store the chart instance
 
-// Function to initialize the chart
+// Function to render the chart
 function renderChart(data) {
   if (!Array.isArray(data)) {
     console.error('Expected data to be an array, but got:', data);
@@ -28,13 +27,17 @@ function renderChart(data) {
     chartInstance = new Chart(ctx, {
       type: 'bar',
       data: {
-        labels: data.map((item) => item.part_name), // Set labels as part names
+        labels: data.map((item) => item.date), // Set labels as dates
         datasets: [
           {
-            label: 'Quantity',
-            data: data.map((item) => item.qty), // Set data as quantities
-            backgroundColor: 'rgba(2,138,124,0.3)',
-            borderColor: 'rgb(2,138,124)',
+            label: 'Number of Orders',
+            data: data.map((item) => item.stats.num_orders), // Set data as number of orders
+            backgroundColor: data.map((item) =>
+                item.stats.num_orders < 10 ? 'rgb(177,2,34, 0.3)' : 'rgba(2,138,124,0.3)'
+            ),
+            borderColor: data.map((item) =>
+                item.stats.num_orders < 10 ? 'rgb(177,2,34)' : 'rgb(2,138,124)'
+            ),
             borderWidth: 1,
           },
         ],
@@ -45,7 +48,7 @@ function renderChart(data) {
         plugins: {
           title: {
             display: true,
-            text: 'Customer Orders',
+            text: 'Number of Orders in the Last 7 Days',
             font: {
               size: 18,
               weight: 'bold',
@@ -60,13 +63,13 @@ function renderChart(data) {
           x: {
             title: {
               display: true,
-              text: 'Part Name',
+              text: 'Dates',
             },
           },
           y: {
             title: {
               display: true,
-              text: 'Quantity',
+              text: 'Number of Orders',
             },
             beginAtZero: true,
           },
@@ -76,9 +79,8 @@ function renderChart(data) {
   }
 }
 
-
-// Function to fetch data and initialize the dashboard
 async function initialize() {
+  const statItems = ref([]); // Initialize as an empty array
   if (!auth.currentUser) {
     showSnackbar('No authenticated user found.', 'error');
     return;
@@ -97,29 +99,30 @@ async function initialize() {
 
     role.value = user.role;
 
-    // Fetch orders
-    const response = await fetchOrders(token);
-    console.log('Raw fetched orders:', response);
+    // Fetch stats for the last 7 days
+    const today = new Date();
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() - i); // Subtract i days from today
 
-    if (!response || !Array.isArray(response.message)) {
-      console.error('Invalid orders data structure:', response);
-      showSnackbar('Error: Invalid orders data structure.', 'error');
-      return;
+      const formattedDate = `${date.getMonth() + 1}-${date.getDate()}-${date.getFullYear()}`;
+
+      const dailyStats = await fetchStatRequest(token, formattedDate);
+
+      if (dailyStats) {
+        statItems.value.push({ date: formattedDate, stats: dailyStats });
+      }
     }
 
-    // Extract and filter outbound orders
-    const orders = response.message;
-    orderItems.value = orders.filter((item) => item.is_outbound);
+    console.log('Stats for the last 7 days:', statItems.value);
 
-    console.log('Filtered order items (is_outbound=true):', orderItems.value);
-
-    // Render chart with extracted data
-    renderChart(orderItems.value);
+    // Render chart with stats data
+    renderChart(statItems.value);
 
     showSnackbar(`Loaded Statistics!`, 'success');
   } catch (error: any) {
     showSnackbar(`Error loading dashboard: ${error.message}`, 'error');
-    console.error('Error fetching order items:', error);
+    console.error('Error fetching stats:', error);
   }
 }
 

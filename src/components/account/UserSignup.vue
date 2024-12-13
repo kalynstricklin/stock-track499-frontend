@@ -7,7 +7,7 @@
       <v-text-field v-model="firstName" label="First Name" required></v-text-field>
       <v-text-field v-model="lastName" label="Last Name" required></v-text-field>
       <v-text-field v-model="email" label="Email" required></v-text-field>
-      <v-text-field v-model="password" label="Password" type="password" required></v-text-field>
+<!--      <v-text-field v-model="password" label="Password" type="password" required></v-text-field>-->
       <v-btn color="primary" block dark class="login-btn" type="submit">Sign Up</v-btn>
     </v-form>
   </div>
@@ -43,7 +43,7 @@ async function register() {
     const newUser = {
       username: `${firstName.value} ${lastName.value}`,
       email: email.value,
-      password: password.value,
+      // password: password.value,
       role: 'customer',
       // uid: userCred.user.uid
     };

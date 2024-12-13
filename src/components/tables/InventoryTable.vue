@@ -110,9 +110,6 @@ async function initialize() {
       }));
     }
 
-    showSnackbar('Loaded all items in the inventory and suppliers!', 'success');
-
-
     showSnackbar(`Loaded all items in the inventory!`, 'success');
 
   }catch(error: any){
@@ -164,9 +161,29 @@ async function save() {
       console.log(newItem)
       const response = await createInventoryRequest(newItem, token);
 
+      // fetch suppliers
+      const supplierMap = new Map<number, string>();
+
+      const suppliersData = await fetchSuppliersRequest(token);
+      if (Array.isArray(suppliersData)) {
+        suppliers.value = suppliersData;
+
+        suppliersData.forEach(supplier => {
+          supplierMap.set(supplier.supplier_id, supplier.supplier_name);
+        });
+
+      }
+
+      const supplier = suppliersData.find((s: any) => s.supplier_id = newItem.supplier_id)
+      console.log('supplier', supplier)
+      let updatedItem ={
+        ...newItem,
+        supplier: suppliersData ? supplier.supplier_name : newItem.supplier_id
+      }
+
       if (response === 'Success') {
         showSnackbar(`New Item created: ${newItem.part_number}`, 'success');
-        inventory.value = [newItem, ...inventory.value];
+        inventory.value = [updatedItem, ...inventory.value];
         close();
 
       } else {
